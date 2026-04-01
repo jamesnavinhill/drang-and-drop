@@ -39,14 +39,14 @@ Verified behaviors:
 
 Direct command verification completed via `pnpm verify:commands`:
 
-1. Verified shared insert command behavior for valid page-root and nested placements.
-2. Verified page-root rejection for a `button` block that requires a layout container.
-3. Verified shared move command behavior for nested-container moves.
+1. Verified shared insert command behavior for valid page-header, page-main, and nested block-region placements.
+2. Verified region-placement rejection for a `button` block that requires a layout-content region.
+3. Verified shared move command behavior for nested block-region moves.
 4. Verified descendant-target rejection for invalid moves.
-5. Verified page-root-only placement rejection for invalid nested inserts.
+5. Verified page-region-only placement rejection for invalid nested inserts.
 6. Verified shared duplicate command behavior for subtree cloning with fresh ids.
 7. Verified shared remove command behavior for subtree deletion.
-8. Verified structural validation rejects invalid root placement and orphan nodes.
+8. Verified structural validation rejects invalid page-region placement and orphan nodes.
 
 Contract verification completed via `pnpm verify:contracts`:
 
@@ -93,21 +93,22 @@ Automated generated starter validation completed via `pnpm verify:starters`:
 Automated builder drag validation completed via `pnpm verify:dnd`:
 
 1. Rebuilt the builder app and served it under `next start`.
-2. Reset the demo state and created a clean verification page in-browser.
-3. Verified palette-to-canvas insertion for a root `section`.
-4. Verified nested insertion into that section for `text` and `button` blocks.
-5. Verified nested reordering by moving `button` ahead of `text`.
-6. Verified another root insertion for `hero`.
-7. Verified root-level reordering by moving `hero` ahead of `section`.
-8. Verified nested insertion for `stack`, then moved `text` into that nested container.
-9. Verified an invalid nested `hero` move does not mutate the builder structure.
-10. Verified an invalid descendant move does not mutate the builder structure.
-11. Verified an invalid nested `navbar` drop does not mutate the builder structure.
-12. Verified invalid hero, descendant, and navbar interactions surface a visible editor notice.
-13. Verified the shared editor notice can be dismissed.
-14. Verified inspector-driven reorder can move a selected node down and restore it back up.
-15. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
-16. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
+2. Reset the demo state and created a clean verification page in-browser with empty `header`, `main`, and `footer` regions.
+3. Verified palette-to-canvas insertion for a `section` into the page `main` region.
+4. Verified palette-to-canvas insertion for a `navbar` into the page `header` region after selecting that destination explicitly.
+5. Verified nested insertion into section `content` for `text` and `button` blocks.
+6. Verified nested reordering by moving `button` ahead of `text`.
+7. Verified another page-main insertion for `hero`.
+8. Verified page-main reordering by moving `hero` ahead of `section`.
+9. Verified nested insertion for `stack`, then moved `text` into that nested block region.
+10. Verified an invalid nested `hero` move does not mutate the builder structure.
+11. Verified an invalid descendant move does not mutate the builder structure.
+12. Verified an invalid nested `navbar` drop does not mutate the builder structure.
+13. Verified invalid hero, descendant, and navbar interactions surface a visible editor notice.
+14. Verified the shared editor notice can be dismissed.
+15. Verified inspector-driven reorder can move a selected node down and restore it back up.
+16. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
+17. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
 
 ## Remaining Caveat
 
@@ -129,7 +130,7 @@ What is already in place to support that follow-up:
 - the older `component-*` compatibility shims and the old registry compatibility barrel are now retired, so the active codepaths resolve directly through the canonical `block-*` modules
 - `scripts/verify-builder-contracts.ts` now gives the block system a fast contract-level verification loop before the heavier drag and starter checks run
 - starter verification now includes an internal block-contract coverage project so preview/export parity checks do not depend only on the shape of the shipped user-facing templates
-- placement rules now resolve through explicit `page-root` and `layout-container` target kinds, which gives validation and verification a clearer shared vocabulary
+- placement rules now resolve through explicit page-region and block-region target kinds, which gives validation and verification a clearer shared vocabulary
 - shared block-content parsing and fallback semantics now back both builder preview and generated starter render support, which reduces one more source of preview/export drift
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 - the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized

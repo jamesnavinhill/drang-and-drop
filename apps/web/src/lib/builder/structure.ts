@@ -1,18 +1,20 @@
 import { getBlockDefinition } from "./block-definitions";
 import {
-  canAcceptChild,
   blockCanHaveChildren,
-  describeAllowedParentKinds,
+  canAcceptChild,
+  describeAllowedRegionKinds,
   describePlacementTargetKind,
   getBlockPlacement,
   getPlacementTargetKind,
 } from "./block-placement";
-import type { BlockType, BuilderNode, BuilderProject, ParentReference, PlacementTargetKind } from "./types";
+import { describeRegionReference, getNodeRegionChildIds, getPageRegionChildIds, getPageRegionLabel, getPrimaryNodeRegionId } from "./regions";
+import type { BlockType, BuilderNode, BuilderProject, PageRegionId, ParentReference } from "./types";
 
 export type BuilderPlacementFailureReason =
   | "duplicate-node-id"
   | "missing-node"
   | "missing-parent"
+  | "missing-region"
   | "self-target"
   | "descendant-target"
   | "invalid-child";
@@ -76,6 +78,7 @@ export interface BuilderStructureIssue {
     | "invalid-node-key"
     | "invalid-placement"
     | "missing-node-reference"
+    | "missing-region"
     | "orphan-node";
   message: string;
   path: Array<number | string>;
@@ -104,34 +107,50 @@ function trimSnippet(value: string, maxLength = 56) {
 
 export function findParentReference(project: BuilderProject, nodeId: string): ParentReference | null {
   for (const page of project.pages) {
-    if (page.rootIds.includes(nodeId)) {
-      return { kind: "page", id: page.id };
+    for (const regionId of Object.keys(page.regions) as PageRegionId[]) {
+      if (getPageRegionChildIds(page, regionId).includes(nodeId)) {
+        return { kind: "page-region", pageId: page.id, regionId };
+      }
     }
   }
 
   for (const node of Object.values(project.nodes)) {
-    if (node.children.includes(nodeId)) {
-      return { kind: "node", id: node.id };
+    for (const [regionId, childIds] of Object.entries(node.regions)) {
+      if (childIds.includes(nodeId)) {
+        return { kind: "node-region", nodeId: node.id, regionId };
+      }
     }
   }
 
   return null;
 }
 
-export function getParentChildren(project: BuilderProject, parent: ParentReference) {
-  if (parent.kind === "page") {
-    return project.pages.find((page) => page.id === parent.id)?.rootIds ?? [];
+function hasParentReference(project: BuilderProject, parent: ParentReference) {
+  if (parent.kind === "page-region") {
+    const page = project.pages.find((entry) => entry.id === parent.pageId);
+    return Boolean(page && parent.regionId in page.regions);
   }
 
-  return project.nodes[parent.id]?.children ?? [];
+  const node = project.nodes[parent.nodeId ?? ""];
+  return Boolean(node && parent.regionId in node.regions);
+}
+
+export function getParentChildren(project: BuilderProject, parent: ParentReference) {
+  if (parent.kind === "page-region") {
+    const page = project.pages.find((entry) => entry.id === parent.pageId);
+    return page ? getPageRegionChildIds(page, parent.regionId as PageRegionId) : [];
+  }
+
+  const node = project.nodes[parent.nodeId ?? ""];
+  return node ? getNodeRegionChildIds(node, parent.regionId) : [];
 }
 
 export function getParentType(project: BuilderProject, parent: ParentReference): BlockType | "page" | null {
-  if (parent.kind === "page") {
-    return project.pages.some((page) => page.id === parent.id) ? "page" : null;
+  if (parent.kind === "page-region") {
+    return project.pages.some((page) => page.id === parent.pageId) ? "page" : null;
   }
 
-  return project.nodes[parent.id]?.type ?? null;
+  return project.nodes[parent.nodeId ?? ""]?.type ?? null;
 }
 
 export function getPlacementTarget(project: BuilderProject, parent: ParentReference) {
@@ -146,26 +165,31 @@ export function getPlacementTarget(project: BuilderProject, parent: ParentRefere
   };
 }
 
-function getPlacementFailureMessage(childType: BlockType, targetKind: PlacementTargetKind) {
-  const placement = getBlockPlacement(childType);
-  const allowedTargets = describeAllowedParentKinds(placement.allowedParents);
-  const attemptedTarget = describePlacementTargetKind(targetKind);
+function getPlacementFailureMessage(
+  project: BuilderProject,
+  childType: BlockType,
+  parent: ParentReference,
+  attemptedTargetKind: NonNullable<ReturnType<typeof getPlacementTargetKind>>,
+) {
+  const parentLabel = describeRegionReference(project, parent);
+  const allowedTargets = describeAllowedRegionKinds(getBlockPlacement(childType).allowedRegions);
+  const attemptedTarget = describePlacementTargetKind(attemptedTargetKind);
 
-  return `A ${childType} block can only be placed in ${allowedTargets}, not in ${attemptedTarget}.`;
+  return `A ${childType} block can only be placed in ${allowedTargets}, not in ${attemptedTarget} under ${parentLabel}.`;
 }
 
 function setParentChildren(project: BuilderProject, parent: ParentReference, nextChildren: string[]) {
-  if (parent.kind === "page") {
-    const page = project.pages.find((entry) => entry.id === parent.id);
+  if (parent.kind === "page-region") {
+    const page = project.pages.find((entry) => entry.id === parent.pageId);
     if (page) {
-      page.rootIds = nextChildren;
+      page.regions[parent.regionId as PageRegionId] = nextChildren;
     }
     return;
   }
 
-  const node = project.nodes[parent.id];
+  const node = project.nodes[parent.nodeId ?? ""];
   if (node) {
-    node.children = nextChildren;
+    node.regions[parent.regionId] = nextChildren;
   }
 }
 
@@ -216,23 +240,27 @@ export function cloneNodeSubtree(
   }
 
   const nextId = createUniqueNodeId(project, createNodeId);
-  const nextChildren: string[] = [];
+  const nextRegions = Object.fromEntries(
+    Object.keys(source.regions).map((regionId) => [regionId, [] as string[]]),
+  ) as Record<string, string[]>;
   const createdNodeIds = [nextId];
 
-  for (const childId of source.children) {
-    const childClone = cloneNodeSubtree(project, childId, createNodeId);
-    if (!childClone) {
-      return null;
-    }
+  for (const [regionId, childIds] of Object.entries(source.regions)) {
+    for (const childId of childIds) {
+      const childClone = cloneNodeSubtree(project, childId, createNodeId);
+      if (!childClone) {
+        return null;
+      }
 
-    nextChildren.push(childClone.rootId);
-    createdNodeIds.push(...childClone.createdNodeIds);
+      nextRegions[regionId].push(childClone.rootId);
+      createdNodeIds.push(...childClone.createdNodeIds);
+    }
   }
 
   project.nodes[nextId] = {
     ...structuredClone(source),
     id: nextId,
-    children: nextChildren,
+    regions: nextRegions,
   };
 
   return {
@@ -249,8 +277,10 @@ export function deleteNodeSubtree(project: BuilderProject, nodeId: string): stri
 
   const removedNodeIds: string[] = [];
 
-  for (const childId of node.children) {
-    removedNodeIds.push(...deleteNodeSubtree(project, childId));
+  for (const childIds of Object.values(node.regions)) {
+    for (const childId of childIds) {
+      removedNodeIds.push(...deleteNodeSubtree(project, childId));
+    }
   }
 
   delete project.nodes[nodeId];
@@ -274,9 +304,11 @@ export function isDescendantNode(project: BuilderProject, ancestorId: string, po
       return false;
     }
 
-    for (const childId of node.children) {
-      if (childId === potentialDescendantId || visit(childId)) {
-        return true;
+    for (const childIds of Object.values(node.regions)) {
+      for (const childId of childIds) {
+        if (childId === potentialDescendantId || visit(childId)) {
+          return true;
+        }
       }
     }
 
@@ -297,8 +329,7 @@ export function validateBlockPlacement({
   parent: ParentReference;
   project: BuilderProject;
 }): BuilderPlacementResult {
-  const targetKind = getPlacementTargetKind(project, parent);
-  if (!targetKind) {
+  if (!hasParentReference(project, parent)) {
     return {
       ok: false,
       reason: "missing-parent",
@@ -306,17 +337,29 @@ export function validateBlockPlacement({
     };
   }
 
+  const targetKind = getPlacementTargetKind(project, parent);
+  if (!targetKind) {
+    return {
+      ok: false,
+      reason: "missing-region",
+      message: "The requested destination region does not exist.",
+    };
+  }
+
   if (!canAcceptChild(targetKind, childType)) {
     return {
       ok: false,
       reason: "invalid-child",
-      message: getPlacementFailureMessage(childType, targetKind),
+      message: getPlacementFailureMessage(project, childType, parent, targetKind),
     };
   }
 
   return {
     ok: true,
-    index: index === undefined ? getParentChildren(project, parent).length : Math.max(0, Math.min(index, getParentChildren(project, parent).length)),
+    index:
+      index === undefined
+        ? getParentChildren(project, parent).length
+        : Math.max(0, Math.min(index, getParentChildren(project, parent).length)),
     parent,
   };
 }
@@ -341,7 +384,7 @@ export function validateNodePlacement({
     };
   }
 
-  if (parent.kind === "node" && parent.id === nodeId) {
+  if (parent.kind === "node-region" && parent.nodeId === nodeId) {
     return {
       ok: false,
       reason: "self-target",
@@ -349,7 +392,7 @@ export function validateNodePlacement({
     };
   }
 
-  if (parent.kind === "node" && isDescendantNode(project, nodeId, parent.id)) {
+  if (parent.kind === "node-region" && isDescendantNode(project, nodeId, parent.nodeId ?? "")) {
     return {
       ok: false,
       reason: "descendant-target",
@@ -423,7 +466,9 @@ export function executeStructureCommand(
       let targetIndex = placement.index;
       if (
         previous.parent.kind === placement.parent.kind &&
-        previous.parent.id === placement.parent.id &&
+        previous.parent.regionId === placement.parent.regionId &&
+        previous.parent.pageId === placement.parent.pageId &&
+        previous.parent.nodeId === placement.parent.nodeId &&
         previous.index < placement.index
       ) {
         targetIndex = placement.index - 1;
@@ -558,69 +603,77 @@ export function collectProjectStructureIssues(project: BuilderProject): BuilderS
   }
 
   project.pages.forEach((page, pageIndex) => {
-    page.rootIds.forEach((rootId, rootIndex) => {
-      const rootNode = project.nodes[rootId];
-      const path = ["pages", pageIndex, "rootIds", rootIndex] satisfies Array<number | string>;
+    for (const regionId of Object.keys(page.regions) as PageRegionId[]) {
+      page.regions[regionId].forEach((rootId, rootIndex) => {
+        const rootNode = project.nodes[rootId];
+        const path = ["pages", pageIndex, "regions", regionId, rootIndex] satisfies Array<number | string>;
 
-      if (!rootNode) {
-        addIssue({
-          code: "missing-node-reference",
-          message: `Page "${page.name}" references missing node "${rootId}".`,
-          path,
+        if (!rootNode) {
+          addIssue({
+            code: "missing-node-reference",
+            message: `Page "${page.name}" references missing node "${rootId}".`,
+            path,
+          });
+          return;
+        }
+
+        const parent: ParentReference = { kind: "page-region", pageId: page.id, regionId };
+        trackParent(rootId, parent);
+
+        const placement = validateBlockPlacement({
+          childType: rootNode.type,
+          index: rootIndex,
+          parent,
+          project,
         });
-        return;
-      }
 
-      trackParent(rootId, { kind: "page", id: page.id });
-
-      const placement = validateBlockPlacement({
-        childType: rootNode.type,
-        index: rootIndex,
-        parent: { kind: "page", id: page.id },
-        project,
+        if (!placement.ok) {
+          addIssue({
+            code: "invalid-placement",
+            message: `Page "${page.name}" contains an invalid ${regionId} ${rootNode.type} block.`,
+            path,
+          });
+        }
       });
-
-      if (!placement.ok) {
-        addIssue({
-          code: "invalid-placement",
-          message: `Page "${page.name}" contains an invalid root ${rootNode.type} block.`,
-          path,
-        });
-      }
-    });
+    }
   });
 
   Object.values(project.nodes).forEach((node) => {
-    node.children.forEach((childId, childIndex) => {
-      const childNode = project.nodes[childId];
-      const path = ["nodes", node.id, "children", childIndex] satisfies Array<number | string>;
+    for (const region of Object.keys(node.regions)) {
+      const childIds = node.regions[region] ?? [];
 
-      if (!childNode) {
-        addIssue({
-          code: "missing-node-reference",
-          message: `Node "${node.id}" references missing child "${childId}".`,
-          path,
+      childIds.forEach((childId, childIndex) => {
+        const childNode = project.nodes[childId];
+        const path = ["nodes", node.id, "regions", region, childIndex] satisfies Array<number | string>;
+
+        if (!childNode) {
+          addIssue({
+            code: "missing-node-reference",
+            message: `Node "${node.id}" references missing child "${childId}".`,
+            path,
+          });
+          return;
+        }
+
+        const parent: ParentReference = { kind: "node-region", nodeId: node.id, regionId: region };
+        trackParent(childId, parent);
+
+        const placement = validateBlockPlacement({
+          childType: childNode.type,
+          index: childIndex,
+          parent,
+          project,
         });
-        return;
-      }
 
-      trackParent(childId, { kind: "node", id: node.id });
-
-      const placement = validateBlockPlacement({
-        childType: childNode.type,
-        index: childIndex,
-        parent: { kind: "node", id: node.id },
-        project,
+        if (!placement.ok) {
+          addIssue({
+            code: "invalid-placement",
+            message: `A ${childNode.type} block cannot be nested inside ${node.type} ${region}.`,
+            path,
+          });
+        }
       });
-
-      if (!placement.ok) {
-        addIssue({
-          code: "invalid-placement",
-          message: `A ${childNode.type} block cannot be nested inside ${node.type}.`,
-          path,
-        });
-      }
-    });
+    }
   });
 
   Object.keys(project.nodes).forEach((nodeId) => {
@@ -629,7 +682,7 @@ export function collectProjectStructureIssues(project: BuilderProject): BuilderS
     if (parents.length === 0) {
       addIssue({
         code: "orphan-node",
-        message: `Node "${nodeId}" is not reachable from any page root.`,
+        message: `Node "${nodeId}" is not reachable from any page region.`,
         path: ["nodes", nodeId],
       });
     }
@@ -655,7 +708,7 @@ export function collectProjectStructureIssues(project: BuilderProject): BuilderS
         {
           code: "cycle",
           message: `Node cycle detected through "${nodeId}".`,
-          path: ["nodes", nodeId, "children"],
+          path: ["nodes", nodeId, "regions"],
         },
         `cycle:${[...path, nodeId].join("->")}`,
       );
@@ -670,21 +723,25 @@ export function collectProjectStructureIssues(project: BuilderProject): BuilderS
 
     const node = project.nodes[nodeId];
     if (node) {
-      node.children.forEach((childId) => {
-        if (project.nodes[childId]) {
-          visit(childId, [...path, nodeId]);
-        }
-      });
+      for (const childIds of Object.values(node.regions)) {
+        childIds.forEach((childId) => {
+          if (project.nodes[childId]) {
+            visit(childId, [...path, nodeId]);
+          }
+        });
+      }
     }
 
     visitState.set(nodeId, "visited");
   }
 
   project.pages.forEach((page) => {
-    page.rootIds.forEach((rootId) => {
-      if (project.nodes[rootId]) {
-        visit(rootId, []);
-      }
+    (Object.keys(page.regions) as PageRegionId[]).forEach((regionId) => {
+      page.regions[regionId].forEach((rootId) => {
+        if (project.nodes[rootId]) {
+          visit(rootId, []);
+        }
+      });
     });
   });
 
@@ -703,7 +760,13 @@ export function countSubtreeNodes(project: BuilderProject, nodeId: string): numb
     return 0;
   }
 
-  return 1 + node.children.reduce((total, childId) => total + countSubtreeNodes(project, childId), 0);
+  return (
+    1 +
+    Object.values(node.regions).reduce(
+      (total, childIds) => total + childIds.reduce((subtotal, childId) => subtotal + countSubtreeNodes(project, childId), 0),
+      0,
+    )
+  );
 }
 
 export function countPageNodes(project: BuilderProject, pageId: string): number {
@@ -712,7 +775,11 @@ export function countPageNodes(project: BuilderProject, pageId: string): number 
     return 0;
   }
 
-  return page.rootIds.reduce((total, rootId) => total + countSubtreeNodes(project, rootId), 0);
+  return (Object.keys(page.regions) as PageRegionId[]).reduce(
+    (total, regionId) =>
+      total + page.regions[regionId].reduce((subtotal, rootId) => subtotal + countSubtreeNodes(project, rootId), 0),
+    0,
+  );
 }
 
 export function getNodeDisplayLabel(node: BuilderNode) {
@@ -739,9 +806,9 @@ export function getNodeHierarchyDepth(project: BuilderProject, nodeId: string) {
   let depth = 0;
   let parent = findParentReference(project, nodeId);
 
-  while (parent?.kind === "node") {
+  while (parent?.kind === "node-region") {
     depth += 1;
-    parent = findParentReference(project, parent.id);
+    parent = findParentReference(project, parent.nodeId ?? "");
   }
 
   return depth;
@@ -770,46 +837,56 @@ export function getInsertionTarget(
   project: BuilderProject,
   selectedPageId: string,
   selectedNodeId: string | null,
+  selectedRegionTarget: ParentReference | null,
 ): ParentReference {
-  if (!selectedNodeId) {
-    return { kind: "page", id: selectedPageId };
+  if (selectedNodeId) {
+    const selectedNode = project.nodes[selectedNodeId];
+    if (!selectedNode) {
+      return { kind: "page-region", pageId: selectedPageId, regionId: "main" };
+    }
+
+    if (blockCanHaveChildren(selectedNode.type)) {
+      const primaryRegionId = getPrimaryNodeRegionId(selectedNode.type);
+      if (primaryRegionId) {
+        return { kind: "node-region", nodeId: selectedNodeId, regionId: primaryRegionId };
+      }
+    }
+
+    return findParentReference(project, selectedNodeId) ?? { kind: "page-region", pageId: selectedPageId, regionId: "main" };
   }
 
-  const selectedNode = project.nodes[selectedNodeId];
-  if (!selectedNode) {
-    return { kind: "page", id: selectedPageId };
+  if (selectedRegionTarget && hasParentReference(project, selectedRegionTarget)) {
+    return selectedRegionTarget;
   }
 
-  if (blockCanHaveChildren(selectedNode.type)) {
-    return { kind: "node", id: selectedNodeId };
-  }
-
-  return findParentReference(project, selectedNodeId) ?? { kind: "page", id: selectedPageId };
+  return { kind: "page-region", pageId: selectedPageId, regionId: "main" };
 }
 
 export function describeInsertionTarget(
   project: BuilderProject,
   selectedPageId: string,
   selectedNodeId: string | null,
+  selectedRegionTarget: ParentReference | null,
 ) {
-  const target = getInsertionTarget(project, selectedPageId, selectedNodeId);
+  const target = getInsertionTarget(project, selectedPageId, selectedNodeId, selectedRegionTarget);
 
-  if (target.kind === "page") {
-    const page = project.pages.find((entry) => entry.id === target.id);
+  if (target.kind === "page-region") {
+    const page = project.pages.find((entry) => entry.id === target.pageId);
+    const regionLabel = getPageRegionLabel(target.regionId as PageRegionId);
 
     return {
       target,
-      label: page ? `${page.name} page root` : "Page root",
-      kind: "page" as const,
+      label: page ? `${page.name} ${regionLabel}` : regionLabel,
+      kind: "page-region" as const,
     };
   }
 
-  const node = project.nodes[target.id];
+  const node = project.nodes[target.nodeId ?? ""];
   const definition = node ? getBlockDefinition(node.type) : null;
 
   return {
     target,
-    label: node && definition ? `${definition.title}: ${getNodeDisplayLabel(node)}` : "Selected container",
-    kind: "node" as const,
+    label: node && definition ? `${definition.title}: ${getNodeDisplayLabel(node)} / ${target.regionId}` : "Selected region",
+    kind: "node-region" as const,
   };
 }

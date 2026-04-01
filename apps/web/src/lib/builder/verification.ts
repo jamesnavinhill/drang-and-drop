@@ -1,8 +1,8 @@
 import type { BlockType, BuilderProject, PreviewMode } from "./types";
 
 export interface BuilderVerificationNodeSnapshot {
-  childIds: string[];
   id: string;
+  regions: Record<string, string[]>;
   type: BlockType;
 }
 
@@ -10,7 +10,7 @@ export interface BuilderVerificationPageSnapshot {
   id: string;
   name: string;
   path: string;
-  rootIds: string[];
+  regions: Record<string, string[]>;
 }
 
 export interface BuilderVerificationSnapshot {
@@ -38,15 +38,15 @@ export function createBuilderVerificationSnapshot({
     id: page.id,
     name: page.name,
     path: page.path,
-    rootIds: [...page.rootIds],
+    regions: Object.fromEntries(Object.entries(page.regions).map(([regionId, childIds]) => [regionId, [...childIds]])),
   }));
   const currentPage = pages.find((page) => page.id === selectedPageId) ?? null;
   const nodes = Object.fromEntries(
     Object.values(project.nodes).map((node) => [
       node.id,
       {
-        childIds: [...node.children],
         id: node.id,
+        regions: Object.fromEntries(Object.entries(node.regions).map(([regionId, childIds]) => [regionId, [...childIds]])),
         type: node.type,
       },
     ]),

@@ -59,16 +59,23 @@ function getActiveDragData(element: Element, project: ReturnType<typeof useBuild
 }
 
 function parseParentReference(value: string): ParentReference {
-  const [kind, id] = value.split(":");
+  const [kind, targetId, regionId] = value.split(":");
 
-  if (!id || (kind !== "page" && kind !== "node")) {
+  if (!targetId || !regionId || (kind !== "page-region" && kind !== "node-region")) {
     throw new Error(`Invalid builder drop target "${value}".`);
   }
 
-  return {
-    id,
-    kind,
-  };
+  return kind === "page-region"
+    ? {
+        kind,
+        pageId: targetId,
+        regionId,
+      }
+    : {
+        kind,
+        nodeId: targetId,
+        regionId,
+      };
 }
 
 function getOverDragData(element: Element, project: ReturnType<typeof useBuilderStore.getState>["project"]): BuilderOverDragData {

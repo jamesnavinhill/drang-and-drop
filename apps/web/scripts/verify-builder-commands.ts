@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 
+import { createNodeRegions } from "../src/lib/builder/regions";
 import { validateProject } from "../src/lib/builder/schema";
 import { executeStructureCommand } from "../src/lib/builder/structure";
-import type { BlockType, BuilderNode, BuilderProject } from "../src/lib/builder/types";
+import type { BlockType, BuilderNode, BuilderProject, ParentReference } from "../src/lib/builder/types";
 
 function createProject(): BuilderProject {
   return {
@@ -16,7 +17,11 @@ function createProject(): BuilderProject {
         id: "page-home",
         name: "Home",
         path: "/",
-        rootIds: [],
+        regions: {
+          header: [],
+          main: [],
+          footer: [],
+        },
       },
     ],
     theme: {
@@ -34,11 +39,11 @@ function createProject(): BuilderProject {
   };
 }
 
-function createNode(id: string, type: BlockType, children: string[] = []): BuilderNode {
+function createNode(id: string, type: BlockType, childIds: string[] = []): BuilderNode {
   return {
-    children,
     id,
     props: {},
+    regions: createNodeRegions(type, childIds),
     type,
   };
 }
@@ -67,114 +72,124 @@ function expectFailure(
 
 function main() {
   const project = createProject();
-  const pageParent = {
-    id: "page-home",
-    kind: "page" as const,
+  const pageHeaderParent: ParentReference = {
+    kind: "page-region",
+    pageId: "page-home",
+    regionId: "header",
+  };
+  const pageMainParent: ParentReference = {
+    kind: "page-region",
+    pageId: "page-home",
+    regionId: "main",
   };
 
   expectSuccess(
     executeStructureCommand(project, {
       kind: "insert",
-      node: createNode("section-1", "section"),
-      parent: pageParent,
+      node: createNode("navbar-1", "navbar"),
+      parent: pageHeaderParent,
     }),
-    "Expected section insertion at the page root to succeed.",
+    "Expected navbar insertion in the page header region to succeed.",
   );
-  assert.deepEqual(project.pages[0]?.rootIds, ["section-1"]);
+  assert.deepEqual(project.pages[0]?.regions.header, ["navbar-1"]);
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("section-1", "section"),
+      parent: pageMainParent,
+    }),
+    "Expected section insertion in the page main region to succeed.",
+  );
+  assert.deepEqual(project.pages[0]?.regions.main, ["section-1"]);
+
+  const sectionContentParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "section-1",
+    regionId: "content",
+  };
 
   expectSuccess(
     executeStructureCommand(project, {
       kind: "insert",
       node: createNode("text-1", "text"),
-      parent: {
-        id: "section-1",
-        kind: "node",
-      },
+      parent: sectionContentParent,
     }),
-    "Expected text insertion inside section to succeed.",
+    "Expected text insertion inside section content to succeed.",
   );
 
   expectSuccess(
     executeStructureCommand(project, {
       kind: "insert",
       node: createNode("stack-1", "stack"),
-      parent: {
-        id: "section-1",
-        kind: "node",
-      },
+      parent: sectionContentParent,
     }),
-    "Expected stack insertion inside section to succeed.",
+    "Expected stack insertion inside section content to succeed.",
   );
-  assert.deepEqual(project.nodes["section-1"]?.children, ["text-1", "stack-1"]);
+  assert.deepEqual(project.nodes["section-1"]?.regions.content, ["text-1", "stack-1"]);
+
+  const stackContentParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "stack-1",
+    regionId: "content",
+  };
 
   expectSuccess(
     executeStructureCommand(project, {
       index: 0,
       kind: "move",
       nodeId: "text-1",
-      parent: {
-        id: "stack-1",
-        kind: "node",
-      },
+      parent: stackContentParent,
     }),
-    "Expected moving text into nested stack to succeed.",
+    "Expected moving text into nested stack content to succeed.",
   );
-  assert.deepEqual(project.nodes["section-1"]?.children, ["stack-1"]);
-  assert.deepEqual(project.nodes["stack-1"]?.children, ["text-1"]);
+  assert.deepEqual(project.nodes["section-1"]?.regions.content, ["stack-1"]);
+  assert.deepEqual(project.nodes["stack-1"]?.regions.content, ["text-1"]);
 
   expectFailure(
     executeStructureCommand(project, {
       index: 0,
       kind: "move",
       nodeId: "section-1",
-      parent: {
-        id: "stack-1",
-        kind: "node",
-      },
+      parent: stackContentParent,
     }),
     "descendant-target",
     "Moving a node into one of its descendants should fail.",
   );
-  assert.deepEqual(project.pages[0]?.rootIds, ["section-1"]);
-  assert.deepEqual(project.nodes["section-1"]?.children, ["stack-1"]);
+  assert.deepEqual(project.pages[0]?.regions.main, ["section-1"]);
+  assert.deepEqual(project.nodes["section-1"]?.regions.content, ["stack-1"]);
 
   expectFailure(
     executeStructureCommand(project, {
       kind: "insert",
       node: createNode("button-root-attempt", "button"),
-      parent: pageParent,
+      parent: pageMainParent,
     }),
     "invalid-child",
-    "Inserting a button at the page root should fail because buttons require a layout container.",
+    "Inserting a button in the page main region should fail because buttons require a layout content region.",
   );
   assert.equal(project.nodes["button-root-attempt"], undefined);
 
   expectFailure(
     executeStructureCommand(project, {
       kind: "insert",
-      node: createNode("navbar-1", "navbar"),
-      parent: {
-        id: "section-1",
-        kind: "node",
-      },
+      node: createNode("navbar-nested-attempt", "navbar"),
+      parent: sectionContentParent,
     }),
     "invalid-child",
-    "Inserting a root-only navbar into a section should fail.",
+    "Inserting a navbar into section content should fail.",
   );
-  assert.equal(project.nodes["navbar-1"], undefined);
+  assert.equal(project.nodes["navbar-nested-attempt"], undefined);
 
   expectSuccess(
     executeStructureCommand(project, {
       kind: "insert",
       node: createNode("stat-1", "statCard"),
-      parent: {
-        id: "stack-1",
-        kind: "node",
-      },
+      parent: stackContentParent,
     }),
-    "Expected stat card insertion inside a layout container to succeed.",
+    "Expected stat card insertion inside a layout content region to succeed.",
   );
-  assert.deepEqual(project.nodes["stack-1"]?.children, ["text-1", "stat-1"]);
+  assert.deepEqual(project.nodes["stack-1"]?.regions.content, ["text-1", "stat-1"]);
 
   const duplicateIdSequence = ["stack-copy", "text-copy", "stat-copy"];
   const duplicateResult = expectSuccess(
@@ -191,8 +206,8 @@ function main() {
   );
   assert.equal(duplicateResult.nodeId, "stack-copy");
   assert.deepEqual(duplicateResult.createdNodeIds, ["stack-copy", "text-copy", "stat-copy"]);
-  assert.deepEqual(project.nodes["section-1"]?.children, ["stack-1", "stack-copy"]);
-  assert.deepEqual(project.nodes["stack-copy"]?.children, ["text-copy", "stat-copy"]);
+  assert.deepEqual(project.nodes["section-1"]?.regions.content, ["stack-1", "stack-copy"]);
+  assert.deepEqual(project.nodes["stack-copy"]?.regions.content, ["text-copy", "stat-copy"]);
   assert.equal(project.nodes["text-copy"]?.type, "text");
   assert.equal(project.nodes["stat-copy"]?.type, "statCard");
 
@@ -204,7 +219,7 @@ function main() {
     "Expected removing the original nested stack subtree to succeed.",
   );
   assert.deepEqual(removeResult.removedNodeIds, ["text-1", "stat-1", "stack-1"]);
-  assert.deepEqual(project.nodes["section-1"]?.children, ["stack-copy"]);
+  assert.deepEqual(project.nodes["section-1"]?.regions.content, ["stack-copy"]);
   assert.equal(project.nodes["stack-1"], undefined);
   assert.equal(project.nodes["text-1"], undefined);
   assert.equal(project.nodes["stat-1"], undefined);
@@ -222,7 +237,7 @@ function main() {
   assert.equal(validProjectResult.success, true, "Expected the verified project shape to remain valid.");
 
   const invalidProject = createProject();
-  invalidProject.pages[0]!.rootIds = ["button-root"];
+  invalidProject.pages[0]!.regions.main = ["button-root"];
   invalidProject.nodes["button-root"] = createNode("button-root", "button");
   invalidProject.nodes["orphan-text"] = createNode("orphan-text", "text");
 
@@ -231,8 +246,8 @@ function main() {
 
   const messages = invalidProjectResult.error.issues.map((issue) => issue.message);
   assert.ok(
-    messages.some((message) => message.includes("invalid root button block")),
-    "Expected validation to report invalid page-root placement.",
+    messages.some((message) => message.includes("invalid main button block")),
+    "Expected validation to report invalid page-main placement.",
   );
   assert.ok(
     messages.some((message) => message.includes('Node "orphan-text" is not reachable')),

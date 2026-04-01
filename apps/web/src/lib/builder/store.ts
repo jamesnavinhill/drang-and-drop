@@ -5,8 +5,9 @@ import { persist } from "zustand/middleware";
 
 import { getBlockDefinition } from "./block-definitions";
 import { createDefaultProject, createId, createProjectFromTemplate } from "./default-project";
+import { createNodeRegions } from "./regions";
 import { validateProject } from "./schema";
-import { executeStructureCommand, findParentReference } from "./structure";
+import { cloneNodeSubtree, deleteNodeSubtree, executeStructureCommand, findParentReference } from "./structure";
 import type {
   BlockType,
   BuilderNode,
@@ -34,8 +35,10 @@ interface BuilderState {
   historyFuture: BuilderSnapshot[];
   canUndo: boolean;
   canRedo: boolean;
+  selectedRegionTarget: ParentReference | null;
   selectPage: (pageId: string) => void;
   selectNode: (nodeId: string | null) => void;
+  selectRegionTarget: (target: ParentReference | null) => void;
   setPreviewMode: (mode: PreviewMode) => void;
   setHasHydrated: (hasHydrated: boolean) => void;
   clearEditorNotice: () => void;
@@ -65,6 +68,7 @@ interface BuilderSnapshot {
   project: BuilderProject;
   selectedPageId: string;
   selectedNodeId: string | null;
+  selectedRegionTarget: ParentReference | null;
 }
 
 const HISTORY_LIMIT = 50;
@@ -73,11 +77,14 @@ function cloneProject(project: BuilderProject) {
   return structuredClone(project);
 }
 
-function createSnapshot(state: Pick<BuilderState, "project" | "selectedPageId" | "selectedNodeId">): BuilderSnapshot {
+function createSnapshot(
+  state: Pick<BuilderState, "project" | "selectedPageId" | "selectedNodeId" | "selectedRegionTarget">,
+): BuilderSnapshot {
   return {
     project: state.project,
     selectedPageId: state.selectedPageId,
     selectedNodeId: state.selectedNodeId,
+    selectedRegionTarget: state.selectedRegionTarget,
   };
 }
 
@@ -86,6 +93,7 @@ function applySnapshot(snapshot: BuilderSnapshot) {
     project: snapshot.project,
     selectedPageId: snapshot.selectedPageId,
     selectedNodeId: snapshot.selectedNodeId,
+    selectedRegionTarget: snapshot.selectedRegionTarget,
   };
 }
 
@@ -121,39 +129,8 @@ function createNode(type: BlockType): BuilderNode {
     id: createId(),
     type,
     props: structuredClone(definition.defaults),
-    children: [],
+    regions: createNodeRegions(type),
   };
-}
-
-function cloneSubtree(project: BuilderProject, nodeId: string): string {
-  const source = getNode(project, nodeId);
-  if (!source) {
-    return nodeId;
-  }
-
-  const nextId = createId();
-  const nextChildren = source.children.map((childId) => cloneSubtree(project, childId));
-
-  project.nodes[nextId] = {
-    ...structuredClone(source),
-    id: nextId,
-    children: nextChildren,
-  };
-
-  return nextId;
-}
-
-function deleteSubtree(project: BuilderProject, nodeId: string) {
-  const node = getNode(project, nodeId);
-  if (!node) {
-    return;
-  }
-
-  for (const childId of node.children) {
-    deleteSubtree(project, childId);
-  }
-
-  delete project.nodes[nodeId];
 }
 
 function selectionStillExists(project: BuilderProject, nodeId: string | null) {
@@ -191,6 +168,7 @@ export const useBuilderStore = create<BuilderState>()(
       project: initialProject,
       selectedPageId: initialProject.pages[0]?.id ?? "",
       selectedNodeId: null,
+      selectedRegionTarget: null,
       previewMode: "desktop",
       editorNotice: null,
       hasHydrated: false,
@@ -202,8 +180,10 @@ export const useBuilderStore = create<BuilderState>()(
         set({
           selectedPageId: pageId,
           selectedNodeId: null,
+          selectedRegionTarget: null,
         }),
-      selectNode: (nodeId) => set({ selectedNodeId: nodeId }),
+      selectNode: (nodeId) => set({ selectedNodeId: nodeId, selectedRegionTarget: null }),
+      selectRegionTarget: (target) => set({ selectedNodeId: null, selectedRegionTarget: target }),
       setPreviewMode: (mode) => set({ previewMode: mode }),
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
       clearEditorNotice: () => set({ editorNotice: null }),
@@ -237,7 +217,11 @@ export const useBuilderStore = create<BuilderState>()(
             name: `Page ${project.pages.length + 1}`,
             path: `/page-${project.pages.length + 1}`,
             description: "A new page ready for layout work.",
-            rootIds: [],
+            regions: {
+              header: [],
+              main: [],
+              footer: [],
+            },
           };
           project.pages.push(nextPage);
           return withHistory(state, {
@@ -255,13 +239,18 @@ export const useBuilderStore = create<BuilderState>()(
           }
 
           const nextPageId = createId();
-          const nextRootIds = page.rootIds.map((rootId) => cloneSubtree(project, rootId));
+          const nextRegions = Object.fromEntries(
+            Object.entries(page.regions).map(([regionId, nodeIds]) => [
+              regionId,
+              nodeIds.map((rootId) => cloneNodeSubtree(project, rootId, createId)?.rootId ?? rootId),
+            ]),
+          ) as BuilderPage["regions"];
           const nextPage: BuilderPage = {
             ...structuredClone(page),
             id: nextPageId,
             name: `${page.name} Copy`,
             path: page.path === "/" ? `/copy-${nextPageId.slice(0, 6)}` : `${page.path}-copy`,
-            rootIds: nextRootIds,
+            regions: nextRegions,
           };
           project.pages.push(nextPage);
           return withHistory(state, {
@@ -283,8 +272,10 @@ export const useBuilderStore = create<BuilderState>()(
           }
 
           const [page] = project.pages.splice(pageIndex, 1);
-          for (const rootId of page.rootIds) {
-            deleteSubtree(project, rootId);
+          for (const rootIds of Object.values(page.regions)) {
+            for (const rootId of rootIds) {
+              deleteNodeSubtree(project, rootId);
+            }
           }
 
           const fallbackPage = project.pages[Math.max(0, pageIndex - 1)] ?? project.pages[0];
@@ -323,7 +314,8 @@ export const useBuilderStore = create<BuilderState>()(
             editorNotice: null,
             project: touch(project),
             selectedNodeId: result.nodeId,
-            selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
+            selectedPageId: result.parent.kind === "page-region" ? result.parent.pageId ?? state.selectedPageId : state.selectedPageId,
+            selectedRegionTarget: null,
           });
         });
 
@@ -356,7 +348,8 @@ export const useBuilderStore = create<BuilderState>()(
             editorNotice: null,
             project: touch(project),
             selectedNodeId: result.nodeId,
-            selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
+            selectedPageId: result.parent.kind === "page-region" ? result.parent.pageId ?? state.selectedPageId : state.selectedPageId,
+            selectedRegionTarget: null,
           });
         });
 
@@ -388,7 +381,8 @@ export const useBuilderStore = create<BuilderState>()(
             editorNotice: null,
             project: touch(project),
             selectedNodeId: result.nodeId,
-            selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
+            selectedPageId: result.parent.kind === "page-region" ? result.parent.pageId ?? state.selectedPageId : state.selectedPageId,
+            selectedRegionTarget: null,
           });
         });
 
@@ -419,7 +413,8 @@ export const useBuilderStore = create<BuilderState>()(
             editorNotice: null,
             project: touch(project),
             selectedNodeId: selectionStillExists(project, state.selectedNodeId === nodeId ? null : state.selectedNodeId),
-            selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
+            selectedPageId: result.parent.kind === "page-region" ? result.parent.pageId ?? state.selectedPageId : state.selectedPageId,
+            selectedRegionTarget: null,
           });
         });
 
@@ -448,6 +443,7 @@ export const useBuilderStore = create<BuilderState>()(
             project: touch(validated.data),
             selectedPageId: validated.data.pages[0]?.id ?? "",
             selectedNodeId: null,
+            selectedRegionTarget: null,
             previewMode: "desktop" as PreviewMode,
           });
         }),
@@ -459,6 +455,7 @@ export const useBuilderStore = create<BuilderState>()(
             project: nextProject,
             selectedPageId: nextProject.pages[0]?.id ?? "",
             selectedNodeId: null,
+            selectedRegionTarget: null,
             previewMode: "desktop" as PreviewMode,
           });
         }),
@@ -506,18 +503,20 @@ export const useBuilderStore = create<BuilderState>()(
             project: nextProject,
             selectedPageId: nextProject.pages[0]?.id ?? "",
             selectedNodeId: null,
+            selectedRegionTarget: null,
             previewMode: "desktop" as PreviewMode,
           });
         }),
     }),
     {
       name: "drag-and-drop-builder",
-      version: 1,
+      version: 2,
       skipHydration: true,
       partialize: (state) => ({
         project: state.project,
         selectedPageId: state.selectedPageId,
         selectedNodeId: state.selectedNodeId,
+        selectedRegionTarget: state.selectedRegionTarget,
         previewMode: state.previewMode,
       }),
       merge: (persistedState, currentState) => {
@@ -540,6 +539,7 @@ export const useBuilderStore = create<BuilderState>()(
             parsedProject.data,
             candidate.selectedNodeId ?? currentState.selectedNodeId,
           ),
+          selectedRegionTarget: null,
           previewMode: candidate.previewMode ?? currentState.previewMode,
         };
       },

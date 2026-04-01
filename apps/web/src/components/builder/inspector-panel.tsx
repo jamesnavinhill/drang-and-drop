@@ -4,6 +4,7 @@ import { Paintbrush, ScrollText, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
+import { getPageRegionLabel } from "@/lib/builder/regions";
 import {
   findParentReference,
   getNodeDisplayLabel,
@@ -11,7 +12,7 @@ import {
   getNodeSiblingPosition,
 } from "@/lib/builder/structure";
 import { getSelectedNode, getSelectedPage, useBuilderStore } from "@/lib/builder/store";
-import type { ControlField } from "@/lib/builder/types";
+import type { ControlField, PageRegionId } from "@/lib/builder/types";
 import { clamp, cn } from "@/lib/utils";
 
 import { NodeStructureActions } from "./node-structure-actions";
@@ -176,10 +177,10 @@ function SelectionTab({
   const selectedParent = selectedNode ? findParentReference(project, selectedNode.id) : null;
   const siblingPosition = selectedNode ? getNodeSiblingPosition(project, selectedNode.id) : null;
   const parentLabel =
-    selectedParent?.kind === "page"
-      ? `${project.pages.find((page) => page.id === selectedParent.id)?.name ?? "Page"} root`
+    selectedParent?.kind === "page-region"
+      ? `${project.pages.find((page) => page.id === selectedParent.pageId)?.name ?? "Page"} ${getPageRegionLabel(selectedParent.regionId as PageRegionId)}`
       : selectedParent
-        ? getNodeDisplayLabel(project.nodes[selectedParent.id])
+        ? `${getNodeDisplayLabel(project.nodes[selectedParent.nodeId ?? ""])} / ${selectedParent.regionId}`
         : "None";
   const hierarchyDepth = selectedNode ? getNodeHierarchyDepth(project, selectedNode.id) : 0;
 

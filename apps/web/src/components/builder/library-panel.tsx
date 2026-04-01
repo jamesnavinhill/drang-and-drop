@@ -130,8 +130,9 @@ export function LibraryPanel() {
   const project = useBuilderStore((state) => state.project);
   const selectedPageId = useBuilderStore((state) => state.selectedPageId);
   const selectedNodeId = useBuilderStore((state) => state.selectedNodeId);
+  const selectedRegionTarget = useBuilderStore((state) => state.selectedRegionTarget);
   const [libraryView, setLibraryView] = useState<LibraryView>("context");
-  const insertion = describeInsertionTarget(project, selectedPageId, selectedNodeId);
+  const insertion = describeInsertionTarget(project, selectedPageId, selectedNodeId, selectedRegionTarget);
 
   const visibleContracts = useMemo(() => {
     if (libraryView === "all") {
@@ -192,7 +193,7 @@ export function LibraryPanel() {
               <h3 className="mt-1 text-base font-semibold text-foreground">{insertion.label}</h3>
             </div>
             <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
-              {insertion.kind === "page" ? "Root" : "Container"}
+              {insertion.kind === "page-region" ? "Page region" : "Block region"}
             </span>
           </div>
           <p className="mt-3 text-sm leading-6 text-muted">

@@ -1,4 +1,5 @@
-import type { BuilderProject } from "./types";
+import { normalizeBuilderProjectStructure } from "./regions";
+import type { BuilderTheme, LegacyBuilderNode, LegacyBuilderPage, LegacyBuilderProject, BuilderProject } from "./types";
 
 export function createId() {
   return crypto.randomUUID();
@@ -33,8 +34,14 @@ function createProjectFrame({
   theme,
   pages,
   nodes,
-}: Omit<BuilderProject, "id" | "updatedAt">): BuilderProject {
-  return {
+}: {
+  description: string;
+  name: string;
+  nodes: Record<string, LegacyBuilderNode>;
+  pages: LegacyBuilderPage[];
+  theme: BuilderTheme;
+}): BuilderProject {
+  const legacyProject: LegacyBuilderProject = {
     id: createId(),
     name,
     description,
@@ -43,6 +50,8 @@ function createProjectFrame({
     pages,
     nodes,
   };
+
+  return normalizeBuilderProjectStructure(legacyProject);
 }
 
 function createLaunchStudioProject(): BuilderProject {

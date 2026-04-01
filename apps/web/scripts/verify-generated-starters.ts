@@ -90,13 +90,17 @@ function collectExpectedStrings(project: BuilderProject, page: BuilderPage) {
       }
     }
 
-    for (const childId of node.children) {
-      visit(childId);
+    for (const childIds of Object.values(node.regions)) {
+      for (const childId of childIds) {
+        visit(childId);
+      }
     }
   }
 
-  for (const rootId of page.rootIds) {
-    visit(rootId);
+  for (const regionIds of Object.values(page.regions)) {
+    for (const rootId of regionIds) {
+      visit(rootId);
+    }
   }
 
   return Array.from(values).slice(0, 6);

@@ -8,17 +8,17 @@ import {
   DndContext,
   PointerSensor,
   closestCorners,
+  useDroppable,
   useSensor,
   useSensors,
-  useDroppable,
 } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AlertCircle, GripVertical, MousePointer2, MoveDown } from "lucide-react";
+import { AlertCircle, GripVertical, LayoutTemplate, MousePointer2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
-import { blockCanHaveChildren } from "@/lib/builder/block-placement";
+import { blockCanHaveChildren, getBlockRegions } from "@/lib/builder/block-placement";
 import { getThemeStyles, renderNodePreview } from "@/lib/builder/block-preview";
 import {
   applyBuilderDragOperation,
@@ -27,9 +27,11 @@ import {
   type BuilderDragEvaluation,
   type BuilderOverDragData,
 } from "@/lib/builder/dnd";
+import { describeRegionReference, getPageRegionLabel } from "@/lib/builder/regions";
 import { getNodeDisplayLabel } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
-import type { BuilderProject, BuilderNode, ParentReference } from "@/lib/builder/types";
+import type { BuilderNode, BuilderProject, PageRegionId, ParentReference } from "@/lib/builder/types";
+import { pageRegionIds } from "@/lib/builder/types";
 import { cn } from "@/lib/utils";
 
 type DragDescriptor =
@@ -44,18 +46,36 @@ type DragDescriptor =
       description: string;
     };
 
-function describeParentReference(project: BuilderProject, parent: ParentReference) {
-  if (parent.kind === "page") {
-    const page = project.pages.find((entry) => entry.id === parent.id);
-    return page ? `${page.name} page root` : "page root";
+function sameParentReference(left: ParentReference | null | undefined, right: ParentReference | null | undefined) {
+  if (!left || !right || left.kind !== right.kind || left.regionId !== right.regionId) {
+    return false;
   }
 
-  const node = project.nodes[parent.id];
-  if (!node) {
-    return "selected container";
+  return left.kind === "page-region"
+    ? left.pageId === right.pageId
+    : left.nodeId === right.nodeId;
+}
+
+function toDropTargetValue(parent: ParentReference) {
+  return parent.kind === "page-region"
+    ? `page-region:${parent.pageId}:${parent.regionId}`
+    : `node-region:${parent.nodeId}:${parent.regionId}`;
+}
+
+function getNodeRegionLabel(node: BuilderNode, regionId: string) {
+  return getBlockRegions(node.type).find((region) => region.id === regionId)?.label ?? regionId;
+}
+
+function getPageRegionDescription(regionId: PageRegionId) {
+  if (regionId === "header") {
+    return "Global shell blocks and page chrome.";
   }
 
-  return `${getBlockDefinition(node.type).title}: ${getNodeDisplayLabel(node)}`;
+  if (regionId === "footer") {
+    return "Closing sections, CTAs, and footer layouts.";
+  }
+
+  return "Primary page composition and content flow.";
 }
 
 function describeDropMessage(
@@ -70,7 +90,7 @@ function describeDropMessage(
 
   if (!over || !evaluation.target) {
     return {
-      message: "Move over the page root or a container to find a valid placement target.",
+      message: "Move over a page region or block region to find a valid placement target.",
       tone: "info" as const,
     };
   }
@@ -101,7 +121,7 @@ function describeDropMessage(
     };
   }
 
-  const parentLabel = describeParentReference(project, evaluation.target.parent);
+  const parentLabel = describeRegionReference(project, evaluation.target.parent);
 
   return {
     message:
@@ -110,6 +130,122 @@ function describeDropMessage(
         : `Release to move this block into ${parentLabel}.`,
     tone: "info" as const,
   };
+}
+
+function EmptyRegionState({
+  compact = false,
+  message,
+}: {
+  compact?: boolean;
+  message: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[22px] border border-dashed border-border bg-white/45 text-muted",
+        compact ? "px-4 py-4 text-sm leading-6" : "px-6 py-10 text-center",
+      )}
+    >
+      {!compact ? <MousePointer2 className="mx-auto h-7 w-7" /> : null}
+      <p className={compact ? "" : "mt-3"}>{message}</p>
+    </div>
+  );
+}
+
+function CanvasRegion({
+  childIds,
+  compact = false,
+  description,
+  dragEvaluation,
+  emptyMessage,
+  overDragData,
+  parent,
+  project,
+  selectedNodeId,
+  title,
+}: {
+  childIds: string[];
+  compact?: boolean;
+  description: string;
+  dragEvaluation: BuilderDragEvaluation | null;
+  emptyMessage: string;
+  overDragData: BuilderOverDragData | null;
+  parent: ParentReference;
+  project: BuilderProject;
+  selectedNodeId: string | null;
+  title: string;
+}) {
+  const selectedRegionTarget = useBuilderStore((state) => state.selectedRegionTarget);
+  const selectRegionTarget = useBuilderStore((state) => state.selectRegionTarget);
+  const selectNode = useBuilderStore((state) => state.selectNode);
+  const { setNodeRef, isOver } = useDroppable({
+    id: `region:${toDropTargetValue(parent)}`,
+    data: {
+      kind: "container",
+      parent,
+    },
+  });
+  const isContainerTarget = overDragData?.kind === "container" && sameParentReference(overDragData.parent, parent);
+  const targetIsValid = dragEvaluation?.validation?.ok ?? false;
+  const isSelectedRegion = sameParentReference(selectedRegionTarget, parent);
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-builder-drop-target={toDropTargetValue(parent)}
+      className={cn(
+        "rounded-[26px] border transition-colors",
+        compact ? "bg-white/45 p-3" : "bg-white/56 p-4 md:p-5",
+        isSelectedRegion ? "border-accent shadow-[0_0_0_2px_rgba(15,118,110,0.08)]" : "border-border/80",
+        (isOver || isContainerTarget) && targetIsValid && "ring-2 ring-accent/30",
+        isContainerTarget && !targetIsValid && "border-orange-300 bg-orange-50/70 ring-2 ring-orange-200",
+      )}
+      onClick={(event) => {
+        event.stopPropagation();
+        selectNode(null);
+        selectRegionTarget(parent);
+      }}
+    >
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{title}</p>
+          <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
+        </div>
+        <span className="rounded-full border border-border bg-white/75 px-2 py-1 text-[11px] text-muted">
+          {childIds.length} item{childIds.length === 1 ? "" : "s"}
+        </span>
+      </div>
+
+      <SortableContext items={childIds} strategy={verticalListSortingStrategy}>
+        <div className="grid gap-4">
+          {childIds.length > 0 ? (
+            childIds.map((childId, index) => {
+              const childNode = project.nodes[childId];
+
+              if (!childNode) {
+                return null;
+              }
+
+              return (
+                <CanvasNode
+                  key={childId}
+                  node={childNode}
+                  index={index}
+                  parent={parent}
+                  project={project}
+                  selectedNodeId={selectedNodeId}
+                  dragEvaluation={dragEvaluation}
+                  overDragData={overDragData}
+                />
+              );
+            })
+          ) : (
+            <EmptyRegionState compact={compact} message={emptyMessage} />
+          )}
+        </div>
+      </SortableContext>
+    </div>
+  );
 }
 
 function CanvasNode({
@@ -130,8 +266,10 @@ function CanvasNode({
   overDragData: BuilderOverDragData | null;
 }) {
   const selectNode = useBuilderStore((state) => state.selectNode);
+  const selectRegionTarget = useBuilderStore((state) => state.selectRegionTarget);
   const definition = getBlockDefinition(node.type);
   const canHaveChildren = blockCanHaveChildren(node.type);
+  const childCount = Object.values(node.regions).reduce((total, childIds) => total + childIds.length, 0);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: node.id,
     data: {
@@ -143,62 +281,26 @@ function CanvasNode({
       description: definition.description,
     },
   });
-  const { setNodeRef: setDropRef, isOver } = useDroppable({
-    id: `container:${node.id}`,
-    data: {
-      kind: "container",
-      parent: {
-        kind: "node",
-        id: node.id,
-      } satisfies ParentReference,
-    },
-    disabled: !canHaveChildren,
-  });
-  const isContainerTarget =
-    overDragData?.kind === "container" &&
-    overDragData.parent.kind === "node" &&
-    overDragData.parent.id === node.id;
   const isReorderTarget = overDragData?.kind === "node" && overDragData.nodeId === node.id;
-  const isActiveTarget = isContainerTarget || isReorderTarget;
   const targetIsValid = dragEvaluation?.validation?.ok ?? false;
-
-  const childNodes = node.children.map((childId, childIndex) => (
-    <CanvasNode
-      key={childId}
-      node={project.nodes[childId]}
-      index={childIndex}
-      parent={{ kind: "node", id: node.id }}
-      project={project}
-      selectedNodeId={selectedNodeId}
-      dragEvaluation={dragEvaluation}
-      overDragData={overDragData}
-    />
-  ));
-
-  const renderedChildren = canHaveChildren ? (
-    <div
-      ref={setDropRef}
-      data-builder-drop-target={`node:${node.id}`}
-      data-builder-child-list={node.id}
-      className={cn(
-        "grid min-h-14 gap-4",
-        node.children.length === 0 && "rounded-[18px] border border-dashed border-border/90 bg-white/45 p-4",
-        (isOver || isContainerTarget) && targetIsValid && "ring-2 ring-accent/30",
-        isContainerTarget && !targetIsValid && "ring-2 ring-orange-300 bg-orange-50/60",
-      )}
-    >
-      <SortableContext items={node.children} strategy={verticalListSortingStrategy}>
-        {childNodes.length > 0 ? (
-          childNodes
-        ) : (
-          <div className="flex items-center gap-3 text-sm text-muted">
-            <MoveDown className="h-4 w-4" />
-            Drop compatible blocks here
-          </div>
-        )}
-      </SortableContext>
-    </div>
-  ) : null;
+  const renderedRegions = Object.fromEntries(
+    getBlockRegions(node.type).map((region) => [
+      region.id,
+      <CanvasRegion
+        key={`${node.id}-${region.id}`}
+        childIds={node.regions[region.id] ?? []}
+        compact
+        description={`Drop blocks into ${definition.title.toLowerCase()} ${region.label.toLowerCase()}.`}
+        dragEvaluation={dragEvaluation}
+        emptyMessage="Drop compatible blocks here."
+        overDragData={overDragData}
+        parent={{ kind: "node-region", nodeId: node.id, regionId: region.id }}
+        project={project}
+        selectedNodeId={selectedNodeId}
+        title={getNodeRegionLabel(node, region.id)}
+      />,
+    ]),
+  );
 
   return (
     <div
@@ -213,11 +315,12 @@ function CanvasNode({
         "rounded-[28px] border bg-white/28 p-2 transition-shadow",
         selectedNodeId === node.id ? "border-accent shadow-[0_0_0_2px_rgba(15,118,110,0.12)]" : "border-transparent",
         isReorderTarget && targetIsValid && "ring-2 ring-accent/30",
-        isActiveTarget && !targetIsValid && "border-orange-300 bg-orange-50/40 ring-2 ring-orange-200",
+        isReorderTarget && !targetIsValid && "border-orange-300 bg-orange-50/40 ring-2 ring-orange-200",
         isDragging && "opacity-50",
       )}
       onClick={(event) => {
         event.stopPropagation();
+        selectRegionTarget(null);
         selectNode(node.id);
       }}
     >
@@ -226,45 +329,26 @@ function CanvasNode({
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{definition.category}</p>
           <p className="text-sm font-semibold text-foreground">{definition.title}</p>
         </div>
-        <button
-          type="button"
-          data-builder-drag-handle={node.id}
-          className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-muted"
-          {...listeners}
-          {...attributes}
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-          Drag
-        </button>
+        <div className="flex items-center gap-2">
+          {canHaveChildren ? (
+            <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+              {childCount} child{childCount === 1 ? "" : "ren"}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            data-builder-drag-handle={node.id}
+            className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-muted"
+            {...listeners}
+            {...attributes}
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+            Drag
+          </button>
+        </div>
       </div>
 
-      <div className="rounded-[24px]">
-        {renderNodePreview(node, project, renderedChildren)}
-      </div>
-    </div>
-  );
-}
-
-function EmptyCanvasDrop({
-  isInvalidTarget,
-  isOver,
-}: {
-  isInvalidTarget: boolean;
-  isOver: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-[28px] border border-dashed border-border bg-white/55 p-10 text-center transition-colors",
-        isOver && !isInvalidTarget && "border-accent bg-accent/8",
-        isInvalidTarget && "border-orange-300 bg-orange-50/70",
-      )}
-    >
-      <MousePointer2 className="mx-auto h-8 w-8 text-muted" />
-      <h3 className="mt-4 text-lg font-semibold text-foreground">Start with a section, hero, or grid</h3>
-      <p className="mt-2 text-sm leading-6 text-muted">
-        Drag blocks from the left sidebar onto the page. Layout primitives can hold other blocks inside them.
-      </p>
+      <div className="rounded-[24px]">{renderNodePreview(node, project, renderedRegions)}</div>
     </div>
   );
 }
@@ -281,18 +365,9 @@ export function BuilderCanvas() {
   const moveNode = useBuilderStore((state) => state.moveNode);
   const clearEditorNotice = useBuilderStore((state) => state.clearEditorNotice);
   const selectNode = useBuilderStore((state) => state.selectNode);
+  const selectRegionTarget = useBuilderStore((state) => state.selectRegionTarget);
   const page = project.pages.find((entry) => entry.id === selectedPageId) ?? project.pages[0];
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-  const { setNodeRef: setPageDropRef, isOver } = useDroppable({
-    id: `page:${page.id}`,
-    data: {
-      kind: "container",
-      parent: {
-        kind: "page",
-        id: page.id,
-      } satisfies ParentReference,
-    },
-  });
   const dragEvaluation = useMemo(
     () =>
       activeDragData
@@ -308,10 +383,7 @@ export function BuilderCanvas() {
     () => describeDropMessage(project, activeDragData, dragEvaluation ?? { target: null, validation: null }, overDragData),
     [activeDragData, dragEvaluation, overDragData, project],
   );
-  const pageIsCurrentTarget =
-    overDragData?.kind === "container" && overDragData.parent.kind === "page" && overDragData.parent.id === page.id;
-  const pageTargetIsInvalid = pageIsCurrentTarget && Boolean(dragEvaluation?.validation && !dragEvaluation.validation.ok);
-
+  const totalRoots = pageRegionIds.reduce((total, regionId) => total + (page.regions[regionId]?.length ?? 0), 0);
   const widthClass =
     previewMode === "mobile"
       ? "max-w-sm"
@@ -399,7 +471,10 @@ export function BuilderCanvas() {
           </div>
           <button
             type="button"
-            onClick={() => selectNode(null)}
+            onClick={() => {
+              selectNode(null);
+              selectRegionTarget(null);
+            }}
             data-builder-action="clear-selection"
             className="builder-pill rounded-full px-3 py-2 text-xs font-semibold text-muted"
           >
@@ -411,7 +486,7 @@ export function BuilderCanvas() {
           <div className={cn("mx-auto transition-all duration-300", widthClass)}>
             <div className="mb-3 flex items-center justify-between px-1 text-xs text-muted">
               <span>{previewMode} preview</span>
-              <span>{page.rootIds.length} root block{page.rootIds.length === 1 ? "" : "s"}</span>
+              <span>{totalRoots} root block{totalRoots === 1 ? "" : "s"}</span>
             </div>
 
             {dragMessage ? (
@@ -431,36 +506,51 @@ export function BuilderCanvas() {
             ) : null}
 
             <div
-              ref={setPageDropRef}
-              data-builder-drop-target={`page:${page.id}`}
-              className={cn(
-                "builder-theme min-h-[68vh] rounded-[34px] p-5 md:p-7",
-                (isOver || pageIsCurrentTarget) && !pageTargetIsInvalid && "ring-2 ring-accent/25",
-                pageTargetIsInvalid && "ring-2 ring-orange-300",
-              )}
+              className="builder-theme min-h-[68vh] rounded-[34px] p-5 md:p-7"
               style={getThemeStyles(project.theme)}
-              onClick={() => selectNode(null)}
+              onClick={() => {
+                selectNode(null);
+                selectRegionTarget(null);
+              }}
             >
-              <SortableContext items={page.rootIds} strategy={verticalListSortingStrategy}>
-                <div className="grid gap-5" data-builder-root-list={page.id}>
-                  {page.rootIds.length === 0 ? (
-                    <EmptyCanvasDrop isInvalidTarget={pageTargetIsInvalid} isOver={isOver || pageIsCurrentTarget} />
-                  ) : (
-                    page.rootIds.map((rootId, index) => (
-                      <CanvasNode
-                        key={rootId}
-                        node={project.nodes[rootId]}
-                        index={index}
-                        parent={{ kind: "page", id: page.id }}
-                        project={project}
-                        selectedNodeId={selectedNodeId}
-                        dragEvaluation={dragEvaluation}
-                        overDragData={overDragData}
-                      />
-                    ))
-                  )}
-                </div>
-              </SortableContext>
+              <div className="grid gap-5">
+                {pageRegionIds.map((regionId) => {
+                  const regionParent: ParentReference = {
+                    kind: "page-region",
+                    pageId: page.id,
+                    regionId,
+                  };
+                  const regionChildIds = page.regions[regionId] ?? [];
+                  const isMain = regionId === "main";
+
+                  return (
+                    <CanvasRegion
+                      key={`${page.id}-${regionId}`}
+                      childIds={regionChildIds}
+                      compact={!isMain}
+                      description={getPageRegionDescription(regionId)}
+                      dragEvaluation={dragEvaluation}
+                      emptyMessage={
+                        isMain && totalRoots === 0
+                          ? "Start with a section, hero, or grid. Drag blocks here to shape the main page flow."
+                          : `This ${getPageRegionLabel(regionId).toLowerCase()} region is empty right now.`
+                      }
+                      overDragData={overDragData}
+                      parent={regionParent}
+                      project={project}
+                      selectedNodeId={selectedNodeId}
+                      title={getPageRegionLabel(regionId)}
+                    />
+                  );
+                })}
+
+                {totalRoots === 0 ? (
+                  <div className="flex items-center gap-3 rounded-[24px] border border-dashed border-border bg-white/45 px-5 py-4 text-sm text-muted">
+                    <LayoutTemplate className="h-4 w-4" />
+                    The page is empty. The main region is the default insertion target until you select another region.
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>

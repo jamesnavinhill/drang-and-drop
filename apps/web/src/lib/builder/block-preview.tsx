@@ -136,9 +136,10 @@ function FeatureLines({ value }: { value: string }) {
 export function renderNodePreview(
   node: BuilderNode,
   project: BuilderProject,
-  children: ReactNode,
+  renderedRegions: Record<string, ReactNode>,
 ) {
   void project;
+  const contentChildren = renderedRegions.content ?? null;
 
   switch (node.type) {
     case "navbar": {
@@ -198,14 +199,14 @@ export function renderNodePreview(
               Layout wrapper
             </span>
           </div>
-          <div className="grid gap-4">{children}</div>
+          <div className="grid gap-4">{contentChildren}</div>
         </section>
       );
     }
     case "stack":
-      return <StackLayout node={node}>{children}</StackLayout>;
+      return <StackLayout node={node}>{contentChildren}</StackLayout>;
     case "grid":
-      return <GridLayout node={node}>{children}</GridLayout>;
+      return <GridLayout node={node}>{contentChildren}</GridLayout>;
     case "hero": {
       const centered = node.props.align === "center";
 

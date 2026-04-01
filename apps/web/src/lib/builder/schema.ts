@@ -1,23 +1,32 @@
 import { z } from "zod";
 
+import { normalizeBuilderProjectStructure } from "./regions";
 import { blockTypes } from "./types";
 import { collectProjectStructureIssues } from "./structure";
 
 const primitiveValueSchema = z.union([z.string(), z.number(), z.boolean()]);
 
-const nodeSchema = z.object({
+const legacyNodeSchema = z.object({
   id: z.string(),
   type: z.enum(blockTypes),
   props: z.record(z.string(), primitiveValueSchema),
-  children: z.array(z.string()),
+  children: z.array(z.string()).optional(),
+  regions: z.record(z.string(), z.array(z.string())).optional(),
 });
 
-const pageSchema = z.object({
+const legacyPageSchema = z.object({
   id: z.string(),
   name: z.string(),
   path: z.string(),
   description: z.string(),
-  rootIds: z.array(z.string()),
+  rootIds: z.array(z.string()).optional(),
+  regions: z
+    .object({
+      footer: z.array(z.string()),
+      header: z.array(z.string()),
+      main: z.array(z.string()),
+    })
+    .optional(),
 });
 
 const themeSchema = z.object({
@@ -32,15 +41,17 @@ const themeSchema = z.object({
   fontFamily: z.string(),
 });
 
-export const builderProjectSchema = z.object({
+export const builderProjectSchema = z
+  .object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
   theme: themeSchema,
-  pages: z.array(pageSchema),
-  nodes: z.record(z.string(), nodeSchema),
+  pages: z.array(legacyPageSchema),
+  nodes: z.record(z.string(), legacyNodeSchema),
   updatedAt: z.string(),
-});
+  })
+  .transform((project) => normalizeBuilderProjectStructure(project));
 
 export function validateProject(candidate: unknown) {
   const parsed = builderProjectSchema.safeParse(candidate);

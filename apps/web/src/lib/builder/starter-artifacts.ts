@@ -72,7 +72,10 @@ import {
 
 function renderNode(nodeId: string): ReactNode {
   const node = project.nodes[nodeId];
-  const children = node.children.map((childId) => renderNode(childId));
+  const renderedRegions = Object.fromEntries(
+    Object.entries(node.regions).map(([regionId, childIds]) => [regionId, childIds.map((childId) => renderNode(childId))]),
+  ) as Record<string, ReactNode[]>;
+  const contentChildren = renderedRegions.content ?? [];
 
   switch (node.type) {
     case "navbar": {
@@ -132,7 +135,7 @@ function renderNode(nodeId: string): ReactNode {
               <p style={{ margin: 0, fontSize: 14, color: "var(--builder-muted)" }}>Section</p>
               <h3 style={{ margin: "4px 0 0", fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
             </div>
-            <div style={{ display: "grid", gap: 16 }}>{children}</div>
+            <div style={{ display: "grid", gap: 16 }}>{contentChildren}</div>
           </div>
         </section>
       );
@@ -140,13 +143,13 @@ function renderNode(nodeId: string): ReactNode {
     case "stack":
       return (
         <div key={node.id} style={{ display: "flex", flexDirection: "column", gap: \`\${node.props.gap ?? 18}px\`, alignItems: \`\${node.props.align ?? "stretch"}\` }}>
-          {children}
+          {contentChildren}
         </div>
       );
     case "grid":
       return (
         <div key={node.id} style={{ display: "grid", gap: \`\${node.props.gap ?? 18}px\`, gridTemplateColumns: \`repeat(\${node.props.columns ?? 3}, minmax(0, 1fr))\` }}>
-          {children}
+          {contentChildren}
         </div>
       );
     case "hero": {
@@ -442,7 +445,9 @@ export function ProjectPage({ pageId }: { pageId: string }) {
       }}
     >
       <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gap: 24 }}>
-        {page.rootIds.map((rootId) => renderNode(rootId))}
+        {page.regions.header.map((rootId) => renderNode(rootId))}
+        {page.regions.main.map((rootId) => renderNode(rootId))}
+        {page.regions.footer.map((rootId) => renderNode(rootId))}
       </div>
     </main>
   );
@@ -482,7 +487,7 @@ interface BuilderNode {
   id: string;
   type: string;
   props: NodeProps;
-  children: string[];
+  regions: Record<string, string[]>;
 }
 
 interface BuilderPage {
@@ -490,7 +495,11 @@ interface BuilderPage {
   name: string;
   path: string;
   description: string;
-  rootIds: string[];
+  regions: {
+    header: string[];
+    main: string[];
+    footer: string[];
+  };
 }
 
 interface BuilderTheme {

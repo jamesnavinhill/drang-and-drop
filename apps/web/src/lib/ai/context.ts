@@ -38,7 +38,7 @@ export function buildBuilderAssistantContext({
           name: activePage.name,
           path: activePage.path,
           description: activePage.description,
-          rootCount: activePage.rootIds.length,
+          rootCount: Object.values(activePage.regions).reduce((total, regionIds) => total + regionIds.length, 0),
         }
       : null,
     selection:

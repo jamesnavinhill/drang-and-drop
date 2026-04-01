@@ -1,5 +1,6 @@
 import { createId } from "./default-project";
-import type { BuilderProject } from "./types";
+import { normalizeBuilderProjectStructure } from "./regions";
+import type { BuilderProject, LegacyBuilderProject } from "./types";
 
 export function createBlockContractVerificationProject(): BuilderProject {
   const homeId = createId();
@@ -22,7 +23,7 @@ export function createBlockContractVerificationProject(): BuilderProject {
   const dataTableId = createId();
   const sidebarShellId = createId();
 
-  return {
+  const legacyProject: LegacyBuilderProject = {
     id: createId(),
     name: "Block Contract Coverage",
     description: "Internal verification project that exercises every parity-critical shipped block type.",
@@ -249,4 +250,6 @@ export function createBlockContractVerificationProject(): BuilderProject {
     },
     updatedAt: new Date().toISOString(),
   };
+
+  return normalizeBuilderProjectStructure(legacyProject);
 }

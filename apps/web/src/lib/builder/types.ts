@@ -51,11 +51,15 @@ export type ControlField =
       options: Array<{ label: string; value: string }>;
     };
 
+export const pageRegionIds = ["header", "main", "footer"] as const;
+
+export type PageRegionId = (typeof pageRegionIds)[number];
+
 export interface BuilderNode {
   id: string;
   type: BlockType;
   props: NodeProps;
-  children: string[];
+  regions: Record<string, string[]>;
 }
 
 export interface BuilderPage {
@@ -63,7 +67,7 @@ export interface BuilderPage {
   name: string;
   path: string;
   description: string;
-  rootIds: string[];
+  regions: Record<PageRegionId, string[]>;
 }
 
 export interface BuilderTheme {
@@ -107,13 +111,20 @@ export interface BlockDefinition {
   fields: ControlField[];
 }
 
-export const placementTargetKinds = ["page-root", "layout-container"] as const;
+export const placementTargetKinds = ["page-header", "page-main", "page-footer", "layout-content"] as const;
 
 export type PlacementTargetKind = (typeof placementTargetKinds)[number];
 
+export interface BlockRegionDefinition {
+  id: string;
+  kind: PlacementTargetKind;
+  label: string;
+  allowsMultiple: boolean;
+}
+
 export interface BlockPlacementDefinition {
-  allowedParents: PlacementTargetKind[];
-  childTargetKind?: PlacementTargetKind;
+  allowedRegions: PlacementTargetKind[];
+  regions: BlockRegionDefinition[];
 }
 
 export type BlockRenderChildrenMode = "leaf" | "renders-children";
@@ -159,8 +170,37 @@ export type BlockRegistryEntry = BlockDefinition &
   };
 
 export interface ParentReference {
-  kind: "page" | "node";
-  id: string;
+  kind: "page-region" | "node-region";
+  pageId?: string;
+  nodeId?: string;
+  regionId: string;
 }
 
 export type PreviewMode = "desktop" | "tablet" | "mobile";
+
+export interface LegacyBuilderNode {
+  id: string;
+  type: BlockType;
+  props: NodeProps;
+  children?: string[];
+  regions?: Record<string, string[]>;
+}
+
+export interface LegacyBuilderPage {
+  id: string;
+  name: string;
+  path: string;
+  description: string;
+  rootIds?: string[];
+  regions?: Record<PageRegionId, string[]>;
+}
+
+export interface LegacyBuilderProject {
+  id: string;
+  name: string;
+  description: string;
+  theme: BuilderTheme;
+  pages: LegacyBuilderPage[];
+  nodes: Record<string, LegacyBuilderNode>;
+  updatedAt: string;
+}

@@ -19,7 +19,9 @@ Core layers:
 - `src/lib/builder/block-definitions.ts`
   Derives block metadata, defaults, and inspector field definitions from the canonical block contracts.
 - `src/lib/builder/block-placement.ts`
-  Derives the current explicit placement-target model, including `page-root` and `layout-container` rules plus child-acceptance helpers, from the canonical block contracts.
+  Derives the canonical placement-target model, including page-region and block-region target kinds plus child-acceptance helpers, from the canonical block contracts.
+- `src/lib/builder/regions.ts`
+  Owns canonical page-region definitions, block-region helpers, and normalization from legacy `rootIds` / `children` shapes into region-based builder state.
 - `src/lib/builder/block-content.ts`
   Owns shared block-content parsing and fallback semantics used by both the builder preview and generated starter support layers.
 - `src/lib/builder/block-preview.tsx`
@@ -43,7 +45,7 @@ Core layers:
 - `src/components/builder/*`
   Implements the editor shell: page panel, library, canvas, inspector, and browser verification hook.
 - `scripts/verify-builder-dnd.ts`
-  Rebuilds and serves the builder app, then validates palette insertion, nested insertion, reorder, invalid root-only nesting, and descendant-move rejection through the browser harness.
+  Rebuilds and serves the builder app, then validates page-region and block-region insertion, nested insertion, reorder, invalid region placement, and descendant-move rejection through the browser harness.
 - `scripts/verify-builder-commands.ts`
   Runs direct command-layer verification for shared insert/move/duplicate/remove behavior and structural validation failure cases.
 - `scripts/verify-builder-contracts.ts`
@@ -60,9 +62,9 @@ Project shape:
 - `project`
   Owns project metadata, theme tokens, page list, node dictionary, and update timestamp.
 - `pages`
-  Each page has a route path, description, and `rootIds`.
+  Each page has a route path, description, and canonical `header` / `main` / `footer` regions.
 - `nodes`
-  Each node is normalized by `id` and stores `type`, `props`, and child ids.
+  Each node is normalized by `id` and stores `type`, `props`, and explicit owned `regions`.
 
 Why this matters:
 
@@ -85,6 +87,13 @@ The editor shell uses four persistent surfaces:
   Selection, page, and theme editing
 
 The canvas is intentionally constrained.
+
+The current structural model is now explicitly region-based:
+
+- pages own named top-level regions
+- layout-owner blocks own named block regions
+- insertion targeting resolves against regions, not generic parent containers
+- preview, export, structure commands, persistence normalization, and verification all traverse the same region graph
 
 Supported layout primitives:
 
@@ -148,11 +157,11 @@ The generated starter file plan now has a matching automated verification loop t
 ## Known Architectural Constraints
 
 - Drag/drop is constrained, runs through shared insert/move command paths, and now surfaces invalid-drop reasoning in the canvas while failed structure commands surface through a shared shell notice.
-- Placement constraints are centralized for the current editor model and now resolve through explicit `page-root` and `layout-container` target kinds, but they are not yet a richer slot or region contract.
+- Placement constraints are centralized for the current editor model and now resolve through explicit page-region and block-region target kinds. The region contract is now canonical, but richer multi-region block families and more granular layout semantics are still future work.
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
-- Registry implementation coupling is lower now that canonical block contracts, derived block-definition/placement modules, block-content helpers, and block preview rendering are split into separate modules. The old compatibility barrel and legacy `component-*` shims are now retired. Preview/export parity is documented in the contract layer, but the two surfaces still keep separate JSX trees and still stop short of a shared slot or region system.
+- Registry implementation coupling is lower now that canonical block contracts, region helpers, derived block-definition/placement modules, block-content helpers, and block preview rendering are split into separate modules. The old compatibility barrel and legacy `component-*` shims are now retired. Preview/export parity is documented in the contract layer, and both surfaces now traverse the same canonical region graph even though they still keep separate JSX trees.
 - The family and capability map is now a real derived builder module instead of only being implicit inside planning docs, which makes both catalog UI and verification easier to align with the current system.
 - The block authoring workflow and preview/export parity matrix now exist as durable artifacts, which makes future block additions easier to review before broader catalog growth resumes.
 - Export is clearer now that generated render support is split away from the main starter-artifact file, but it is not yet decomposed into highly granular generated components.

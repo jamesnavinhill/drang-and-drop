@@ -1,24 +1,54 @@
 import { getBlockContract } from "./block-contracts";
-import type { BlockPlacementDefinition, BlockType, BuilderProject, ParentReference, PlacementTargetKind } from "./types";
+import type {
+  BlockPlacementDefinition,
+  BlockRegionDefinition,
+  BlockType,
+  BuilderProject,
+  PageRegionId,
+  ParentReference,
+  PlacementTargetKind,
+} from "./types";
+
+const pageRegionKindById: Record<PageRegionId, PlacementTargetKind> = {
+  footer: "page-footer",
+  header: "page-header",
+  main: "page-main",
+};
 
 export function getBlockPlacement(type: BlockType): BlockPlacementDefinition {
   return getBlockContract(type).placement;
 }
 
+export function getBlockRegions(type: BlockType): BlockRegionDefinition[] {
+  return getBlockPlacement(type).regions;
+}
+
+export function getPrimaryBlockRegion(type: BlockType) {
+  return getBlockRegions(type)[0] ?? null;
+}
+
 export function blockCanHaveChildren(type: BlockType) {
-  return Boolean(getBlockPlacement(type).childTargetKind);
+  return getBlockRegions(type).length > 0;
 }
 
 export function isRootOnlyBlock(type: BlockType) {
-  const placement = getBlockPlacement(type);
-  return placement.allowedParents.length === 1 && placement.allowedParents[0] === "page-root";
+  return getBlockPlacement(type).allowedRegions.every((kind) => kind.startsWith("page-"));
 }
 
 export function describePlacementTargetKind(kind: PlacementTargetKind) {
-  return kind === "page-root" ? "the page root" : "a layout container";
+  switch (kind) {
+    case "page-header":
+      return "the page header";
+    case "page-main":
+      return "the page main region";
+    case "page-footer":
+      return "the page footer";
+    case "layout-content":
+      return "a layout content region";
+  }
 }
 
-export function describeAllowedParentKinds(kinds: PlacementTargetKind[]) {
+export function describeAllowedRegionKinds(kinds: PlacementTargetKind[]) {
   const labels = kinds.map((kind) => describePlacementTargetKind(kind));
 
   if (labels.length === 1) {
@@ -33,18 +63,23 @@ export function describeAllowedParentKinds(kinds: PlacementTargetKind[]) {
 }
 
 export function getPlacementTargetKind(project: BuilderProject, parent: ParentReference): PlacementTargetKind | null {
-  if (parent.kind === "page") {
-    return project.pages.some((page) => page.id === parent.id) ? "page-root" : null;
+  if (parent.kind === "page-region") {
+    const page = project.pages.find((entry) => entry.id === parent.pageId);
+    if (!page) {
+      return null;
+    }
+
+    return pageRegionKindById[parent.regionId as PageRegionId] ?? null;
   }
 
-  const parentNode = project.nodes[parent.id];
+  const parentNode = project.nodes[parent.nodeId ?? ""];
   if (!parentNode) {
     return null;
   }
 
-  return getBlockPlacement(parentNode.type).childTargetKind ?? null;
+  return getBlockRegions(parentNode.type).find((region) => region.id === parent.regionId)?.kind ?? null;
 }
 
 export function canAcceptChild(parentTargetKind: PlacementTargetKind, childType: BlockType) {
-  return getBlockPlacement(childType).allowedParents.includes(parentTargetKind);
+  return getBlockPlacement(childType).allowedRegions.includes(parentTargetKind);
 }

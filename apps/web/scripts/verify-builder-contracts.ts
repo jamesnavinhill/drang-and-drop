@@ -30,7 +30,7 @@ function main() {
     assert(contract.definition.title.trim().length > 0, `Block "${contract.type}" is missing a title.`);
     assert(contract.definition.description.trim().length > 0, `Block "${contract.type}" is missing a description.`);
     assert(contract.definition.icon.trim().length > 0, `Block "${contract.type}" is missing an icon.`);
-    assert(contract.placement.allowedParents.length > 0, `Block "${contract.type}" has no allowed parent targets.`);
+    assert(contract.placement.allowedRegions.length > 0, `Block "${contract.type}" has no allowed placement regions.`);
     assert(contract.render.parity.notes.length > 0, `Block "${contract.type}" is missing preview/export parity notes.`);
     assert(contract.render.preview.implementation.trim().length > 0, `Block "${contract.type}" is missing preview render metadata.`);
     assert(contract.render.starter.implementation.trim().length > 0, `Block "${contract.type}" is missing starter render metadata.`);
@@ -49,18 +49,23 @@ function main() {
 
     if (contract.capabilities.includes("root-only")) {
       assert(
-        contract.placement.allowedParents.length === 1 && contract.placement.allowedParents[0] === "page-root",
-        `Root-only block "${contract.type}" must only allow page-root placement.`,
+        contract.placement.allowedRegions.length > 0 &&
+          contract.placement.allowedRegions.every((regionKind) => regionKind.startsWith("page-")),
+        `Root-only block "${contract.type}" must only allow page regions.`,
       );
     }
 
     if (contract.capabilities.includes("leaf")) {
-      assert(!contract.placement.childTargetKind, `Leaf block "${contract.type}" must not declare a child target kind.`);
+      assert(contract.placement.regions.length === 0, `Leaf block "${contract.type}" must not declare owned regions.`);
       assert(contract.render.children === "leaf", `Leaf block "${contract.type}" must use the leaf render contract.`);
     }
 
     if (contract.capabilities.includes("layout-owner")) {
-      assert(contract.placement.childTargetKind === "layout-container", `Layout owner "${contract.type}" must expose a layout-container child target.`);
+      assert(contract.placement.regions.length > 0, `Layout owner "${contract.type}" must expose at least one owned region.`);
+      assert(
+        contract.placement.regions[0]?.kind === "layout-content",
+        `Layout owner "${contract.type}" must expose a layout-content primary region.`,
+      );
       assert(
         contract.render.children === "renders-children",
         `Layout owner "${contract.type}" must declare that it renders children.`,
