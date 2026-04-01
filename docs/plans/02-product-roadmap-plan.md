@@ -13,6 +13,8 @@ Implemented in the current greenfield slice:
 - schema-driven builder project model with persisted local state
 - component registry for layout, marketing, content, and app blocks
 - visual editor shell with pages, library, canvas, inspector, and theming
+- route management plus page outline/layers controls in the left workspace
+- contextual block library guidance tied to the current insertion target
 - constrained drag/drop canvas with nested containers and node selection
 - multi-page route editing and page duplication/removal
 - project JSON import/export and starter template application
@@ -255,7 +257,8 @@ Status:
 
 - partially completed in the current implementation slice
 - the current catalog includes navbars, testimonials, tables, message threads, dashboard shells, and starter-template coverage
-- follow-up work is focused on deeper library breadth, richer media/content blocks, and more polish across templates and validation
+- the current shell also includes page outline/layers management and contextual library filtering for valid drops
+- follow-up work is focused on deeper library breadth, richer media/content blocks, export/runtime verification, and more polish across templates and validation
 
 ## M3: Multi-Page Workflows And Export
 

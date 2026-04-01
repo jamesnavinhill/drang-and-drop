@@ -38,6 +38,8 @@ The current desktop shell is organized as:
 
 - schema-driven multi-page builder state with undo/redo history
 - drag/drop composition with constrained layout primitives and parent/child placement rules
+- tabbed pages workspace with route management and page outline/layers controls
+- contextual library filtering based on the active insertion target
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
 - expanded first-party block catalog including nav, testimonial, table, and message-thread shells

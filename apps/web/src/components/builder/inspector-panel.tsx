@@ -4,6 +4,7 @@ import { Copy, Paintbrush, ScrollText, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { getComponentDefinition } from "@/lib/builder/registry";
+import { findParentReference, getNodeDisplayLabel, getNodeHierarchyDepth } from "@/lib/builder/structure";
 import { getSelectedNode, getSelectedPage, useBuilderStore } from "@/lib/builder/store";
 import type { ControlField } from "@/lib/builder/types";
 import { clamp, cn } from "@/lib/utils";
@@ -158,11 +159,20 @@ function SelectionTab({
   active: boolean;
   onShowPage: () => void;
 }) {
+  const project = useBuilderStore((state) => state.project);
   const selectedNode = useBuilderStore(getSelectedNode);
   const updateNodeField = useBuilderStore((state) => state.updateNodeField);
   const duplicateNode = useBuilderStore((state) => state.duplicateNode);
   const removeNode = useBuilderStore((state) => state.removeNode);
   const selectedDefinition = selectedNode ? getComponentDefinition(selectedNode.type) : null;
+  const selectedParent = selectedNode ? findParentReference(project, selectedNode.id) : null;
+  const parentLabel =
+    selectedParent?.kind === "page"
+      ? `${project.pages.find((page) => page.id === selectedParent.id)?.name ?? "Page"} root`
+      : selectedParent
+        ? getNodeDisplayLabel(project.nodes[selectedParent.id])
+        : "None";
+  const hierarchyDepth = selectedNode ? getNodeHierarchyDepth(project, selectedNode.id) : 0;
 
   return (
     <section className="rounded-[24px] border border-border bg-white/72 p-4">
@@ -183,6 +193,21 @@ function SelectionTab({
       {selectedNode && selectedDefinition ? (
         <div className="mt-4 grid gap-4">
           <p className="text-sm leading-6 text-muted">{selectedDefinition.description}</p>
+
+          <div className="rounded-[22px] border border-border bg-white/78 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-muted">
+                Depth {hierarchyDepth}
+              </span>
+              <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+                Parent: {parentLabel}
+              </span>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-muted">
+              Use the outline in the pages panel to reorder this block among siblings or to understand its nesting at a
+              glance.
+            </p>
+          </div>
 
           <div className="flex items-center gap-2">
             <button
