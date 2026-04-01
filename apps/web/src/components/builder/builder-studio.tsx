@@ -16,11 +16,12 @@ import {
 import { useEffect, useEffectEvent, useState } from "react";
 
 import { exportProjectZip } from "@/lib/builder/export";
+import type { AssistantMode } from "@/lib/ai/types";
 import { getPageSummary } from "@/lib/builder/registry";
 import { useBuilderStore } from "@/lib/builder/store";
 import { cn } from "@/lib/utils";
 
-import { AssistantPanel, type AssistantMode } from "./assistant-panel";
+import { AssistantPanel } from "./assistant-panel";
 import { BuilderCanvas } from "./canvas";
 import { InspectorPanel } from "./inspector-panel";
 import { LibraryPanel } from "./library-panel";

@@ -1,9 +1,8 @@
 "use client";
 
+import type { AssistantMode } from "@/lib/ai/types";
 import { useBuilderStore } from "@/lib/builder/store";
 import { cn } from "@/lib/utils";
-
-import type { AssistantMode } from "./assistant-panel";
 
 export function SettingsPanel({
   assistantMode,
@@ -98,6 +97,14 @@ export function SettingsPanel({
               direct edits yet.
             </p>
           </button>
+        </div>
+      </section>
+
+      <section className="rounded-[24px] border border-border bg-white/72 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Provider setup</p>
+        <div className="mt-3 rounded-[20px] border border-dashed border-border bg-white/72 p-4 text-sm leading-6 text-muted">
+          Configure `apps/web/.env.example` values in your local `.env.local` before using the live assistant.
+          The current implementation supports Vercel AI Gateway or direct OpenAI selection through explicit env vars.
         </div>
       </section>
     </div>
