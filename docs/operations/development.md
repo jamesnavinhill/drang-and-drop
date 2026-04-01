@@ -48,12 +48,19 @@ Build:
 pnpm build
 ```
 
+Generated starter verification:
+
+```powershell
+pnpm verify:starters
+```
+
 ## Notes
 
 - The build script is pinned to `next build --webpack` because local production serving was more stable than the default build path in this environment.
 - The builder persists project state locally in the browser, so refreshes and revisits will restore the last saved working state.
 - If you want a clean local reset in the browser, use the in-app `Reset demo` control or clear local storage for the app origin.
 - Project JSON import/export and template application live in the left sidebar `Settings` mode.
+- `pnpm verify:starters` generates clean starter workspaces under `apps/web/output/starter-verification`, runs install/build/start for each shipped template, checks every generated route, and verifies a live `_next/static` asset response.
 - The assistant shell and transport are wired, but live requests are intentionally disabled unless `NEXT_PUBLIC_BUILDER_ASSISTANT_ENABLED=true` is set in `apps/web/.env.local`.
 - The current assistant backend supports Vercel AI Gateway or direct OpenAI configuration through explicit environment variables in `apps/web/.env.example`.
 
@@ -65,3 +72,5 @@ pnpm build
 - Project store: `apps/web/src/lib/builder/store.ts`
 - Registry and rendering: `apps/web/src/lib/builder/registry.tsx`
 - Export generation: `apps/web/src/lib/builder/export.ts`
+- Shared starter artifacts: `apps/web/src/lib/builder/starter-artifacts.ts`
+- Starter verification script: `apps/web/scripts/verify-generated-starters.ts`

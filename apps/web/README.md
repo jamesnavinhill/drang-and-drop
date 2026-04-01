@@ -16,6 +16,7 @@ pnpm dev --port 3000
 ```powershell
 pnpm lint
 pnpm build
+pnpm verify:starters
 ```
 
 ## Builder Shell
@@ -44,6 +45,7 @@ The current desktop shell is organized as:
 - starter templates for marketing and internal-tool starting points
 - expanded first-party block catalog including nav, testimonial, table, and message-thread shells
 - zip export to a runnable `Next.js` starter
+- automated generated-starter verification across all shipped templates
 
 ## Assistant Status
 

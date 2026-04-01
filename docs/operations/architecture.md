@@ -16,10 +16,14 @@ Core layers:
   Owns Zustand state, persistence, history, node/page mutations, duplication, deletion, and selection.
 - `src/lib/builder/export.ts`
   Generates the zipped starter project from the current builder state.
+- `src/lib/builder/starter-artifacts.ts`
+  Owns the shared generated-starter file plan used by both browser export and automated runtime verification.
 - `src/lib/builder/io.ts`
   Handles schema-safe builder project JSON import/export.
 - `src/components/builder/*`
   Implements the editor shell: page panel, library, canvas, and inspector.
+- `scripts/verify-generated-starters.ts`
+  Generates clean starter workspaces for each shipped template, then runs install/build/start/route/static-asset verification.
 
 ## Data Model
 
@@ -48,7 +52,7 @@ The editor shell uses four persistent surfaces:
 - top bar
   Preview modes, history actions, export, and workspace summary
 - left sidebar
-  Pages, library, assistant, settings, templates, and project I/O
+  Pages with route and outline modes, library with contextual insertion guidance, assistant, settings, templates, and project I/O
 - center canvas
   Theme-aware page preview with constrained drag/drop
 - right inspector
@@ -64,19 +68,23 @@ Supported layout primitives:
 
 Current leaf blocks:
 
+- navbar
 - hero
 - text
 - button
 - feature grid
+- testimonial card
 - stat card
 - form card
 - pricing card
 - chat input
+- message thread
+- data table
 - sidebar shell
 
 ## Export Model
 
-Export uses `JSZip` in the client and generates a starter project with:
+Export uses a shared starter-artifact layer plus `JSZip` in the client and generates a starter project with:
 
 - `app/layout.tsx`
 - `app/globals.css`
@@ -87,6 +95,15 @@ Export uses `JSZip` in the client and generates a starter project with:
 - `.env.example`
 
 This export is still schema-driven on the generated side. That is deliberate for now because it preserves parity with the builder runtime while keeping the output understandable.
+
+The generated starter file plan now has a matching automated verification loop that:
+
+- writes clean workspaces for each starter template
+- runs `pnpm install`
+- runs `pnpm build`
+- runs `pnpm start`
+- checks every generated route
+- checks a live `/_next/static/*` asset response
 
 ## Known Architectural Constraints
 

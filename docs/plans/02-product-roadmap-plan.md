@@ -20,6 +20,7 @@ Implemented in the current greenfield slice:
 - project JSON import/export and starter template application
 - starter zip export with generated `Next.js` project files
 - verification coverage for build, lint, live browser rendering, page switching, node selection, preview mode changes, and export download
+- automated generated-starter verification across all shipped templates with install/build/serve/route/static-asset checks
 
 Open follow-up work after this slice:
 
@@ -27,6 +28,7 @@ Open follow-up work after this slice:
 - investigate the remaining local `next start` static asset serving issue observed during automated browser verification
 - continue expanding the component catalog beyond the current marketing and internal-tool starter set
 - strengthen export parity tests and generated-project runtime verification
+- add browser-rendered checks against generated starter apps beyond the current runtime harness
 - begin M2/M3 hardening on codegen cleanliness, route generation polish, and onboarding flows
 
 ## Purpose
@@ -296,7 +298,8 @@ Status:
 
 - partially completed in the current implementation slice
 - zip export is implemented and browser download is verified
-- follow-up work is needed on deeper generated-project runtime verification and the local `next start` asset-serving issue
+- generated starters are now verified through automated install/build/serve/route/static-asset checks for all shipped templates
+- follow-up work is now focused on browser-level generated-app assertions and deeper export quality coverage
 
 ## M4: Hardening And V1 Launch Prep
 
