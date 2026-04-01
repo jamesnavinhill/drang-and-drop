@@ -141,6 +141,17 @@ function main() {
   expectFailure(
     executeStructureCommand(project, {
       kind: "insert",
+      node: createNode("button-root-attempt", "button"),
+      parent: pageParent,
+    }),
+    "invalid-child",
+    "Inserting a button at the page root should fail because buttons require a layout container.",
+  );
+  assert.equal(project.nodes["button-root-attempt"], undefined);
+
+  expectFailure(
+    executeStructureCommand(project, {
+      kind: "insert",
       node: createNode("navbar-1", "navbar"),
       parent: {
         id: "section-1",
@@ -152,7 +163,20 @@ function main() {
   );
   assert.equal(project.nodes["navbar-1"], undefined);
 
-  const duplicateIdSequence = ["stack-copy", "text-copy"];
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("stat-1", "statCard"),
+      parent: {
+        id: "stack-1",
+        kind: "node",
+      },
+    }),
+    "Expected stat card insertion inside a layout container to succeed.",
+  );
+  assert.deepEqual(project.nodes["stack-1"]?.children, ["text-1", "stat-1"]);
+
+  const duplicateIdSequence = ["stack-copy", "text-copy", "stat-copy"];
   const duplicateResult = expectSuccess(
     executeStructureCommand(project, {
       createNodeId: () => {
@@ -166,10 +190,11 @@ function main() {
     "Expected duplicating the nested stack subtree to succeed.",
   );
   assert.equal(duplicateResult.nodeId, "stack-copy");
-  assert.deepEqual(duplicateResult.createdNodeIds, ["stack-copy", "text-copy"]);
+  assert.deepEqual(duplicateResult.createdNodeIds, ["stack-copy", "text-copy", "stat-copy"]);
   assert.deepEqual(project.nodes["section-1"]?.children, ["stack-1", "stack-copy"]);
-  assert.deepEqual(project.nodes["stack-copy"]?.children, ["text-copy"]);
+  assert.deepEqual(project.nodes["stack-copy"]?.children, ["text-copy", "stat-copy"]);
   assert.equal(project.nodes["text-copy"]?.type, "text");
+  assert.equal(project.nodes["stat-copy"]?.type, "statCard");
 
   const removeResult = expectSuccess(
     executeStructureCommand(project, {
@@ -178,10 +203,11 @@ function main() {
     }),
     "Expected removing the original nested stack subtree to succeed.",
   );
-  assert.deepEqual(removeResult.removedNodeIds, ["text-1", "stack-1"]);
+  assert.deepEqual(removeResult.removedNodeIds, ["text-1", "stat-1", "stack-1"]);
   assert.deepEqual(project.nodes["section-1"]?.children, ["stack-copy"]);
   assert.equal(project.nodes["stack-1"], undefined);
   assert.equal(project.nodes["text-1"], undefined);
+  assert.equal(project.nodes["stat-1"], undefined);
 
   expectFailure(
     executeStructureCommand(project, {

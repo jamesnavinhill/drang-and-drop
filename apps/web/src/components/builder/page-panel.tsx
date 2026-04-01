@@ -4,7 +4,7 @@ import { Copy, FilePlus2, FolderTree, Route, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { getComponentDefinition } from "@/lib/builder/component-definitions";
-import { getComponentPlacement } from "@/lib/builder/component-placement";
+import { componentCanHaveChildren } from "@/lib/builder/component-placement";
 import {
   countPageNodes,
   countSubtreeNodes,
@@ -244,9 +244,8 @@ function OutlineTab() {
   const page = project.pages.find((entry) => entry.id === selectedPageId) ?? project.pages[0];
   const insertion = describeInsertionTarget(project, selectedPageId, selectedNodeId);
   const selectedNode = selectedNodeId ? project.nodes[selectedNodeId] ?? null : null;
-  const selectedPlacement = selectedNode ? getComponentPlacement(selectedNode.type) : null;
   const insertionContextMessage = selectedNode
-    ? selectedPlacement?.canHaveChildren
+    ? componentCanHaveChildren(selectedNode.type)
       ? "New blocks can be inserted directly into the selected container."
       : "The selected block is a leaf, so new blocks will target its parent container or page root."
     : "Nothing is selected, so new blocks will insert at the page root.";

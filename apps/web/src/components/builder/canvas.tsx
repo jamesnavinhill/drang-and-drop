@@ -18,7 +18,7 @@ import { AlertCircle, GripVertical, MousePointer2, MoveDown } from "lucide-react
 import { useMemo, useState } from "react";
 
 import { getComponentDefinition } from "@/lib/builder/component-definitions";
-import { getComponentPlacement } from "@/lib/builder/component-placement";
+import { componentCanHaveChildren } from "@/lib/builder/component-placement";
 import { getThemeStyles, renderNodePreview } from "@/lib/builder/component-preview";
 import {
   applyBuilderDragOperation,
@@ -131,7 +131,7 @@ function CanvasNode({
 }) {
   const selectNode = useBuilderStore((state) => state.selectNode);
   const definition = getComponentDefinition(node.type);
-  const placement = getComponentPlacement(node.type);
+  const canHaveChildren = componentCanHaveChildren(node.type);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: node.id,
     data: {
@@ -152,7 +152,7 @@ function CanvasNode({
         id: node.id,
       } satisfies ParentReference,
     },
-    disabled: !placement.canHaveChildren,
+    disabled: !canHaveChildren,
   });
   const isContainerTarget =
     overDragData?.kind === "container" &&
@@ -175,7 +175,7 @@ function CanvasNode({
     />
   ));
 
-  const renderedChildren = placement.canHaveChildren ? (
+  const renderedChildren = canHaveChildren ? (
     <div
       ref={setDropRef}
       data-builder-drop-target={`node:${node.id}`}

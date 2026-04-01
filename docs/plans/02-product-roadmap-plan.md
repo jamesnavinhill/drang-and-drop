@@ -28,6 +28,7 @@ Implemented in the current greenfield slice:
 - shared shell-level editor notices plus outline insertion-context cues for clearer editor parity
 - shared outline/inspector node action controls for reorder, duplicate, and remove parity
 - split builder block definitions, placement rules, and preview rendering modules so the registry boundary is starting to harden
+- placement validation now resolves through explicit `page-root` and `layout-container` targets, giving command and drag verification a clearer shared model
 - automated generated-starter verification across all shipped templates with install/build/serve/route/static-asset and browser-rendered checks
 
 Open follow-up work after this slice:

@@ -1,6 +1,13 @@
 import { getComponentDefinition } from "./component-definitions";
-import { canAcceptChild, getComponentPlacement } from "./component-placement";
-import type { BuilderNode, BuilderProject, ComponentType, ParentReference } from "./types";
+import {
+  canAcceptChild,
+  componentCanHaveChildren,
+  describeAllowedParentKinds,
+  describePlacementTargetKind,
+  getComponentPlacement,
+  getPlacementTargetKind,
+} from "./component-placement";
+import type { BuilderNode, BuilderProject, ComponentType, ParentReference, PlacementTargetKind } from "./types";
 
 export type BuilderPlacementFailureReason =
   | "duplicate-node-id"
@@ -125,6 +132,26 @@ export function getParentType(project: BuilderProject, parent: ParentReference):
   }
 
   return project.nodes[parent.id]?.type ?? null;
+}
+
+export function getPlacementTarget(project: BuilderProject, parent: ParentReference) {
+  const kind = getPlacementTargetKind(project, parent);
+  if (!kind) {
+    return null;
+  }
+
+  return {
+    kind,
+    parent,
+  };
+}
+
+function getPlacementFailureMessage(childType: ComponentType, targetKind: PlacementTargetKind) {
+  const placement = getComponentPlacement(childType);
+  const allowedTargets = describeAllowedParentKinds(placement.allowedParents);
+  const attemptedTarget = describePlacementTargetKind(targetKind);
+
+  return `A ${childType} block can only be placed in ${allowedTargets}, not in ${attemptedTarget}.`;
 }
 
 function setParentChildren(project: BuilderProject, parent: ParentReference, nextChildren: string[]) {
@@ -270,8 +297,8 @@ export function validateComponentPlacement({
   parent: ParentReference;
   project: BuilderProject;
 }): BuilderPlacementResult {
-  const parentType = getParentType(project, parent);
-  if (!parentType) {
+  const targetKind = getPlacementTargetKind(project, parent);
+  if (!targetKind) {
     return {
       ok: false,
       reason: "missing-parent",
@@ -279,11 +306,11 @@ export function validateComponentPlacement({
     };
   }
 
-  if (!canAcceptChild(parentType, childType)) {
+  if (!canAcceptChild(targetKind, childType)) {
     return {
       ok: false,
       reason: "invalid-child",
-      message: `A ${childType} block cannot be placed inside ${parentType === "page" ? "the page root" : parentType}.`,
+      message: getPlacementFailureMessage(childType, targetKind),
     };
   }
 
@@ -753,8 +780,7 @@ export function getInsertionTarget(
     return { kind: "page", id: selectedPageId };
   }
 
-  const placement = getComponentPlacement(selectedNode.type);
-  if (placement.canHaveChildren) {
+  if (componentCanHaveChildren(selectedNode.type)) {
     return { kind: "node", id: selectedNodeId };
   }
 

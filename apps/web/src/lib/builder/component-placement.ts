@@ -1,138 +1,87 @@
-import type { ComponentPlacementDefinition, ComponentType } from "./types";
+import type { BuilderProject, ComponentPlacementDefinition, ComponentType, ParentReference, PlacementTargetKind } from "./types";
 
-const pageRootTypes: ComponentType[] = [
-  "navbar",
-  "hero",
-  "section",
-  "stack",
-  "grid",
-  "featureGrid",
-  "faqList",
-  "testimonialCard",
-  "dataTable",
-  "activityFeed",
-  "messageThread",
-  "formCard",
-  "pricingCard",
-  "sidebarShell",
-  "chatInput",
-  "text",
-];
+const pageRootOnlyPlacement: ComponentPlacementDefinition = {
+  allowedParents: ["page-root"],
+};
 
-const containerChildTypes: ComponentType[] = [
-  "text",
-  "button",
-  "featureGrid",
-  "faqList",
-  "testimonialCard",
-  "statCard",
-  "activityFeed",
-  "formCard",
-  "pricingCard",
-  "chatInput",
-  "messageThread",
-  "dataTable",
-  "sidebarShell",
-  "stack",
-  "grid",
-  "section",
-];
+const layoutContainerPlacement: ComponentPlacementDefinition = {
+  allowedParents: ["page-root", "layout-container"],
+  childTargetKind: "layout-container",
+};
+
+const flexibleLeafPlacement: ComponentPlacementDefinition = {
+  allowedParents: ["page-root", "layout-container"],
+};
+
+const nestedLeafPlacement: ComponentPlacementDefinition = {
+  allowedParents: ["layout-container"],
+};
 
 const componentPlacement: Record<ComponentType, ComponentPlacementDefinition> = {
-  navbar: {
-    accepts: [],
-    canHaveChildren: false,
-    rootOnly: true,
-  },
-  section: {
-    accepts: containerChildTypes,
-    canHaveChildren: true,
-  },
-  stack: {
-    accepts: containerChildTypes,
-    canHaveChildren: true,
-  },
-  grid: {
-    accepts: containerChildTypes,
-    canHaveChildren: true,
-  },
-  hero: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  text: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  button: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  featureGrid: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  faqList: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  testimonialCard: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  statCard: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  activityFeed: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  formCard: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  pricingCard: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  chatInput: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  messageThread: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  dataTable: {
-    accepts: [],
-    canHaveChildren: false,
-  },
-  sidebarShell: {
-    accepts: [],
-    canHaveChildren: false,
-  },
+  navbar: pageRootOnlyPlacement,
+  section: layoutContainerPlacement,
+  stack: layoutContainerPlacement,
+  grid: layoutContainerPlacement,
+  hero: pageRootOnlyPlacement,
+  text: flexibleLeafPlacement,
+  button: nestedLeafPlacement,
+  featureGrid: flexibleLeafPlacement,
+  faqList: flexibleLeafPlacement,
+  testimonialCard: flexibleLeafPlacement,
+  statCard: nestedLeafPlacement,
+  activityFeed: flexibleLeafPlacement,
+  formCard: flexibleLeafPlacement,
+  pricingCard: flexibleLeafPlacement,
+  chatInput: flexibleLeafPlacement,
+  messageThread: flexibleLeafPlacement,
+  dataTable: flexibleLeafPlacement,
+  sidebarShell: flexibleLeafPlacement,
 };
 
 export function getComponentPlacement(type: ComponentType) {
   return componentPlacement[type];
 }
 
-export function canAcceptChild(parentType: ComponentType | "page", childType: ComponentType) {
-  const childPlacement = componentPlacement[childType];
+export function componentCanHaveChildren(type: ComponentType) {
+  return Boolean(getComponentPlacement(type).childTargetKind);
+}
 
-  if (parentType === "page") {
-    return pageRootTypes.includes(childType);
+export function isRootOnlyComponent(type: ComponentType) {
+  const placement = getComponentPlacement(type);
+  return placement.allowedParents.length === 1 && placement.allowedParents[0] === "page-root";
+}
+
+export function describePlacementTargetKind(kind: PlacementTargetKind) {
+  return kind === "page-root" ? "the page root" : "a layout container";
+}
+
+export function describeAllowedParentKinds(kinds: PlacementTargetKind[]) {
+  const labels = kinds.map((kind) => describePlacementTargetKind(kind));
+
+  if (labels.length === 1) {
+    return labels[0];
   }
 
-  if (childPlacement.rootOnly) {
-    return false;
+  if (labels.length === 2) {
+    return `${labels[0]} or ${labels[1]}`;
   }
 
-  const parentPlacement = componentPlacement[parentType];
-  if (!parentPlacement.canHaveChildren) {
-    return false;
+  return `${labels.slice(0, -1).join(", ")}, or ${labels[labels.length - 1]}`;
+}
+
+export function getPlacementTargetKind(project: BuilderProject, parent: ParentReference): PlacementTargetKind | null {
+  if (parent.kind === "page") {
+    return project.pages.some((page) => page.id === parent.id) ? "page-root" : null;
   }
 
-  return parentPlacement.accepts === "any" ? true : parentPlacement.accepts.includes(childType);
+  const parentNode = project.nodes[parent.id];
+  if (!parentNode) {
+    return null;
+  }
+
+  return getComponentPlacement(parentNode.type).childTargetKind ?? null;
+}
+
+export function canAcceptChild(parentTargetKind: PlacementTargetKind, childType: ComponentType) {
+  return getComponentPlacement(childType).allowedParents.includes(parentTargetKind);
 }

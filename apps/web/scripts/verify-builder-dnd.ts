@@ -511,7 +511,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
       throw new Error("Invalid hero nesting unexpectedly changed the builder structure.");
     }
 
-    await expectEditorNotice(page, "A hero block cannot be placed inside section.");
+    await expectEditorNotice(page, "A hero block can only be placed in the page root");
 
     await dragBetween({
       page,
@@ -581,7 +581,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
       throw new Error("Invalid nested navbar drop unexpectedly changed the builder structure.");
     }
 
-    await expectEditorNotice(page, "A navbar block cannot be placed inside section.");
+    await expectEditorNotice(page, "A navbar block can only be placed in the page root");
     await page.click('[data-builder-editor-notice-dismiss="true"]');
     await page.locator("[data-builder-editor-notice]").waitFor({ state: "hidden" });
 

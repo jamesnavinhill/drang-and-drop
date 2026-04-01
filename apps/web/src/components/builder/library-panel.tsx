@@ -5,7 +5,7 @@ import { Compass, Filter, Layers3 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { componentDefinitions } from "@/lib/builder/component-definitions";
-import { getComponentPlacement } from "@/lib/builder/component-placement";
+import { componentCanHaveChildren, isRootOnlyComponent } from "@/lib/builder/component-placement";
 import { describeInsertionTarget, validateComponentPlacement } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
 import { cn } from "@/lib/utils";
@@ -203,8 +203,6 @@ export function LibraryPanel() {
                       parent: insertion.target,
                       project,
                     });
-                    const itemPlacement = getComponentPlacement(item.type);
-
                     return (
                       <PaletteItem
                         key={item.type}
@@ -217,9 +215,9 @@ export function LibraryPanel() {
                         helperLabel={
                           libraryView === "all" && !placement.ok
                             ? "Not allowed in the current insertion target"
-                            : itemPlacement.rootOnly
+                            : isRootOnlyComponent(item.type)
                               ? "Root-level only"
-                              : itemPlacement.canHaveChildren
+                              : componentCanHaveChildren(item.type)
                                 ? "Accepts nested blocks"
                                 : "Leaf content block"
                         }

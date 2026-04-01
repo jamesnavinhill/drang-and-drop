@@ -48,7 +48,7 @@ The current desktop shell is organized as:
 - schema-driven multi-page builder state with undo/redo history
 - shared structure-command layer for insert, move, duplicate, and remove operations
 - structural project validation for import, persisted state hydration, and command-safe mutations
-- drag/drop composition with constrained layout primitives, centralized parent/child placement rules, and live invalid-drop feedback in the canvas
+- drag/drop composition with constrained layout primitives, explicit `page-root` and `layout-container` placement targets, and live invalid-drop feedback in the canvas
 - tabbed pages workspace with route management and page outline/layers controls
 - contextual library filtering plus full-catalog placement hints based on the active insertion target
 - shared editor notices surfaced at the studio shell level for failed structure-sensitive actions

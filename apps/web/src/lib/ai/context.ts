@@ -1,5 +1,5 @@
 import { componentDefinitions, getComponentDefinition } from "@/lib/builder/component-definitions";
-import { getComponentPlacement } from "@/lib/builder/component-placement";
+import { componentCanHaveChildren } from "@/lib/builder/component-placement";
 import type { BuilderProject, PreviewMode } from "@/lib/builder/types";
 
 import type { AssistantMode, BuilderAssistantContext } from "./types";
@@ -53,7 +53,7 @@ export function buildBuilderAssistantContext({
       title: component.title,
       category: component.category,
       description: component.description,
-      canHaveChildren: getComponentPlacement(component.type).canHaveChildren,
+      canHaveChildren: componentCanHaveChildren(component.type),
     })),
   };
 }

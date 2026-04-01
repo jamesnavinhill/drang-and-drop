@@ -13,7 +13,7 @@ Core layers:
 - `src/lib/builder/component-definitions.ts`
   Owns the current block catalog, default props, and inspector field definitions.
 - `src/lib/builder/component-placement.ts`
-  Owns the current placement allowlists and child-acceptance rules for page roots and nested containers.
+  Owns the current explicit placement-target model, including `page-root` and `layout-container` rules plus child-acceptance helpers.
 - `src/lib/builder/component-preview.tsx`
   Owns builder-side theme style mapping and preview rendering for the current block set.
 - `src/lib/builder/registry.tsx`
@@ -127,7 +127,7 @@ The generated starter file plan now has a matching automated verification loop t
 ## Known Architectural Constraints
 
 - Drag/drop is constrained, runs through shared insert/move command paths, and now surfaces invalid-drop reasoning in the canvas while failed structure commands surface through a shared shell notice.
-- Placement constraints are centralized for the current editor model, but they are still derived from registry allowlists rather than a richer slot or region contract.
+- Placement constraints are centralized for the current editor model and now resolve through explicit `page-root` and `layout-container` target kinds, but they are not yet a richer slot or region contract.
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.

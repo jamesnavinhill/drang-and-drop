@@ -98,10 +98,13 @@ export interface ComponentDefinition {
   fields: ControlField[];
 }
 
+export const placementTargetKinds = ["page-root", "layout-container"] as const;
+
+export type PlacementTargetKind = (typeof placementTargetKinds)[number];
+
 export interface ComponentPlacementDefinition {
-  canHaveChildren: boolean;
-  accepts: "any" | ComponentType[];
-  rootOnly?: boolean;
+  allowedParents: PlacementTargetKind[];
+  childTargetKind?: PlacementTargetKind;
 }
 
 export type ComponentRegistryEntry = ComponentDefinition & ComponentPlacementDefinition;

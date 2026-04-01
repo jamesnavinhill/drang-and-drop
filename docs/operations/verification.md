@@ -39,12 +39,13 @@ Verified behaviors:
 Direct command verification completed via `pnpm verify:commands`:
 
 1. Verified shared insert command behavior for valid page-root and nested placements.
-2. Verified shared move command behavior for nested-container moves.
-3. Verified descendant-target rejection for invalid moves.
-4. Verified root-only placement rejection for invalid nested inserts.
-5. Verified shared duplicate command behavior for subtree cloning with fresh ids.
-6. Verified shared remove command behavior for subtree deletion.
-7. Verified structural validation rejects invalid root placement and orphan nodes.
+2. Verified page-root rejection for a `button` block that requires a layout container.
+3. Verified shared move command behavior for nested-container moves.
+4. Verified descendant-target rejection for invalid moves.
+5. Verified page-root-only placement rejection for invalid nested inserts.
+6. Verified shared duplicate command behavior for subtree cloning with fresh ids.
+7. Verified shared remove command behavior for subtree deletion.
+8. Verified structural validation rejects invalid root placement and orphan nodes.
 
 Canvas interaction feedback is now also validated indirectly by the browser drag harness:
 
@@ -113,6 +114,7 @@ What is already in place to support that follow-up:
 - stable `data-builder-*` hooks now back both browser automation selectors and the deterministic builder drag verification hook
 - `scripts/verify-builder-commands.ts` now gives the structure-command layer a direct fast verification loop outside the browser
 - block definitions, placement rules, and builder preview rendering now live in separate builder modules, which lowers registry coupling before deeper placement/export hardening
+- placement rules now resolve through explicit `page-root` and `layout-container` target kinds, which gives validation and verification a clearer shared vocabulary
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 - the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized
 

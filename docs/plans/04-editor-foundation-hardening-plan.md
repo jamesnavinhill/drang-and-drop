@@ -26,6 +26,7 @@ Progress landed so far in the current codebase:
 - the outline now shows the current insertion target so selection and insertion intent are easier to read
 - outline and inspector now share the same structure-action controls for reorder, duplicate, and remove
 - block definitions, placement rules, and builder preview rendering are now split into focused modules, with `registry.tsx` reduced to a compatibility barrel
+- placement validation now resolves through explicit `page-root` and `layout-container` target kinds instead of only raw parent-type allowlists
 
 This means the constraint-and-command foundation is partially landed. The next work inside this plan should lean harder into editor interaction clarity, validation surfacing, and registry separation instead of reopening already-centralized mutation paths.
 
@@ -102,7 +103,7 @@ Deprioritized until the foundation slice is healthier:
 
 The main constraints in the current codebase are:
 
-1. Placement constraints are still mostly allowlists (`accepts`, `rootOnly`, `canHaveChildren`) instead of a clearer placement model.
+1. Placement is now clearer at the `page-root` and `layout-container` target level, but it still stops short of richer slot or region-based contracts.
 2. The canvas flow in `src/components/builder/canvas.tsx` is deterministic, but it does not yet provide strong insertion semantics or guard every edge case.
 3. The store in `src/lib/builder/store.ts` owns mutations directly without a more explicit command layer.
 4. Schema validation in `src/lib/builder/schema.ts` checks shape, but not enough semantic or structural validity.
