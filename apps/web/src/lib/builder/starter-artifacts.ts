@@ -128,6 +128,30 @@ function parseTranscript(value: string) {
   });
 }
 
+function parseFaqItems(value: string) {
+  return toLines(value).map((entry) => {
+    const [question, ...rest] = entry.split("|");
+    const answer = rest.join("|").trim();
+
+    return {
+      answer: answer || "Add an answer in the builder.",
+      question: question.trim() || "Question",
+    };
+  });
+}
+
+function parseActivityEntries(value: string) {
+  return toLines(value).map((entry) => {
+    const [title, meta, status] = entry.split("|").map((item) => item.trim());
+
+    return {
+      meta: meta || "No timestamp yet",
+      status: status || "Queued",
+      title: title || "Activity",
+    };
+  });
+}
+
 function parseTable(columnsValue: string, rowsValue: string) {
   const columns = columnsValue
     .split("|")
@@ -270,6 +294,33 @@ function renderNode(nodeId: string): ReactNode {
           <div style={{ marginTop: 20 }}>{featureLines(\`\${node.props.features}\`)}</div>
         </div>
       );
+    case "faqList": {
+      const items = parseFaqItems(\`\${node.props.items}\`);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
+          <div style={{ maxWidth: 760 }}>
+            <h3 style={{ margin: 0, fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
+            <p style={{ margin: "12px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+          </div>
+          <div style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {items.map((item, index) => (
+              <div key={\`\${item.question}-\${index}\`} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: "16px 18px" }}>
+                <div style={{ display: "flex", alignItems: "start", gap: 12 }}>
+                  <span style={{ width: 28, height: 28, borderRadius: 999, background: "color-mix(in srgb, var(--builder-accent) 10%, white)", color: "var(--builder-accent)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{item.question}</p>
+                    <p style={{ margin: "8px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{item.answer}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     case "testimonialCard":
       return (
         <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.86)", padding: 24 }}>
@@ -292,6 +343,47 @@ function renderNode(nodeId: string): ReactNode {
           </div>
         </div>
       );
+    case "activityFeed": {
+      const entries = parseActivityEntries(\`\${node.props.entries}\`);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 20 }}>
+          <div style={{ maxWidth: 760 }}>
+            <p style={{ margin: 0, fontWeight: 600 }}>{\`\${node.props.title}\`}</p>
+            <p style={{ margin: "10px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+          </div>
+          <div style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {entries.map((entry, index) => (
+              <div
+                key={\`\${entry.title}-\${entry.meta}-\${index}\`}
+                style={{
+                  display: "grid",
+                  gap: 12,
+                  alignItems: "start",
+                  borderRadius: 18,
+                  border: "1px solid var(--builder-border)",
+                  background: "var(--builder-surface)",
+                  padding: "16px 18px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "start", gap: 12 }}>
+                    <span style={{ width: 12, height: 12, borderRadius: 999, background: "var(--builder-accent)", display: "inline-block", marginTop: 6 }} />
+                    <div>
+                      <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{entry.title}</p>
+                      <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--builder-muted)", textTransform: "uppercase", letterSpacing: "0.16em" }}>{entry.meta}</p>
+                    </div>
+                  </div>
+                  <span style={{ borderRadius: 999, padding: "6px 12px", background: "color-mix(in srgb, var(--builder-accent) 10%, white)", color: "var(--builder-accent)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em" }}>
+                    {entry.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     case "formCard":
       return (
         <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>

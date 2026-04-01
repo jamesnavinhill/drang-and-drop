@@ -50,7 +50,7 @@ The current desktop shell is organized as:
 - contextual library filtering based on the active insertion target
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
-- expanded first-party block catalog including nav, testimonial, table, and message-thread shells
+- expanded first-party block catalog including nav, FAQ, activity feed, testimonial, table, and message-thread shells
 - zip export to a runnable `Next.js` starter
 - deterministic builder drag verification for palette insertion, nested insertion, reorder, and invalid-drop coverage
 - automated generated-starter verification across all shipped templates

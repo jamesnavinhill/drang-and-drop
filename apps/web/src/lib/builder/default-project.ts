@@ -56,6 +56,7 @@ function createLaunchStudioProject(): BuilderProject {
   const proofSectionId = createId();
   const proofGridId = createId();
   const featureId = createId();
+  const faqId = createId();
   const testimonialId = createId();
   const formId = createId();
   const chatId = createId();
@@ -193,7 +194,7 @@ function createLaunchStudioProject(): BuilderProject {
           columns: 4,
           gap: 18,
         },
-        children: [featureId, testimonialId, formId, chatId],
+        children: [featureId, faqId, testimonialId, formId, chatId],
       },
       [featureId]: {
         id: featureId,
@@ -202,6 +203,17 @@ function createLaunchStudioProject(): BuilderProject {
           title: "Keep the system constrained",
           body: "This keeps drag/drop fast, responsive behavior predictable, and export quality high.",
           features: "Schema-driven page JSON\nMultiple pages and routes\nTheme controls\nZip export scaffold",
+        },
+        children: [],
+      },
+      [faqId]: {
+        id: faqId,
+        type: "faqList",
+        props: {
+          title: "What teams ask before exporting",
+          body: "The builder stays focused on the workflows that keep visual editing credible for a developer handoff.",
+          items:
+            "Can we keep customizing the code later?|Yes. The starter export stays readable and intentionally easy to continue from.\nWhy keep drag rules constrained?|Because the value is reliable output, not arbitrary layout freedom.\nWhat does this protect?|Responsive behavior, export quality, and editor predictability.",
         },
         children: [],
       },
@@ -315,6 +327,7 @@ function createSignalFlowProject(): BuilderProject {
   const growthPlanId = createId();
   const comparisonSectionId = createId();
   const comparisonTableId = createId();
+  const faqId = createId();
 
   const homeId = createId();
   const pricingPageId = createId();
@@ -553,7 +566,7 @@ function createSignalFlowProject(): BuilderProject {
           paddingY: 36,
           inset: true,
         },
-        children: [comparisonTableId],
+        children: [comparisonTableId, faqId],
       },
       [comparisonTableId]: {
         id: comparisonTableId,
@@ -563,6 +576,17 @@ function createSignalFlowProject(): BuilderProject {
           columns: "Capability|Starter|Growth",
           rows:
             "Shared intake|Basic|Advanced\nApproval workflow|Limited|Unlimited\nExecutive rollups|Monthly|Weekly\nLaunch templates|2|10",
+        },
+        children: [],
+      },
+      [faqId]: {
+        id: faqId,
+        type: "faqList",
+        props: {
+          title: "Questions before a pilot",
+          body: "Pricing pages usually need a little objection handling so teams can move from interest to evaluation.",
+          items:
+            "Can we start small?|Yes. Teams can begin with a starter plan and expand the shared workflow later.\nDo we need a big rollout first?|No. Signal Flow is designed for pilots before a broader process change.\nWhat happens after the pilot?|Use the exported starter as the basis for deeper integration or product polish.",
         },
         children: [],
       },
@@ -581,6 +605,7 @@ function createOpsHubProject(): BuilderProject {
   const guidanceSectionId = createId();
   const guidanceGridId = createId();
   const textId = createId();
+  const activityFeedId = createId();
   const threadId = createId();
   const chatId = createId();
   const workspaceHeroId = createId();
@@ -714,10 +739,10 @@ function createOpsHubProject(): BuilderProject {
         type: "grid",
         props: {
           title: "Guidance grid",
-          columns: 3,
+          columns: 4,
           gap: 20,
         },
-        children: [textId, threadId, chatId],
+        children: [textId, activityFeedId, threadId, chatId],
       },
       [textId]: {
         id: textId,
@@ -726,6 +751,17 @@ function createOpsHubProject(): BuilderProject {
           title: "What to review first",
           body: "Start with approvals that are aging out, then review the incidents queue and staffing coverage for the next handoff window.",
           size: "lg",
+        },
+        children: [],
+      },
+      [activityFeedId]: {
+        id: activityFeedId,
+        type: "activityFeed",
+        props: {
+          title: "Queue activity",
+          body: "Give operators a compact timeline of what changed, what is ready, and what needs follow-up before the next handoff.",
+          entries:
+            "Escalation sweep finished|Today at 8:45 AM|Ready\nSLA risk summary posted|Today at 10:15 AM|Review\nStaffing handoff queued|Today at 3:00 PM|Queued",
         },
         children: [],
       },

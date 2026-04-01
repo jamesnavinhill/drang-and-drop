@@ -17,8 +17,10 @@ const pageRootTypes: ComponentType[] = [
   "stack",
   "grid",
   "featureGrid",
+  "faqList",
   "testimonialCard",
   "dataTable",
+  "activityFeed",
   "messageThread",
   "formCard",
   "pricingCard",
@@ -31,8 +33,10 @@ const containerChildTypes: ComponentType[] = [
   "text",
   "button",
   "featureGrid",
+  "faqList",
   "testimonialCard",
   "statCard",
+  "activityFeed",
   "formCard",
   "pricingCard",
   "chatInput",
@@ -260,6 +264,31 @@ const definitions: Record<ComponentType, ComponentDefinition> = {
       { key: "features", label: "Features", type: "textarea", placeholder: "One feature per line" },
     ],
   },
+  faqList: {
+    type: "faqList",
+    title: "FAQ List",
+    description: "Question and answer stack for launch pages, docs surfaces, and pricing follow-up.",
+    icon: "?",
+    category: "Marketing",
+    canHaveChildren: false,
+    accepts: [],
+    defaults: {
+      title: "Questions teams ask before rollout",
+      body: "Use this block to handle objections, explain the operating model, or keep launch details easy to skim.",
+      items:
+        "How strict is the builder?|The layout system stays constrained so export quality and responsive behavior remain predictable.\nCan teams keep editing the code later?|Yes. The exported starter stays readable and intentionally schema-driven.\nWhat should we verify next?|Broader block coverage, stronger drag rules, and deeper generated-app fidelity checks.",
+    },
+    fields: [
+      { key: "title", label: "Title", type: "text" },
+      { key: "body", label: "Body", type: "textarea" },
+      {
+        key: "items",
+        label: "Items",
+        type: "textarea",
+        placeholder: "Use question|answer format, one item per line",
+      },
+    ],
+  },
   testimonialCard: {
     type: "testimonialCard",
     title: "Testimonial",
@@ -296,6 +325,31 @@ const definitions: Record<ComponentType, ComponentDefinition> = {
       { key: "label", label: "Label", type: "text" },
       { key: "value", label: "Value", type: "text" },
       { key: "trend", label: "Trend", type: "text" },
+    ],
+  },
+  activityFeed: {
+    type: "activityFeed",
+    title: "Activity Feed",
+    description: "Operational timeline block for launches, approvals, incidents, or internal updates.",
+    icon: "A",
+    category: "Application",
+    canHaveChildren: false,
+    accepts: [],
+    defaults: {
+      title: "Recent activity",
+      body: "Highlight the events, ownership changes, and status checks a team should read first.",
+      entries:
+        "Release readiness review|Today at 9:10 AM|Ready\nGenerated starter audit|Today at 11:40 AM|Review\nDesign QA follow-up|Tomorrow at 2:00 PM|Queued",
+    },
+    fields: [
+      { key: "title", label: "Feed title", type: "text" },
+      { key: "body", label: "Body", type: "textarea" },
+      {
+        key: "entries",
+        label: "Entries",
+        type: "textarea",
+        placeholder: "Use item|meta|status format, one entry per line",
+      },
     ],
   },
   formCard: {
@@ -459,6 +513,30 @@ function parseTranscript(value: string) {
       sender: normalizedSender,
       message: message || "Message",
       isAssistant: /assistant|copilot|system/i.test(normalizedSender),
+    };
+  });
+}
+
+function parseFaqItems(value: string) {
+  return toLines(value).map((entry) => {
+    const [question, ...rest] = entry.split("|");
+    const answer = rest.join("|").trim();
+
+    return {
+      answer: answer || "Add an answer in the inspector.",
+      question: question.trim() || "Question",
+    };
+  });
+}
+
+function parseActivityEntries(value: string) {
+  return toLines(value).map((entry) => {
+    const [title, meta, status] = entry.split("|").map((item) => item.trim());
+
+    return {
+      meta: meta || "No timestamp yet",
+      status: status || "Queued",
+      title: title || "Activity",
     };
   });
 }
@@ -745,6 +823,36 @@ export function renderNodePreview(
           </div>
         </div>
       );
+    case "faqList": {
+      const items = parseFaqItems(`${node.props.items}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-6px)] border border-[color:var(--builder-border)] bg-white/82 p-6">
+          <div className="max-w-2xl">
+            <h3 className="text-xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+            <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+          </div>
+          <div className="mt-5 grid gap-3">
+            {items.map((item, index) => (
+              <div
+                key={`${item.question}-${index}`}
+                className="rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-5 py-4"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--builder-accent)]/10 text-[11px] font-semibold text-[color:var(--builder-accent)]">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{item.question}</p>
+                    <p className="mt-2 text-sm leading-6 text-[color:var(--builder-muted)]">{item.answer}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     case "testimonialCard":
       return (
         <div className="rounded-[calc(var(--builder-radius)-6px)] border border-[color:var(--builder-border)] bg-white/86 p-6">
@@ -769,6 +877,35 @@ export function renderNodePreview(
           </div>
         </div>
       );
+    case "activityFeed": {
+      const entries = parseActivityEntries(`${node.props.entries}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-5">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
+            <p className="mt-2 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+          </div>
+          <div className="mt-5 grid gap-3">
+            {entries.map((entry, index) => (
+              <div
+                key={`${entry.title}-${entry.meta}-${index}`}
+                className="grid gap-3 rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-4 py-4 md:grid-cols-[auto_minmax(0,1fr)_auto]"
+              >
+                <span className="mt-1 inline-flex h-3 w-3 rounded-full bg-[color:var(--builder-accent)]" />
+                <div>
+                  <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{entry.title}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">{entry.meta}</p>
+                </div>
+                <span className="justify-self-start rounded-full bg-[color:var(--builder-accent)]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--builder-accent)]">
+                  {entry.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     case "formCard":
       return (
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/82 p-6">

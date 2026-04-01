@@ -77,8 +77,10 @@ Current leaf blocks:
 - text
 - button
 - feature grid
+- FAQ list
 - testimonial card
 - stat card
+- activity feed
 - form card
 - pricing card
 - chat input
