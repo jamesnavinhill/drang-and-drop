@@ -200,8 +200,11 @@ export function createBlockContractVerificationProject(): BuilderProject {
       [sidebarShellId]: {
         id: sidebarShellId,
         props: {
+          gap: 22,
           highlight: "Parity",
           items: "Overview\nCoverage\nParity\nExport\nDocs",
+          sidebarPosition: "right",
+          sidebarWidth: 300,
           title: "Coverage nav",
         },
         regions: {

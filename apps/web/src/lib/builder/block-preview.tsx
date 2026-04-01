@@ -476,10 +476,30 @@ export function renderNodePreview(
     }
     case "sidebarShell": {
       const items = toLines(`${node.props.items}`);
+      const sidebarPosition = `${node.props.sidebarPosition ?? "left"}` === "right" ? "right" : "left";
+      const sidebarWidth = Number(node.props.sidebarWidth ?? 280);
+      const gap = Number(node.props.gap ?? 18);
+
       return (
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/86 p-4">
-          <div className="grid gap-4 md:grid-cols-[260px_minmax(0,1fr)]">
-            <aside className="rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] p-4">
+          <div
+            className={cn(
+              "grid gap-4",
+              sidebarPosition === "right"
+                ? "lg:grid-cols-[minmax(0,1fr)_var(--builder-sidebar-width)]"
+                : "lg:grid-cols-[var(--builder-sidebar-width)_minmax(0,1fr)]",
+            )}
+            style={{
+              ["--builder-sidebar-width" as string]: `${sidebarWidth}px`,
+              gap: `${gap}px`,
+            }}
+          >
+            <aside
+              className={cn(
+                "rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] p-4",
+                sidebarPosition === "right" && "lg:order-2",
+              )}
+            >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
                 Workspace rail
               </p>
@@ -505,7 +525,12 @@ export function renderNodePreview(
               </div>
               <div className="mt-4">{renderedRegions.sidebar ?? null}</div>
             </aside>
-            <div className="rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-white/72 p-4">
+            <div
+              className={cn(
+                "rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-white/72 p-4",
+                sidebarPosition === "right" && "lg:order-1",
+              )}
+            >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">

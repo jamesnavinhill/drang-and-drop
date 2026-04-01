@@ -6,9 +6,11 @@ import { useMemo, useState } from "react";
 
 import { getDisplayableBlockCapabilityLabels, groupBlockContractsByFamily } from "@/lib/builder/block-catalog";
 import { blockContracts } from "@/lib/builder/block-contracts";
-import { blockCanHaveChildren, isRootOnlyBlock } from "@/lib/builder/block-placement";
+import { blockCanHaveChildren, getBlockRegion, isRootOnlyBlock } from "@/lib/builder/block-placement";
+import { getPageRegionDefinition } from "@/lib/builder/regions";
 import { describeInsertionTarget, validateBlockPlacement } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
+import type { BuilderProject, PageRegionId, ParentReference } from "@/lib/builder/types";
 import { cn } from "@/lib/utils";
 
 type LibraryView = "context" | "all";
@@ -126,6 +128,24 @@ function LibraryModeButton({
   );
 }
 
+function describeInsertionRegion(project: BuilderProject, target: ParentReference) {
+  if (target.kind === "page-region") {
+    const pageRegion = getPageRegionDefinition(target.regionId as PageRegionId);
+    return {
+      description: pageRegion.description,
+      roleLabel: pageRegion.role === "primary" ? "Primary region" : "Supporting region",
+    };
+  }
+
+  const node = project.nodes[target.nodeId ?? ""];
+  const region = node ? getBlockRegion(node.type, target.regionId) : null;
+
+  return {
+    description: region?.description ?? "Add nested blocks here to continue the current layout flow.",
+    roleLabel: region?.role === "supporting" ? "Supporting region" : "Primary region",
+  };
+}
+
 export function LibraryPanel() {
   const project = useBuilderStore((state) => state.project);
   const selectedPageId = useBuilderStore((state) => state.selectedPageId);
@@ -133,6 +153,7 @@ export function LibraryPanel() {
   const selectedRegionTarget = useBuilderStore((state) => state.selectedRegionTarget);
   const [libraryView, setLibraryView] = useState<LibraryView>("context");
   const insertion = describeInsertionTarget(project, selectedPageId, selectedNodeId, selectedRegionTarget);
+  const insertionRegion = describeInsertionRegion(project, insertion.target);
 
   const visibleContracts = useMemo(() => {
     if (libraryView === "all") {
@@ -192,11 +213,19 @@ export function LibraryPanel() {
               </p>
               <h3 className="mt-1 text-base font-semibold text-foreground">{insertion.label}</h3>
             </div>
-            <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
-              {insertion.kind === "page-region" ? "Page region" : "Block region"}
-            </span>
+            <div className="flex flex-col items-end gap-2">
+              <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
+                {insertion.kind === "page-region" ? "Page region" : "Block region"}
+              </span>
+              <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
+                {insertionRegion.roleLabel}
+              </span>
+            </div>
           </div>
           <p className="mt-3 text-sm leading-6 text-muted">
+            {insertionRegion.description}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-muted">
             {libraryView === "context"
               ? "These blocks are filtered to what can be dropped into the current insertion target."
               : "Showing the full catalog. Contextual mode narrows the list to valid drops for the current selection."}

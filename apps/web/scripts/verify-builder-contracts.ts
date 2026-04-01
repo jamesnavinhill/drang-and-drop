@@ -1,6 +1,7 @@
 import { blockAuthoringChecklist } from "../src/lib/builder/block-authoring";
 import { blockContracts, getBlockContract } from "../src/lib/builder/block-contracts";
 import { blockFamilyOrder, collectProjectBlockTypes, getBlockParityMatrix, getParityCriticalBlockTypes } from "../src/lib/builder/block-catalog";
+import { pageRegionDefinitions } from "../src/lib/builder/regions";
 import { createBlockContractVerificationProject } from "../src/lib/builder/verification-project";
 import { blockTypes } from "../src/lib/builder/types";
 
@@ -24,6 +25,13 @@ function main() {
   const familySet = new Set(blockFamilyOrder);
   const parityMatrix = getBlockParityMatrix();
   assert(parityMatrix.length === blockContracts.length, "Block parity matrix coverage fell out of sync with the shipped block contracts.");
+  assert(pageRegionDefinitions.length > 0, "Page region definitions are missing.");
+
+  for (const region of pageRegionDefinitions) {
+    assert(region.label.trim().length > 0, `Page region "${region.id}" is missing a label.`);
+    assert(region.description.trim().length > 0, `Page region "${region.id}" is missing a description.`);
+    assert(region.emptyMessage.trim().length > 0, `Page region "${region.id}" is missing an empty-state message.`);
+  }
 
   for (const contract of blockContracts) {
     assert(familySet.has(contract.family), `Block "${contract.type}" points at an unknown family "${contract.family}".`);
@@ -34,6 +42,15 @@ function main() {
     assert(contract.render.parity.notes.length > 0, `Block "${contract.type}" is missing preview/export parity notes.`);
     assert(contract.render.preview.implementation.trim().length > 0, `Block "${contract.type}" is missing preview render metadata.`);
     assert(contract.render.starter.implementation.trim().length > 0, `Block "${contract.type}" is missing starter render metadata.`);
+
+    for (const region of contract.placement.regions) {
+      assert(region.label.trim().length > 0, `Block "${contract.type}" region "${region.id}" is missing a label.`);
+      assert(region.description.trim().length > 0, `Block "${contract.type}" region "${region.id}" is missing a description.`);
+      assert(
+        region.emptyMessage.trim().length > 0,
+        `Block "${contract.type}" region "${region.id}" is missing an empty-state message.`,
+      );
+    }
 
     const fieldKeys = contract.definition.fields.map((field) => field.key);
     assert(new Set(fieldKeys).size === fieldKeys.length, `Block "${contract.type}" has duplicate inspector field keys.`);
@@ -65,6 +82,10 @@ function main() {
       assert(
         contract.placement.regions[0]?.kind === "layout-content",
         `Layout owner "${contract.type}" must expose a layout-content primary region.`,
+      );
+      assert(
+        contract.placement.regions[0]?.role === "primary",
+        `Layout owner "${contract.type}" must expose a primary first region.`,
       );
       assert(
         contract.render.children === "renders-children",

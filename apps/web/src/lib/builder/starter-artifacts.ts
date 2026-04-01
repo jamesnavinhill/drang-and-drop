@@ -70,6 +70,21 @@ import {
   toLines,
 } from "@/lib/render-support";
 
+function getBlockDataAttributes(node: { id: string; type: string }) {
+  return {
+    "data-builder-block-type": node.type,
+    "data-builder-node-id": node.id,
+  };
+}
+
+function getRegionDataAttributes(node: { id: string; type: string }, regionId: string) {
+  return {
+    "data-builder-region-id": regionId,
+    "data-builder-region-parent-id": node.id,
+    "data-builder-region-parent-type": node.type,
+  };
+}
+
 function renderNode(nodeId: string): ReactNode {
   const node = project.nodes[nodeId];
   const renderedRegions = Object.fromEntries(
@@ -77,6 +92,7 @@ function renderNode(nodeId: string): ReactNode {
   ) as Record<string, ReactNode[]>;
   const contentChildren = renderedRegions.content ?? [];
   const sidebarChildren = renderedRegions.sidebar ?? [];
+  const blockDataAttributes = getBlockDataAttributes(node);
 
   switch (node.type) {
     case "navbar": {
@@ -125,6 +141,7 @@ function renderNode(nodeId: string): ReactNode {
       return (
         <section
           key={node.id}
+          {...blockDataAttributes}
           style={{
             padding: \`\${node.props.paddingY ?? 48}px \${node.props.inset ? 24 : 0}px\`,
             borderRadius: 20,
@@ -136,20 +153,32 @@ function renderNode(nodeId: string): ReactNode {
               <p style={{ margin: 0, fontSize: 14, color: "var(--builder-muted)" }}>Section</p>
               <h3 style={{ margin: "4px 0 0", fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
             </div>
-            <div style={{ display: "grid", gap: 16 }}>{contentChildren}</div>
+            <div {...getRegionDataAttributes(node, "content")} style={{ display: "grid", gap: 16 }}>
+              {contentChildren}
+            </div>
           </div>
         </section>
       );
     }
     case "stack":
       return (
-        <div key={node.id} style={{ display: "flex", flexDirection: "column", gap: \`\${node.props.gap ?? 18}px\`, alignItems: \`\${node.props.align ?? "stretch"}\` }}>
+        <div
+          key={node.id}
+          {...blockDataAttributes}
+          {...getRegionDataAttributes(node, "content")}
+          style={{ display: "flex", flexDirection: "column", gap: \`\${node.props.gap ?? 18}px\`, alignItems: \`\${node.props.align ?? "stretch"}\` }}
+        >
           {contentChildren}
         </div>
       );
     case "grid":
       return (
-        <div key={node.id} style={{ display: "grid", gap: \`\${node.props.gap ?? 18}px\`, gridTemplateColumns: \`repeat(\${node.props.columns ?? 3}, minmax(0, 1fr))\` }}>
+        <div
+          key={node.id}
+          {...blockDataAttributes}
+          {...getRegionDataAttributes(node, "content")}
+          style={{ display: "grid", gap: \`\${node.props.gap ?? 18}px\`, gridTemplateColumns: \`repeat(\${node.props.columns ?? 3}, minmax(0, 1fr))\` }}
+        >
           {contentChildren}
         </div>
       );
@@ -399,55 +428,83 @@ function renderNode(nodeId: string): ReactNode {
     }
     case "sidebarShell": {
       const items = toLines(\`\${node.props.items}\`);
-      return (
-        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.88)", padding: 18 }}>
-          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))" }}>
-            <aside style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: 18 }}>
-              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>
-                Workspace rail
-              </p>
-              <p style={{ margin: "10px 0 0", fontWeight: 600 }}>{\`\${node.props.title}\`}</p>
-              <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
-                {items.map((item) => {
-                  const active = item === \`\${node.props.highlight}\`;
+      const sidebarPosition = \`\${node.props.sidebarPosition ?? "left"}\` === "right" ? "right" : "left";
+      const sidebarWidth = Number(node.props.sidebarWidth ?? 280);
+      const gap = Number(node.props.gap ?? 18);
+      const sidebarRegion = (
+        <aside
+          {...getRegionDataAttributes(node, "sidebar")}
+          style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: 18 }}
+        >
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>
+            Workspace rail
+          </p>
+          <p style={{ margin: "10px 0 0", fontWeight: 600 }}>{\`\${node.props.title}\`}</p>
+          <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
+            {items.map((item) => {
+              const active = item === \`\${node.props.highlight}\`;
 
-                  return (
-                    <div key={item} style={{ borderRadius: 16, padding: "10px 12px", color: active ? "var(--builder-accent-contrast)" : "var(--builder-muted)", background: active ? "var(--builder-accent)" : "transparent" }}>
-                      {item}
-                    </div>
-                  );
-                })}
-              </div>
-              <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-                {sidebarChildren.length > 0 ? sidebarChildren : (
-                  <div style={{ borderRadius: 16, border: "1px dashed var(--builder-border)", padding: "14px 16px", color: "var(--builder-muted)", background: "rgba(255,255,255,0.72)", fontSize: 14, lineHeight: 1.7 }}>
-                    Add compact cards, text, or actions here for the supporting rail.
-                  </div>
-                )}
-              </div>
-            </aside>
-            <section style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.72)", padding: 18 }}>
-              <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-                <div>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>
-                    Main content
-                  </p>
-                  <p style={{ margin: "8px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>
-                    This region renders the primary application surface exported from the builder.
-                  </p>
+              return (
+                <div key={item} style={{ borderRadius: 16, padding: "10px 12px", color: active ? "var(--builder-accent-contrast)" : "var(--builder-muted)", background: active ? "var(--builder-accent)" : "transparent" }}>
+                  {item}
                 </div>
-                <span style={{ borderRadius: 999, border: "1px solid var(--builder-border)", padding: "6px 12px", fontSize: 11, color: "var(--builder-muted)" }}>
-                  Multi-region shell
-                </span>
+              );
+            })}
+          </div>
+          <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+            {sidebarChildren.length > 0 ? sidebarChildren : (
+              <div style={{ borderRadius: 16, border: "1px dashed var(--builder-border)", padding: "14px 16px", color: "var(--builder-muted)", background: "rgba(255,255,255,0.72)", fontSize: 14, lineHeight: 1.7 }}>
+                Add compact cards, text, or actions here for the supporting rail.
               </div>
-              <div style={{ display: "grid", gap: 16 }}>
-                {contentChildren.length > 0 ? contentChildren : (
-                  <div style={{ borderRadius: 16, border: "1px dashed var(--builder-border)", padding: "18px 16px", color: "var(--builder-muted)", background: "rgba(255,255,255,0.8)", fontSize: 14, lineHeight: 1.7 }}>
-                    Add layout or content blocks to the sidebar shell in the builder to populate this workspace.
-                  </div>
-                )}
+            )}
+          </div>
+        </aside>
+      );
+      const contentRegion = (
+        <section
+          {...getRegionDataAttributes(node, "content")}
+          style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.72)", padding: 18 }}
+        >
+          <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+            <div>
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>
+                Main content
+              </p>
+              <p style={{ margin: "8px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>
+                This region renders the primary application surface exported from the builder.
+              </p>
+            </div>
+            <span style={{ borderRadius: 999, border: "1px solid var(--builder-border)", padding: "6px 12px", fontSize: 11, color: "var(--builder-muted)" }}>
+              Multi-region shell
+            </span>
+          </div>
+          <div style={{ display: "grid", gap: 16 }}>
+            {contentChildren.length > 0 ? contentChildren : (
+              <div style={{ borderRadius: 16, border: "1px dashed var(--builder-border)", padding: "18px 16px", color: "var(--builder-muted)", background: "rgba(255,255,255,0.8)", fontSize: 14, lineHeight: 1.7 }}>
+                Add layout or content blocks to the sidebar shell in the builder to populate this workspace.
               </div>
-            </section>
+            )}
+          </div>
+        </section>
+      );
+
+      return (
+        <div key={node.id} {...blockDataAttributes} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.88)", padding: 18 }}>
+          <div
+            className={sidebarPosition === "right" ? "grid gap-4 lg:grid-cols-[minmax(0,1fr)_var(--builder-sidebar-width)]" : "grid gap-4 lg:grid-cols-[var(--builder-sidebar-width)_minmax(0,1fr)]"}
+            style={{ ["--builder-sidebar-width" as string]: \`\${sidebarWidth}px\`, gap: \`\${gap}px\` }}
+          >
+            {sidebarPosition === "right" ? (
+              <>
+                {contentRegion}
+                {sidebarRegion}
+              </>
+            ) : (
+              <>
+                {sidebarRegion}
+                {contentRegion}
+              </>
+            )}
           </div>
         </div>
       );

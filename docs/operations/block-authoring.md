@@ -15,7 +15,7 @@ Every shipped block should satisfy this checklist:
 2. Defaults and inspector fields
    Define meaningful defaults in the block contract and keep every editable prop represented by an inspector field with a matching default value.
 3. Placement contract
-   Declare the allowed destination region kinds and any explicit owned regions the block exposes for nested authoring.
+   Declare the allowed destination region kinds and any explicit owned regions the block exposes for nested authoring, including shared region descriptions, empty-state guidance, and primary-versus-supporting role metadata where applicable.
 4. Preview and export render contract
    Add or update the block render metadata so the parity strategy and any intentional preview-versus-starter differences are visible in the contract itself.
 5. Verification impact
@@ -66,6 +66,10 @@ Current matrix:
 | `messageThread` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `dataTable` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `sidebarShell` | `application` | `shared-layout` | `renders-children` | `builder-canvas` | `generated-route` |
+
+Current region-aware layout note:
+
+- `sidebarShell` is the first configurable multi-region layout owner and now carries shared sidebar position, width, and inter-region gap semantics across preview and generated starter export.
 
 ## Verification Expectations
 

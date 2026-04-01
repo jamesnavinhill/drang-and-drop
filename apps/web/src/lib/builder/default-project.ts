@@ -308,9 +308,12 @@ function createLaunchStudioProject(): BuilderProject {
         id: sidebarId,
         type: "sidebarShell",
         props: {
+          gap: 20,
           title: "Product navigation",
           items: "Overview\nPages\nThemes\nExport\nSettings",
           highlight: "Export",
+          sidebarPosition: "right",
+          sidebarWidth: 300,
         },
         regions: {
           sidebar: [pricingSidebarTextId, pricingSidebarButtonId],
@@ -735,9 +738,12 @@ function createOpsHubProject(): BuilderProject {
         id: sidebarId,
         type: "sidebarShell",
         props: {
+          gap: 18,
           title: "Ops navigation",
           items: "Overview\nRequests\nApprovals\nIncidents\nReports",
           highlight: "Approvals",
+          sidebarPosition: "left",
+          sidebarWidth: 260,
         },
         regions: {
           sidebar: [workspaceSidebarTextId, workspaceSidebarButtonId],

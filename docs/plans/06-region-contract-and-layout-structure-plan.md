@@ -1,7 +1,7 @@
 # Region Contract And Layout Structure Plan
 
 Date: April 1, 2026
-Status: In Progress
+Status: In Progress, with three landed slices
 Related roadmap: `docs/plans/02-product-roadmap-plan.md`
 Related foundation plan: `docs/plans/04-editor-foundation-hardening-plan.md`
 Related block-system plan: `docs/plans/05-builder-block-system-implementation-plan.md`
@@ -72,6 +72,23 @@ Verification completed after the follow-up slice:
 - `pnpm verify:dnd`
 - `pnpm verify:starters`
 
+Landed in the latest follow-up slice:
+
+- page-region and block-region definitions now carry shared authoring metadata, including descriptions, empty-state guidance, and primary-versus-supporting role labels
+- canvas, outline, and library insertion guidance now derive region affordances from those shared definitions instead of keeping those semantics as surface-local strings
+- `sidebarShell` now exposes the first shipped configurable multi-region layout-owner controls, including sidebar position, sidebar width, and region gap
+- preview, starter export, template data, and the internal coverage project now exercise that same configurable sidebar-shell contract
+- generated starter verification now asserts exported region wrappers for region-owning layouts, including sidebar-shell region order fidelity
+
+Verification completed after the latest follow-up slice:
+
+- `pnpm lint`
+- `pnpm build`
+- `pnpm verify:contracts`
+- `pnpm verify:commands`
+- `pnpm verify:dnd`
+- `pnpm verify:starters`
+
 ## Next Session Starting Point
 
 This plan is now ready to resume from the post-cutover baseline.
@@ -82,6 +99,8 @@ What is already settled:
 - pages own explicit `header`, `main`, and `footer` regions
 - layout-owner blocks declare explicit owned regions in the block contract
 - `sidebarShell` is the first shipped multi-region proof block, with canonical `sidebar` and `content` regions
+- page and block regions now carry shared authoring metadata used by the editor surfaces
+- `sidebarShell` now has shipped layout configuration for sidebar position, width, and inter-region gap
 - preview, export, template data, and verification all traverse the same region graph
 
 What should not be revisited unless a real problem appears:
@@ -95,10 +114,10 @@ Recommended next slice:
 - continue `06` by building on the settled region model rather than doing another structural rewrite
 - prefer the next work to stay in “follow-up layout customization on top of the settled region model”
 - good candidates are:
-  - more granular layout-owner configuration now that explicit regions exist
   - another intentional multi-region block family if it proves a real authoring need
-  - tighter canvas and outline affordances around multi-region authoring
-  - stronger generated-app fidelity assertions for region-owned layouts
+  - richer layout-owner configuration for more layout families on top of the new region metadata contract
+  - deeper outline/canvas parity for region selection and structure actions
+  - stronger generated-app fidelity assertions beyond the new structural region coverage
 
 Suggested next-session framing:
 

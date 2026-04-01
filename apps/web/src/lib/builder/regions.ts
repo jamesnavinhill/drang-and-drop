@@ -1,6 +1,7 @@
 import { getBlockPlacement } from "./block-placement";
 import type {
   BlockType,
+  PageRegionDefinition,
   BuilderNode,
   BuilderPage,
   BuilderProject,
@@ -11,21 +12,30 @@ import type {
   ParentReference,
 } from "./types";
 
-export const pageRegionDefinitions = [
+export const pageRegionDefinitions: readonly PageRegionDefinition[] = [
   {
+    description: "Global shell blocks and page chrome.",
+    emptyMessage: "This header region is empty right now.",
     id: "header",
     kind: "page-header",
     label: "Header",
+    role: "supporting",
   },
   {
+    description: "Primary page composition and content flow.",
+    emptyMessage: "This main region is empty right now.",
     id: "main",
     kind: "page-main",
     label: "Main",
+    role: "primary",
   },
   {
+    description: "Closing sections, CTAs, and footer layouts.",
+    emptyMessage: "This footer region is empty right now.",
     id: "footer",
     kind: "page-footer",
     label: "Footer",
+    role: "supporting",
   },
 ] as const;
 
@@ -43,6 +53,18 @@ export function getPageRegionDefinition(regionId: PageRegionId) {
 
 export function getPageRegionLabel(regionId: PageRegionId) {
   return getPageRegionDefinition(regionId).label;
+}
+
+export function getPageRegionDescription(regionId: PageRegionId) {
+  return getPageRegionDefinition(regionId).description;
+}
+
+export function getPageRegionEmptyMessage(regionId: PageRegionId) {
+  return getPageRegionDefinition(regionId).emptyMessage;
+}
+
+export function getPageRegionRole(regionId: PageRegionId) {
+  return getPageRegionDefinition(regionId).role;
 }
 
 export function getPageRegionChildIds(page: BuilderPage, regionId: PageRegionId) {

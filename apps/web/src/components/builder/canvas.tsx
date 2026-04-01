@@ -18,7 +18,14 @@ import { AlertCircle, GripVertical, LayoutTemplate, MousePointer2 } from "lucide
 import { useMemo, useState } from "react";
 
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
-import { blockCanHaveChildren, getBlockRegionLabel, getBlockRegions } from "@/lib/builder/block-placement";
+import {
+  blockCanHaveChildren,
+  getBlockRegionDescription,
+  getBlockRegionEmptyMessage,
+  getBlockRegionLabel,
+  getBlockRegionRole,
+  getBlockRegions,
+} from "@/lib/builder/block-placement";
 import { getThemeStyles, renderNodePreview } from "@/lib/builder/block-preview";
 import {
   applyBuilderDragOperation,
@@ -27,10 +34,16 @@ import {
   type BuilderDragEvaluation,
   type BuilderOverDragData,
 } from "@/lib/builder/dnd";
-import { describeRegionReference, getPageRegionLabel } from "@/lib/builder/regions";
+import {
+  describeRegionReference,
+  getPageRegionDescription,
+  getPageRegionEmptyMessage,
+  getPageRegionLabel,
+  getPageRegionRole,
+} from "@/lib/builder/regions";
 import { getNodeDisplayLabel } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
-import type { BuilderNode, BuilderProject, PageRegionId, ParentReference } from "@/lib/builder/types";
+import type { BuilderNode, BuilderProject, ParentReference, RegionRole } from "@/lib/builder/types";
 import { pageRegionIds } from "@/lib/builder/types";
 import { cn } from "@/lib/utils";
 
@@ -62,16 +75,8 @@ function toDropTargetValue(parent: ParentReference) {
     : `node-region:${parent.nodeId}:${parent.regionId}`;
 }
 
-function getPageRegionDescription(regionId: PageRegionId) {
-  if (regionId === "header") {
-    return "Global shell blocks and page chrome.";
-  }
-
-  if (regionId === "footer") {
-    return "Closing sections, CTAs, and footer layouts.";
-  }
-
-  return "Primary page composition and content flow.";
+function getRegionRoleLabel(role: RegionRole) {
+  return role === "primary" ? "Primary region" : "Supporting region";
 }
 
 function describeDropMessage(
@@ -157,6 +162,7 @@ function CanvasRegion({
   overDragData,
   parent,
   project,
+  role,
   selectedNodeId,
   title,
 }: {
@@ -168,6 +174,7 @@ function CanvasRegion({
   overDragData: BuilderOverDragData | null;
   parent: ParentReference;
   project: BuilderProject;
+  role: RegionRole;
   selectedNodeId: string | null;
   title: string;
 }) {
@@ -207,9 +214,14 @@ function CanvasRegion({
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{title}</p>
           <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
         </div>
-        <span className="rounded-full border border-border bg-white/75 px-2 py-1 text-[11px] text-muted">
-          {childIds.length} item{childIds.length === 1 ? "" : "s"}
-        </span>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <span className="rounded-full border border-border bg-white/75 px-2 py-1 text-[11px] text-muted">
+            {getRegionRoleLabel(role)}
+          </span>
+          <span className="rounded-full border border-border bg-white/75 px-2 py-1 text-[11px] text-muted">
+            {childIds.length} item{childIds.length === 1 ? "" : "s"}
+          </span>
+        </div>
       </div>
 
       <SortableContext items={childIds} strategy={verticalListSortingStrategy}>
@@ -286,12 +298,13 @@ function CanvasNode({
         key={`${node.id}-${region.id}`}
         childIds={node.regions[region.id] ?? []}
         compact
-        description={`Drop blocks into ${definition.title.toLowerCase()} ${region.label.toLowerCase()}.`}
+        description={getBlockRegionDescription(node.type, region.id)}
         dragEvaluation={dragEvaluation}
-        emptyMessage="Drop compatible blocks here."
+        emptyMessage={getBlockRegionEmptyMessage(node.type, region.id)}
         overDragData={overDragData}
         parent={{ kind: "node-region", nodeId: node.id, regionId: region.id }}
         project={project}
+        role={getBlockRegionRole(node.type, region.id)}
         selectedNodeId={selectedNodeId}
         title={getBlockRegionLabel(node.type, region.id)}
       />,
@@ -529,11 +542,12 @@ export function BuilderCanvas() {
                       emptyMessage={
                         isMain && totalRoots === 0
                           ? "Start with a section, hero, or grid. Drag blocks here to shape the main page flow."
-                          : `This ${getPageRegionLabel(regionId).toLowerCase()} region is empty right now.`
+                          : getPageRegionEmptyMessage(regionId)
                       }
                       overDragData={overDragData}
                       parent={regionParent}
                       project={project}
+                      role={getPageRegionRole(regionId)}
                       selectedNodeId={selectedNodeId}
                       title={getPageRegionLabel(regionId)}
                     />

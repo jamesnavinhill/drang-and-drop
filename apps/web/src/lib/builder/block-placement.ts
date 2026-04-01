@@ -31,6 +31,18 @@ export function getBlockRegionLabel(type: BlockType, regionId: string) {
   return getBlockRegion(type, regionId)?.label ?? regionId;
 }
 
+export function getBlockRegionDescription(type: BlockType, regionId: string) {
+  return getBlockRegion(type, regionId)?.description ?? "Add nested blocks here.";
+}
+
+export function getBlockRegionEmptyMessage(type: BlockType, regionId: string) {
+  return getBlockRegion(type, regionId)?.emptyMessage ?? "Drop compatible blocks here.";
+}
+
+export function getBlockRegionRole(type: BlockType, regionId: string) {
+  return getBlockRegion(type, regionId)?.role ?? "primary";
+}
+
 export function getPrimaryBlockRegion(type: BlockType) {
   return getBlockRegions(type)[0] ?? null;
 }

@@ -54,6 +54,7 @@ export type ControlField =
 export const pageRegionIds = ["header", "main", "footer"] as const;
 
 export type PageRegionId = (typeof pageRegionIds)[number];
+export type RegionRole = "primary" | "supporting";
 
 export interface BuilderNode {
   id: string;
@@ -121,11 +122,26 @@ export const placementTargetKinds = [
 
 export type PlacementTargetKind = (typeof placementTargetKinds)[number];
 
+export interface RegionDefinition {
+  description: string;
+  emptyMessage: string;
+  label: string;
+  role: RegionRole;
+}
+
+export interface PageRegionDefinition extends RegionDefinition {
+  id: PageRegionId;
+  kind: PlacementTargetKind;
+}
+
 export interface BlockRegionDefinition {
+  description: string;
+  emptyMessage: string;
   id: string;
   kind: PlacementTargetKind;
   label: string;
   allowsMultiple: boolean;
+  role: RegionRole;
 }
 
 export interface BlockPlacementDefinition {

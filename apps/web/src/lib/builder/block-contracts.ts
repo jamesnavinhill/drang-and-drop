@@ -79,13 +79,26 @@ function defineRegion(
   id: string,
   kind: PlacementTargetKind,
   label: string,
-  allowsMultiple = true,
+  {
+    allowsMultiple = true,
+    description,
+    emptyMessage,
+    role = "primary",
+  }: {
+    allowsMultiple?: boolean;
+    description: string;
+    emptyMessage: string;
+    role?: BlockRegionDefinition["role"];
+  },
 ): BlockRegionDefinition {
   return {
     allowsMultiple,
+    description,
+    emptyMessage,
     id,
     kind,
     label,
+    role,
   };
 }
 
@@ -97,10 +110,22 @@ const pageFooterMainAndNestedLayoutRegions = [
   "layout-sidebar",
 ] as const;
 const layoutContentAndSidebar = ["layout-content", "layout-sidebar"] as const;
-const contentRegion = [defineRegion("content", "layout-content", "Content")] as const;
+const contentRegion = [
+  defineRegion("content", "layout-content", "Content", {
+    description: "Add nested blocks here to compose the primary layout flow.",
+    emptyMessage: "Drop compatible blocks here.",
+  }),
+] as const;
 const sidebarShellRegions = [
-  defineRegion("content", "layout-content", "Content"),
-  defineRegion("sidebar", "layout-sidebar", "Sidebar rail"),
+  defineRegion("content", "layout-content", "Content", {
+    description: "Compose the primary workspace surface here.",
+    emptyMessage: "Add layout or content blocks here for the main workspace.",
+  }),
+  defineRegion("sidebar", "layout-sidebar", "Sidebar rail", {
+    description: "Add compact context, actions, or supporting status blocks here.",
+    emptyMessage: "Add compact supporting blocks here.",
+    role: "supporting",
+  }),
 ] as const;
 
 const blockContractsByType: Record<BlockType, BlockContract> = {
@@ -724,14 +749,28 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
       icon: "R",
       category: "Application",
       defaults: {
+        gap: 18,
         title: "Workspace",
         items: "Overview\nAutomation\nMembers\nBilling\nDeployments",
         highlight: "Automation",
+        sidebarPosition: "left",
+        sidebarWidth: 280,
       },
       fields: [
         { key: "title", label: "Title", type: "text" },
         { key: "items", label: "Items", type: "textarea" },
         { key: "highlight", label: "Highlighted item", type: "text" },
+        {
+          key: "sidebarPosition",
+          label: "Sidebar position",
+          type: "select",
+          options: [
+            { label: "Left", value: "left" },
+            { label: "Right", value: "right" },
+          ],
+        },
+        { key: "sidebarWidth", label: "Sidebar width", type: "range", min: 220, max: 360, step: 10 },
+        { key: "gap", label: "Region gap", type: "range", min: 12, max: 32, step: 2 },
       ],
     },
     family: "application",

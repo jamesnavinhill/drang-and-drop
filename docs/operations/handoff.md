@@ -20,6 +20,10 @@
 - Shared block-content parsing now lives at the canonical `block-content.ts` boundary.
 - Placement validation now resolves against explicit page-region and block-region target kinds instead of only raw parent-type allowlists, and command verification now covers those target boundaries directly.
 - `sidebarShell` now acts as the first shipped multi-region proof block, with explicit `sidebar` and `content` regions plus matching preview/export and verification coverage.
+- Page-region and block-region definitions now carry shared authoring metadata, including descriptions, empty-state guidance, and primary-versus-supporting role labels.
+- Canvas, outline, and library insertion context now derive region affordances from those shared definitions instead of relying on more local UI strings.
+- `sidebarShell` now exposes the first shipped configurable multi-region layout-owner controls, including sidebar position, sidebar width, and region gap.
+- Generated starter verification now asserts exported region wrappers for region-owning layouts, including sidebar-shell region order fidelity.
 - Shared block-content parsing and fallback semantics now live in one builder module, and generated starters receive a dedicated `render-support` file instead of keeping those helpers inline in the main page renderer.
 - Starter verification now includes an internal block-contract coverage project so exported rendering stays exercised across every parity-critical shipped block type even when the public starter templates change.
 - Block contracts now carry explicit preview/export render metadata, and a derived parity matrix now exists alongside a dedicated block authoring checklist.
@@ -28,15 +32,15 @@
 
 ## Next Best Slice
 
-The `05` block-system phase is now in a good finished state. The next session should resume forward product growth from that cleaner baseline instead of doing more contract clean-up first.
+The structural region cutover inside `06` is now in a stronger follow-up state. The next session should keep building on the settled region model rather than revisiting the schema rewrite itself.
 
 Immediate focus:
 
-- resume broader catalog or customization work using the new block authoring workflow instead of ad hoc registry edits
-- keep new block additions aligned with the family map, capability tags, render metadata, and parity matrix
-- extend the fast contract verifier and the coverage project whenever new block families or layout capabilities land
-- expand generated-app fidelity assertions only after a new slice introduces meaningful starter-surface complexity
+- extend the richer region metadata and layout-configuration contract into additional layout-owner families where it improves real authoring workflows
+- keep new block additions aligned with the family map, capability tags, region metadata, render metadata, and parity matrix
+- extend the fast contract verifier and the coverage project whenever new region-aware layout capabilities land
+- expand generated-app fidelity assertions from the new structural region coverage only when a slice introduces meaningful starter-surface complexity
 
 ## Suggested Starting Prompt
 
-Continue from `apps/web` after the completed `05` block-system pass. Use the canonical block contracts, family/capability map, render parity metadata, and block authoring checklist as the baseline for the next product slice. If you add or change shipped blocks, update the coverage project, `pnpm verify:contracts`, and the operations docs in the same pass.
+Continue from `apps/web` after the current `06` region-contract follow-up slices. Treat the canonical region graph as settled, use the shared region metadata and configurable `sidebarShell` contract as the current baseline, and keep preview/export/verification aligned in the same pass if you extend region-aware layout behavior further.

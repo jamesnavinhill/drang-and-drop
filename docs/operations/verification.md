@@ -53,9 +53,10 @@ Contract verification completed via `pnpm verify:contracts`:
 
 1. Verified every shipped `blockType` resolves to one canonical block contract.
 2. Verified family, capability, placement, and render-contract metadata remain internally consistent.
-3. Verified every inspector field has a matching default and every block contract has unique field keys and capabilities.
-4. Verified the authoring checklist still contains the required workflow checkpoints.
-5. Verified the internal block-contract coverage project still exercises every parity-critical shipped block type.
+3. Verified page-region and block-region definitions still carry the required shared labels, descriptions, empty-state guidance, and role metadata.
+4. Verified every inspector field has a matching default and every block contract has unique field keys and capabilities.
+5. Verified the authoring checklist still contains the required workflow checkpoints.
+6. Verified the internal block-contract coverage project still exercises every parity-critical shipped block type.
 
 Canvas interaction feedback is now also validated indirectly by the browser drag harness:
 
@@ -88,8 +89,9 @@ Automated generated starter validation completed via `pnpm verify:starters`:
 8. Confirmed a live `/_next/static/*` asset request returned `200` for each starter.
 9. Opened each generated route in headless Chromium.
 10. Confirmed `main` rendered visibly and matched expected page content.
-11. Confirmed no browser `pageerror`, no browser console error, and no failed network request for each route.
-12. Saved browser screenshots for each generated route under the template verification workspace.
+11. Verified exported region-owned layout wrappers exist for layout-owner blocks and that `sidebarShell` preserves expected `sidebar` versus `content` region order.
+12. Confirmed no browser `pageerror`, no browser console error, and no failed network request for each route.
+13. Saved browser screenshots for each generated route under the template verification workspace.
 
 Automated builder drag validation completed via `pnpm verify:dnd`:
 
@@ -123,7 +125,7 @@ The primary remaining verification gaps are now split between editor-foundation 
 
 - builder drag verification now covers the main insertion/reorder loop plus invalid nested and descendant scenarios with visible notice assertions and an inspector parity check, but not yet every outline/canvas parity scenario or every placement-constraint edge case
 - command-path verification now covers shared insert/move/duplicate/remove behavior, but future command types still need to be added as they land
-- generated starter validation now includes browser-rendered route checks, but it still does not include visual diffing or richer semantic assertions against layout fidelity
+- generated starter validation now includes browser-rendered route checks plus structural region-owned layout assertions, but it still does not include visual diffing or richer semantic assertions against layout fidelity
 
 What is already in place to support that follow-up:
 
@@ -136,6 +138,8 @@ What is already in place to support that follow-up:
 - `scripts/verify-builder-contracts.ts` now gives the block system a fast contract-level verification loop before the heavier drag and starter checks run
 - starter verification now includes an internal block-contract coverage project so preview/export parity checks do not depend only on the shape of the shipped user-facing templates
 - placement rules now resolve through explicit page-region and block-region target kinds, including `layout-sidebar`, which gives validation and verification a clearer shared vocabulary
+- shared page-region and block-region metadata now gives the editor surfaces and the starter verifier one more contract layer to agree on
+- generated starters now emit explicit region-owned layout hooks for verification, which makes exported multi-region layout assertions cheaper to extend
 - shared block-content parsing and fallback semantics now back both builder preview and generated starter render support, which reduces one more source of preview/export drift
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 - the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized
@@ -146,4 +150,4 @@ Run these next:
 
 1. Expand builder drag verification around more placement-constraint edges, especially empty-container affordances and outline/canvas parity scenarios.
 2. Extend command verification when wrap/unwrap or assistant-safe mutation commands land.
-3. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions only after the export contract is tightened further.
+3. Expand generated starter validation from the new structural region assertions into richer visual or DOM-level fidelity assertions only after the export contract is tightened further.

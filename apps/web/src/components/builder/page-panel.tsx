@@ -3,9 +3,9 @@
 import { Copy, FilePlus2, FolderTree, Route, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import { getBlockRegionLabel } from "@/lib/builder/block-placement";
+import { getBlockRegionDescription, getBlockRegionLabel, getBlockRegionRole } from "@/lib/builder/block-placement";
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
-import { getPageRegionLabel } from "@/lib/builder/regions";
+import { getPageRegionDefinition, getPageRegionEmptyMessage, getPageRegionLabel } from "@/lib/builder/regions";
 import {
   countPageNodes,
   countSubtreeNodes,
@@ -14,7 +14,7 @@ import {
   getParentChildren,
 } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
-import { pageRegionIds, type BuilderProject, type ParentReference } from "@/lib/builder/types";
+import { pageRegionIds, type BuilderProject, type ParentReference, type RegionRole } from "@/lib/builder/types";
 import { cn } from "@/lib/utils";
 
 import { NodeStructureActions } from "./node-structure-actions";
@@ -54,6 +54,14 @@ function RegionBadge({ label }: { label: string }) {
   return (
     <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-muted">
       {label}
+    </span>
+  );
+}
+
+function RegionRoleBadge({ role }: { role: RegionRole }) {
+  return (
+    <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+      {role === "primary" ? "Primary region" : "Supporting region"}
     </span>
   );
 }
@@ -152,18 +160,28 @@ function OutlineNodeRow({
                   type="button"
                   onClick={() => selectRegionTarget(regionTarget)}
                   className={cn(
-                    "mb-2 flex w-full items-center justify-between rounded-[18px] border px-3 py-2 text-left",
+                    "mb-2 w-full rounded-[18px] border px-3 py-2 text-left",
                     regionSelected
                       ? "border-accent bg-accent/8"
                       : "border-border bg-white/70 hover:border-border-strong hover:bg-white",
                   )}
                 >
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                    {getBlockRegionLabel(node.type, regionId)}
-                  </span>
-                  <span className="text-[11px] text-muted">
-                    {childIds.length} item{childIds.length === 1 ? "" : "s"}
-                  </span>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                        {getBlockRegionLabel(node.type, regionId)}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-muted">
+                        {getBlockRegionDescription(node.type, regionId)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <RegionRoleBadge role={getBlockRegionRole(node.type, regionId)} />
+                      <span className="text-[11px] text-muted">
+                        {childIds.length} item{childIds.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                  </div>
                 </button>
                 <div className="space-y-2">
                   {childIds.map((childId, childIndex) => (
@@ -372,21 +390,26 @@ function OutlineTab() {
                   regionSelected ? "border-accent bg-accent/8" : "border-border bg-white/80",
                 )}
               >
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                    {getPageRegionLabel(regionId)}
-                  </p>
-                  <p className="mt-1 text-sm text-muted">
-                    {regionId === "header"
-                      ? "Top-level shell blocks live here."
-                      : regionId === "main"
-                        ? "Primary page composition happens here."
-                        : "Optional closing content and footer layouts live here."}
-                  </p>
-                </div>
-                <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
-                  {regionRoots.length} item{regionRoots.length === 1 ? "" : "s"}
-                </span>
+                {(() => {
+                  const regionDefinition = getPageRegionDefinition(regionId);
+
+                  return (
+                    <>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                          {getPageRegionLabel(regionId)}
+                        </p>
+                        <p className="mt-1 text-sm text-muted">{regionDefinition.description}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <RegionRoleBadge role={regionDefinition.role} />
+                        <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+                          {regionRoots.length} item{regionRoots.length === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
               </button>
 
               <div className="mt-3 space-y-2">
@@ -404,7 +427,7 @@ function OutlineTab() {
                   ))
                 ) : (
                   <div className="rounded-[18px] border border-dashed border-border bg-white/65 p-3 text-sm leading-6 text-muted">
-                    This region is empty right now.
+                    {getPageRegionEmptyMessage(regionId)}
                   </div>
                 )}
               </div>

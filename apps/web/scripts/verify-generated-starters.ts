@@ -106,6 +106,46 @@ function collectExpectedStrings(project: BuilderProject, page: BuilderPage) {
   return Array.from(values).slice(0, 6);
 }
 
+function collectExpectedRegionStructures(project: BuilderProject, page: BuilderPage) {
+  const structures: Array<{
+    blockType: string;
+    nodeId: string;
+    regionIds: string[];
+    sidebarPosition?: string;
+  }> = [];
+
+  function visit(nodeId: string) {
+    const node = project.nodes[nodeId];
+    if (!node) {
+      return;
+    }
+
+    const regionIds = Object.keys(node.regions);
+    if (regionIds.length > 0) {
+      structures.push({
+        blockType: node.type,
+        nodeId: node.id,
+        regionIds,
+        sidebarPosition: typeof node.props.sidebarPosition === "string" ? node.props.sidebarPosition : undefined,
+      });
+    }
+
+    for (const childIds of Object.values(node.regions)) {
+      for (const childId of childIds) {
+        visit(childId);
+      }
+    }
+  }
+
+  for (const regionIds of Object.values(page.regions)) {
+    for (const rootId of regionIds) {
+      visit(rootId);
+    }
+  }
+
+  return structures;
+}
+
 function describePage(page: BuilderPage) {
   return page.path === "/" ? "home route" : page.path;
 }
@@ -372,6 +412,7 @@ async function verifyRoutesInBrowser(project: BuilderProject, baseUrl: string, s
 
       const renderedText = normalizeSnippet(await browserPage.locator("main").innerText());
       const expectedStrings = collectExpectedStrings(project, page);
+      const expectedRegionStructures = collectExpectedRegionStructures(project, page);
 
       if (expectedStrings.length > 0 && !expectedStrings.some((entry) => renderedText.includes(entry))) {
         throw new Error(
@@ -394,6 +435,53 @@ async function verifyRoutesInBrowser(project: BuilderProject, baseUrl: string, s
 
       if (!builderMainStyles.minHeight || builderMainStyles.color === "rgba(0, 0, 0, 0)") {
         throw new Error(`Rendered styles for ${describePage(page)} looked incomplete in the browser.`);
+      }
+
+      if (expectedRegionStructures.length > 0) {
+        const structuralIssues = await browserPage.evaluate((structures) => {
+          return structures.flatMap((structure) => {
+            const block = document.querySelector(`[data-builder-node-id="${structure.nodeId}"]`);
+
+            if (!block) {
+              return [`Missing exported block wrapper for ${structure.blockType} (${structure.nodeId}).`];
+            }
+
+            const issues = structure.regionIds.flatMap((regionId) => {
+              const region = document.querySelector(
+                `[data-builder-region-parent-id="${structure.nodeId}"][data-builder-region-id="${regionId}"]`,
+              );
+
+              return region ? [] : [`Missing exported ${structure.blockType}.${regionId} region for ${structure.nodeId}.`];
+            });
+
+            if (structure.blockType === "sidebarShell" && structure.regionIds.includes("sidebar") && structure.regionIds.includes("content")) {
+              const regionOrder = Array.from(
+                block.querySelectorAll(`[data-builder-region-parent-id="${structure.nodeId}"]`),
+              )
+                .map((element) => element.getAttribute("data-builder-region-id"))
+                .filter((value): value is string => Boolean(value));
+              const expectedOrder =
+                structure.sidebarPosition === "right" ? ["content", "sidebar"] : ["sidebar", "content"];
+
+              if (
+                regionOrder.length < expectedOrder.length ||
+                expectedOrder.some((regionId, index) => regionOrder[index] !== regionId)
+              ) {
+                issues.push(
+                  `Expected exported sidebarShell region order ${expectedOrder.join(" -> ")} for ${structure.nodeId}, received ${regionOrder.join(" -> ")}.`,
+                );
+              }
+            }
+
+            return issues;
+          });
+        }, expectedRegionStructures);
+
+        if (structuralIssues.length > 0) {
+          throw new Error(
+            `Generated layout-region assertions failed for ${describePage(page)}: ${structuralIssues.join(" | ")}`,
+          );
+        }
       }
 
       await browserPage.screenshot({
