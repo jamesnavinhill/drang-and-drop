@@ -77,20 +77,22 @@ Automated builder drag validation completed via `pnpm verify:dnd`:
 
 The previous local `next start` concern no longer reproduces after the hydration change, and builder drag coverage is now in place through a deterministic browser-backed harness.
 
-The primary remaining verification gap is now deeper generated-app fidelity coverage:
+The primary remaining verification gaps are now split between editor-foundation hardening and deeper generated-app fidelity coverage:
 
+- builder drag verification currently covers the core insertion/reorder loop, but not yet the full placement-constraint surface or every nested edge case
+- structural validation and command-path changes are not yet covered by dedicated mutation-level verification
 - generated starter validation now includes browser-rendered route checks, but it still does not include visual diffing or richer semantic assertions against layout fidelity
-- builder drag verification currently covers the core insertion/reorder loop, but not yet the full block catalog or every placement constraint edge case
 
 What is already in place to support that follow-up:
 
 - stable `data-builder-*` hooks now back both browser automation selectors and the deterministic builder drag verification hook
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
+- the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized
 
 ## Recommended Follow-Up Verification
 
 Run these next:
 
-1. Expand builder drag verification across more block combinations and invalid placement edges.
-2. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions against the exported app.
-3. Add comparison baselines or DOM-semantic assertions for layout fidelity across the generated routes.
+1. Expand builder drag verification around placement-constraint edges, invalid drops, and nested-container behavior as the editor foundation work lands.
+2. Add mutation-level verification for shared insert, move, duplicate, and remove command paths once those operations are more explicitly centralized.
+3. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions only after the export contract is tightened.

@@ -11,13 +11,13 @@
 
 ## Next Best Slice
 
-The next session should focus on one cohesive product-hardening slice:
+The next session should focus on one cohesive editor-foundation slice:
 
-- add explicit drag/drop insertion and reorder coverage
-- expand the block catalog and add more robust placement constraints
-- turn the new stable `data-builder-*` hooks into a deterministic drag verification harness
-- add higher-confidence browser checks against the exported starter output
+- centralize placement constraints and mutation handling
+- harden drag/drop and outline behavior around the same command path
+- add stronger structural validation instead of relying on UI-level guardrails alone
+- keep verification green while the canvas, store, and export contracts are tightened
 
 ## Suggested Starting Prompt
 
-Continue from `apps/web` and focus on hardening drag/drop verification. Use the new `data-builder-*` hooks to build a deterministic insert/reorder verification loop for the `dnd-kit` canvas, then expand block constraints and broader catalog coverage. After that, add browser-level checks for the exported starter, since unzip, install, build, and production serve are already verified.
+Continue from `apps/web` and follow `docs/plans/04-editor-foundation-hardening-plan.md`. Start with the constraint and command foundation slice by centralizing placement rules, unifying insert/move handling across canvas and outline flows, and adding stronger structural validation around those mutations before expanding the block catalog further.

@@ -11,7 +11,7 @@ Core layers:
 - `src/lib/builder/default-project.ts`
   Seeds the starter templates, demo project, and template factories.
 - `src/lib/builder/registry.tsx`
-  Owns the component catalog, prop controls, placement constraints, theme style mapping, and preview rendering.
+  Currently owns the component catalog, prop controls, placement constraints, theme style mapping, and preview rendering; this layer should be split further as the editor foundation hardening plan progresses.
 - `src/lib/builder/dnd.ts`
   Owns shared drag/drop resolution helpers used by both the live canvas and deterministic browser verification.
 - `src/lib/builder/store.ts`
@@ -117,6 +117,18 @@ The generated starter file plan now has a matching automated verification loop t
 ## Known Architectural Constraints
 
 - Drag/drop is constrained, but not deeply guarded against every layout edge case yet.
+- Placement constraints are still simpler allowlists rather than a more expressive placement model.
+- Mutation handling still lives too directly inside store actions and UI flows, which makes future command reuse harder.
+- Structural validation is still lighter than the editor now needs for broader catalog and template growth.
+- The registry still mixes metadata, editing schema, placement behavior, and builder preview rendering.
 - Export is readable, but not yet decomposed into highly granular generated components.
 - JSON import/export currently targets schema-safe builder state, not arbitrary roundtrip from generated code.
 - Backend integrations, auth, and data bindings are intentionally deferred.
+
+## Current Architectural Priorities
+
+- centralize placement rules and drop-target resolution
+- introduce clearer command boundaries for insert, move, duplicate, and remove operations
+- strengthen structural validation beyond shape-only schema parsing
+- reduce registry coupling before significantly expanding the catalog again
+- keep builder/runtime/export parity healthy while these editor-system changes land

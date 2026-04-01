@@ -25,11 +25,15 @@ Implemented in the current greenfield slice:
 
 Open follow-up work after this slice:
 
+- strengthen the editor foundation before accelerating more catalog breadth
+- centralize placement constraints, command handling, and structural validation
+- harden canvas behavior and layout edge-case handling
 - expand builder drag verification across more block combinations and placement edge cases
-- continue expanding the component catalog beyond the current marketing and internal-tool starter set
 - strengthen export parity tests and generated-project runtime verification
 - deepen generated-app assertions beyond the current browser smoke checks and runtime harness
 - begin M2/M3 hardening on codegen cleanliness, route generation polish, and onboarding flows
+
+See `docs/plans/04-editor-foundation-hardening-plan.md` for the current foundation-first execution sequence.
 
 ## Purpose
 
@@ -215,7 +219,7 @@ Duration: 4-6 weeks
 Status:
 
 - mostly completed in the current implementation slice
-- remaining work is deeper drag/drop coverage, richer undo/redo behavior, and more layout edge-case hardening
+- remaining work is now best treated as foundation hardening: deeper drag/drop coverage, stronger placement constraints, clearer command handling, richer undo/redo integrity, and more layout edge-case hardening
 
 ## M2: Component Library And Theming
 
@@ -260,7 +264,7 @@ Status:
 - partially completed in the current implementation slice
 - the current catalog includes navbars, testimonials, tables, message threads, dashboard shells, and starter-template coverage
 - the current shell also includes page outline/layers management and contextual library filtering for valid drops
-- follow-up work is focused on deeper library breadth, richer media/content blocks, export/runtime verification, and more polish across templates and validation
+- follow-up work should pause broad catalog expansion until the editor foundation slice in `docs/plans/04-editor-foundation-hardening-plan.md` is healthier; after that, resume deeper library breadth, richer media/content blocks, export/runtime verification, and more polish across templates and validation
 
 ## M3: Multi-Page Workflows And Export
 
@@ -299,7 +303,7 @@ Status:
 - partially completed in the current implementation slice
 - zip export is implemented and browser download is verified
 - generated starters are now verified through automated install/build/serve/route/static-asset plus browser-rendered checks for all shipped templates
-- follow-up work is now focused on stronger generated-app fidelity assertions and deeper export quality coverage
+- follow-up work is now focused on stronger generated-app fidelity assertions and deeper export quality coverage, but should stay tied to the foundation work around shared block contracts and placement/export parity
 
 ## M4: Hardening And V1 Launch Prep
 
@@ -489,20 +493,16 @@ If the team is smaller, protect these responsibilities even if one person holds 
 
 ### This week
 
-- choose the editor foundation
-- draft the document schema
-- define the first layout primitives
-- define the first 15-20 registry components
-- prototype editor shell structure
+- execute the editor foundation hardening slice in `docs/plans/04-editor-foundation-hardening-plan.md`
+- centralize placement rules and mutation handling
+- harden structural validation and drag/drop edge cases
+- tighten export parity contracts before broadening the catalog further
 
 ### Next 2 weeks
 
-- build a spike that proves:
-- schema-driven rendering
-- drag/drop into constrained layouts
-- property editing
-- persistence
-- basic export of one page into a runnable `Next.js` app
+- complete the constraint and command foundation slice
+- expand deterministic builder verification around invalid drops and nested layout cases
+- keep generated starter verification green while evolving editor and export contracts
 
 ### Before writing lots of production code
 
