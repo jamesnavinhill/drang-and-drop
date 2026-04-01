@@ -17,7 +17,9 @@ import { CSS } from "@dnd-kit/utilities";
 import { AlertCircle, GripVertical, MousePointer2, MoveDown } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { getComponentDefinition, getThemeStyles, renderNodePreview } from "@/lib/builder/registry";
+import { getComponentDefinition } from "@/lib/builder/component-definitions";
+import { getComponentPlacement } from "@/lib/builder/component-placement";
+import { getThemeStyles, renderNodePreview } from "@/lib/builder/component-preview";
 import {
   applyBuilderDragOperation,
   evaluateBuilderDragOperation,
@@ -129,6 +131,7 @@ function CanvasNode({
 }) {
   const selectNode = useBuilderStore((state) => state.selectNode);
   const definition = getComponentDefinition(node.type);
+  const placement = getComponentPlacement(node.type);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: node.id,
     data: {
@@ -149,7 +152,7 @@ function CanvasNode({
         id: node.id,
       } satisfies ParentReference,
     },
-    disabled: !definition.canHaveChildren,
+    disabled: !placement.canHaveChildren,
   });
   const isContainerTarget =
     overDragData?.kind === "container" &&
@@ -172,7 +175,7 @@ function CanvasNode({
     />
   ));
 
-  const renderedChildren = definition.canHaveChildren ? (
+  const renderedChildren = placement.canHaveChildren ? (
     <div
       ref={setDropRef}
       data-builder-drop-target={`node:${node.id}`}

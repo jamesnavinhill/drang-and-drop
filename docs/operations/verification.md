@@ -112,6 +112,7 @@ What is already in place to support that follow-up:
 
 - stable `data-builder-*` hooks now back both browser automation selectors and the deterministic builder drag verification hook
 - `scripts/verify-builder-commands.ts` now gives the structure-command layer a direct fast verification loop outside the browser
+- block definitions, placement rules, and builder preview rendering now live in separate builder modules, which lowers registry coupling before deeper placement/export hardening
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 - the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized
 

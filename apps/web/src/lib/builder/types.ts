@@ -94,12 +94,17 @@ export interface ComponentDefinition {
   description: string;
   icon: string;
   category: "Layout" | "Content" | "Marketing" | "Application";
-  canHaveChildren: boolean;
-  accepts: "any" | ComponentType[];
-  rootOnly?: boolean;
   defaults: NodeProps;
   fields: ControlField[];
 }
+
+export interface ComponentPlacementDefinition {
+  canHaveChildren: boolean;
+  accepts: "any" | ComponentType[];
+  rootOnly?: boolean;
+}
+
+export type ComponentRegistryEntry = ComponentDefinition & ComponentPlacementDefinition;
 
 export interface ParentReference {
   kind: "page" | "node";

@@ -14,18 +14,18 @@
 - The canvas now surfaces live invalid-drop reasoning from the shared validator, and the full library catalog now flags blocks that are not valid for the current insertion target.
 - Failed structure-sensitive actions now surface a shared shell-level editor notice, and the outline now shows the current insertion target so it reads more like the library/canvas model.
 - Outline and inspector now share the same node-structure action surface for reorder, duplicate, and remove controls.
+- Builder block definitions, placement rules, and preview rendering are now split into focused modules, and `src/lib/builder/registry.tsx` is reduced to a compatibility barrel instead of the implementation catch-all.
 - The roadmap and operations docs have been updated to reflect the current implementation baseline and next slices.
 
 ## Next Best Slice
 
 The next session should focus on one cohesive editor-foundation slice:
 
-- harden canvas and outline interactions on top of the new shared command path
-- tighten outline/canvas parity and insertion affordances now that shared editor notices and insertion context cues are in place
-- tighten the mental model between outline actions, canvas actions, and selection state
-- continue shaving down the remaining interaction duplication between canvas and outline surfaces
-- keep verification green while the UI layer, registry boundaries, and export contracts are tightened
+- continue from the new split builder modules instead of re-growing the compatibility barrel
+- move the placement model beyond simple allowlists toward clearer placement contracts
+- tighten builder/export parity now that preview rendering and block definitions have clearer seams
+- keep verification green while the placement/export contracts are tightened
 
 ## Suggested Starting Prompt
 
-Continue from `apps/web` and follow `docs/plans/04-editor-foundation-hardening-plan.md`. The structure-command foundation is now in place for insert/move/duplicate/remove plus structural validation, direct command verification, shared shell-level editor notices, canvas-side invalid-drop feedback, and shared outline/inspector node actions. Next, tighten the remaining canvas/outline parity gaps and then shift into registry separation without breaking the shared mutation path or verification loop.
+Continue from `apps/web` and follow `docs/plans/04-editor-foundation-hardening-plan.md`. The structure-command foundation is in place, the outline/inspector action surface is shared, and the old builder registry has been split into block-definition, placement, and preview modules. Next, keep hardening the placement model and export parity on top of those new seams without re-centralizing logic into the compatibility barrel.

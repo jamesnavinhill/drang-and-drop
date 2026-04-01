@@ -25,6 +25,7 @@ Progress landed so far in the current codebase:
 - failed structure-sensitive actions now surface through a shared shell-level editor notice
 - the outline now shows the current insertion target so selection and insertion intent are easier to read
 - outline and inspector now share the same structure-action controls for reorder, duplicate, and remove
+- block definitions, placement rules, and builder preview rendering are now split into focused modules, with `registry.tsx` reduced to a compatibility barrel
 
 This means the constraint-and-command foundation is partially landed. The next work inside this plan should lean harder into editor interaction clarity, validation surfacing, and registry separation instead of reopening already-centralized mutation paths.
 
@@ -101,12 +102,12 @@ Deprioritized until the foundation slice is healthier:
 
 The main constraints in the current codebase are:
 
-1. `src/lib/builder/registry.tsx` still mixes block metadata, inspector schema, placement rules, and builder preview rendering.
-2. Placement constraints are mostly allowlists (`accepts`, `rootOnly`, `canHaveChildren`) instead of a clearer placement model.
-3. The canvas flow in `src/components/builder/canvas.tsx` is deterministic, but it does not yet provide strong insertion semantics or guard every edge case.
-4. The store in `src/lib/builder/store.ts` owns mutations directly without a more explicit command layer.
-5. Schema validation in `src/lib/builder/schema.ts` checks shape, but not enough semantic or structural validity.
-6. Export still depends on a parallel renderer contract in `src/lib/builder/starter-artifacts.ts`, so parity risks grow as the block system gets richer.
+1. Placement constraints are still mostly allowlists (`accepts`, `rootOnly`, `canHaveChildren`) instead of a clearer placement model.
+2. The canvas flow in `src/components/builder/canvas.tsx` is deterministic, but it does not yet provide strong insertion semantics or guard every edge case.
+3. The store in `src/lib/builder/store.ts` owns mutations directly without a more explicit command layer.
+4. Schema validation in `src/lib/builder/schema.ts` checks shape, but not enough semantic or structural validity.
+5. Export still depends on a parallel renderer contract in `src/lib/builder/starter-artifacts.ts`, so parity risks grow as the block system gets richer.
+6. The old registry boundary has been reduced, but the compatibility barrel should not become a new home for cross-cutting builder logic.
 
 ## Foundation Workstreams
 
@@ -121,7 +122,7 @@ Target files:
 - `apps/web/src/lib/builder/dnd.ts`
 - `apps/web/src/lib/builder/structure.ts`
 - `apps/web/src/lib/builder/store.ts`
-- `apps/web/src/lib/builder/registry.tsx`
+- `apps/web/src/lib/builder/component-placement.ts`
 
 Work:
 
@@ -220,8 +221,11 @@ Goal:
 Target files:
 
 - `apps/web/src/lib/builder/registry.tsx`
+- `apps/web/src/lib/builder/component-definitions.ts`
+- `apps/web/src/lib/builder/component-placement.ts`
+- `apps/web/src/lib/builder/component-preview.tsx`
 - `apps/web/src/lib/builder/types.ts`
-- any new helper files extracted from the registry
+- `apps/web/src/lib/builder/starter-artifacts.ts`
 
 Work:
 
@@ -300,7 +304,9 @@ Suggested file focus:
 - `apps/web/src/components/builder/canvas.tsx`
 - `apps/web/src/components/builder/page-panel.tsx`
 - `apps/web/src/components/builder/inspector-panel.tsx`
-- `apps/web/src/lib/builder/registry.tsx`
+- `apps/web/src/lib/builder/component-placement.ts`
+- `apps/web/src/lib/builder/component-preview.tsx`
+- `apps/web/src/lib/builder/starter-artifacts.ts`
 
 Suggested acceptance criteria:
 

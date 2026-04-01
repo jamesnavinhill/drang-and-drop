@@ -3,7 +3,7 @@
 import { Paintbrush, ScrollText, Sparkles } from "lucide-react";
 import { useState } from "react";
 
-import { getComponentDefinition } from "@/lib/builder/registry";
+import { getComponentDefinition } from "@/lib/builder/component-definitions";
 import {
   findParentReference,
   getNodeDisplayLabel,

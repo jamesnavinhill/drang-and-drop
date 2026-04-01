@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { createDefaultProject, createId, createProjectFromTemplate } from "./default-project";
-import { getComponentDefinition } from "./registry";
+import { getComponentDefinition } from "./component-definitions";
 import { validateProject } from "./schema";
 import { executeStructureCommand, findParentReference } from "./structure";
 import type {

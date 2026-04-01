@@ -4,7 +4,8 @@ import { useDraggable } from "@dnd-kit/core";
 import { Compass, Filter, Layers3 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { componentRegistry } from "@/lib/builder/registry";
+import { componentDefinitions } from "@/lib/builder/component-definitions";
+import { getComponentPlacement } from "@/lib/builder/component-placement";
 import { describeInsertionTarget, validateComponentPlacement } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
 import { cn } from "@/lib/utils";
@@ -114,10 +115,10 @@ export function LibraryPanel() {
 
   const visibleItems = useMemo(() => {
     if (libraryView === "all") {
-      return componentRegistry;
+      return componentDefinitions;
     }
 
-    return componentRegistry.filter((item) =>
+    return componentDefinitions.filter((item) =>
       validateComponentPlacement({
         childType: item.type,
         parent: insertion.target,
@@ -202,6 +203,7 @@ export function LibraryPanel() {
                       parent: insertion.target,
                       project,
                     });
+                    const itemPlacement = getComponentPlacement(item.type);
 
                     return (
                       <PaletteItem
@@ -215,9 +217,9 @@ export function LibraryPanel() {
                         helperLabel={
                           libraryView === "all" && !placement.ok
                             ? "Not allowed in the current insertion target"
-                            : item.rootOnly
+                            : itemPlacement.rootOnly
                               ? "Root-level only"
-                              : item.canHaveChildren
+                              : itemPlacement.canHaveChildren
                                 ? "Accepts nested blocks"
                                 : "Leaf content block"
                         }

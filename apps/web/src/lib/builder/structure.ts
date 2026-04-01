@@ -1,4 +1,5 @@
-import { canAcceptChild, getComponentDefinition } from "./registry";
+import { getComponentDefinition } from "./component-definitions";
+import { canAcceptChild, getComponentPlacement } from "./component-placement";
 import type { BuilderNode, BuilderProject, ComponentType, ParentReference } from "./types";
 
 export type BuilderPlacementFailureReason =
@@ -752,8 +753,8 @@ export function getInsertionTarget(
     return { kind: "page", id: selectedPageId };
   }
 
-  const definition = getComponentDefinition(selectedNode.type);
-  if (definition.canHaveChildren) {
+  const placement = getComponentPlacement(selectedNode.type);
+  if (placement.canHaveChildren) {
     return { kind: "node", id: selectedNodeId };
   }
 
