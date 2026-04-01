@@ -1,5 +1,5 @@
 import { blockTypes } from "./types";
-import type { BlockContract, BlockDefinition, BlockType } from "./types";
+import type { BlockContract, BlockDefinition, BlockRenderDefinition, BlockRenderParityStrategy, BlockType } from "./types";
 
 function defineBlockContract(
   type: BlockType,
@@ -15,6 +15,56 @@ function defineBlockContract(
     },
     type,
   };
+}
+
+function defineRenderContract({
+  children,
+  note,
+  strategy,
+}: {
+  children: BlockRenderDefinition["children"];
+  note: string;
+  strategy: BlockRenderParityStrategy;
+}): BlockRenderDefinition {
+  return {
+    children,
+    parity: {
+      notes: [note],
+      strategy,
+    },
+    preview: {
+      implementation: "block-preview.tsx",
+      surface: "builder-canvas",
+    },
+    starter: {
+      implementation: "starter-artifacts.ts#createRendererFile",
+      surface: "generated-route",
+    },
+  };
+}
+
+function defineLeafRender(note: string) {
+  return defineRenderContract({
+    children: "leaf",
+    note,
+    strategy: "shared-content",
+  });
+}
+
+function defineLayoutRender(note: string) {
+  return defineRenderContract({
+    children: "renders-children",
+    note,
+    strategy: "shared-layout",
+  });
+}
+
+function defineRootRender(note: string) {
+  return defineRenderContract({
+    children: "leaf",
+    note,
+    strategy: "shared-shell",
+  });
 }
 
 const blockContractsByType: Record<BlockType, BlockContract> = {
@@ -50,6 +100,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root"],
     },
+    render: defineRootRender(
+      "Preview keeps the navbar inside an editor-safe shell, while starter export keeps the public page chrome aligned around the same content payload.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -89,6 +142,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
       allowedParents: ["page-root", "layout-container"],
       childTargetKind: "layout-container",
     },
+    render: defineLayoutRender(
+      "Section spacing, background mode, and child flow should stay aligned across preview and starter, even though preview keeps extra editor framing labels visible.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -126,6 +182,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
       allowedParents: ["page-root", "layout-container"],
       childTargetKind: "layout-container",
     },
+    render: defineLayoutRender(
+      "Stack layout parity is driven by the shared gap and alignment contract while each surface keeps its own presentation details.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -154,6 +213,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
       allowedParents: ["page-root", "layout-container"],
       childTargetKind: "layout-container",
     },
+    render: defineLayoutRender(
+      "Grid parity is defined by shared column and gap semantics, with preview and starter free to style the surrounding shell differently.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -195,6 +257,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root"],
     },
+    render: defineRootRender(
+      "Hero parity depends on shared headline, body, CTA, and alignment behavior while the preview can keep an editor-oriented shell treatment.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -231,6 +296,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Text blocks keep copy and size semantics shared between builder preview and starter export, even when the preview wraps them in an editor card.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -267,6 +335,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["layout-container"],
     },
+    render: defineLeafRender(
+      "Button parity is anchored to the shared label, variant, and width contract while each surface chooses the framing around the CTA.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -294,6 +365,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Feature grid parity uses the same parsed feature-line content on both surfaces, with only the surrounding shell presentation allowed to differ.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -327,6 +401,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "FAQ parity is defined by the shared item parser and question-answer ordering, while preview and starter may keep slightly different framing details.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -354,6 +431,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Testimonial parity centers on quote, author, and role content staying aligned even when preview and starter use different card chrome.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -381,6 +461,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["layout-container"],
     },
+    render: defineLeafRender(
+      "Stat card parity is driven by the shared KPI label, value, and trend payload while each surface can tune the card presentation to its context.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -414,6 +497,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Activity feed parity uses the shared activity-entry parser so the exported starter and builder preview keep the same operational timeline semantics.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -441,6 +527,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Form card parity is based on the shared title, body, and button contract, with each surface free to keep its own surrounding shell details.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -470,6 +559,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Pricing card parity depends on shared tier, price, tagline, and CTA semantics while preview and starter preserve their own page-specific framing.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -497,6 +589,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Chat input parity keeps the same label, placeholder, and action semantics across builder preview and starter export.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -528,6 +623,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Message thread parity is defined by the shared transcript parser and assistant/user role styling semantics, not by identical shell markup.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -560,6 +658,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Data table parity depends on the shared column and row parser so both surfaces render the same structured dataset with surface-specific chrome.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",
@@ -587,6 +688,9 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     placement: {
       allowedParents: ["page-root", "layout-container"],
     },
+    render: defineLeafRender(
+      "Sidebar shell parity keeps the same navigation items and highlighted state while preview and starter choose the most appropriate surrounding shell.",
+    ),
     verification: {
       previewExportParity: "required",
       structure: "required",

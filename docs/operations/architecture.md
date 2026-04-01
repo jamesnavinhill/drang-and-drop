@@ -11,17 +11,21 @@ Core layers:
 - `src/lib/builder/default-project.ts`
   Seeds the starter templates, demo project, and template factories.
 - `src/lib/builder/block-contracts.ts`
-  Owns the canonical block contracts, including family, metadata, placement, capability tags, and verification expectations for each shipped block type.
+  Owns the canonical block contracts, including family, metadata, placement, render parity metadata, capability tags, and verification expectations for each shipped block type.
 - `src/lib/builder/block-catalog.ts`
-  Owns derived family metadata, capability labeling, and contract-driven catalog helpers used by the UI and verification.
+  Owns derived family metadata, capability labeling, contract-driven catalog helpers, and the preview/export parity matrix used by the UI and verification.
+- `src/lib/builder/block-authoring.ts`
+  Records the shipped block authoring checklist so future catalog work has an explicit workflow artifact in code.
 - `src/lib/builder/block-definitions.ts`
   Derives block metadata, defaults, and inspector field definitions from the canonical block contracts.
 - `src/lib/builder/block-placement.ts`
   Derives the current explicit placement-target model, including `page-root` and `layout-container` rules plus child-acceptance helpers, from the canonical block contracts.
-- `src/lib/builder/component-content.ts`
-  Owns shared block-content parsing and fallback semantics used by the builder preview layer.
+- `src/lib/builder/block-content.ts`
+  Owns shared block-content parsing and fallback semantics used by both the builder preview and generated starter support layers.
 - `src/lib/builder/block-preview.tsx`
   Owns builder-side theme style mapping and preview rendering for the current block set.
+- `src/lib/builder/component-content.ts`
+  Compatibility shim that re-exports the canonical block-content boundary.
 - `src/lib/builder/component-definitions.ts`
   Compatibility shim that re-exports the canonical block-definition boundary.
 - `src/lib/builder/component-placement.ts`
@@ -52,6 +56,8 @@ Core layers:
   Rebuilds and serves the builder app, then validates palette insertion, nested insertion, reorder, invalid root-only nesting, and descendant-move rejection through the browser harness.
 - `scripts/verify-builder-commands.ts`
   Runs direct command-layer verification for shared insert/move/duplicate/remove behavior and structural validation failure cases.
+- `scripts/verify-builder-contracts.ts`
+  Runs fast contract-level verification for block coverage, capability/placement consistency, render parity metadata, authoring checklist completeness, and parity-coverage project alignment.
 - `scripts/verify-generated-starters.ts`
   Generates clean starter workspaces for each shipped template plus the internal block-contract coverage project, then runs install/build/start/route/static-asset verification plus browser-rendered checks and screenshots.
 
@@ -156,8 +162,9 @@ The generated starter file plan now has a matching automated verification loop t
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
-- Registry implementation coupling is lower now that canonical block contracts, derived block-definition/placement modules, and block preview rendering are split into separate modules, but the placement model still stops short of slot or region contracts and preview/export still duplicate most JSX block layouts.
+- Registry implementation coupling is lower now that canonical block contracts, derived block-definition/placement modules, block-content helpers, and block preview rendering are split into separate modules. Preview/export parity is now documented in the contract layer, but the two surfaces still keep separate JSX trees and still stop short of a shared slot or region system.
 - The family and capability map is now a real derived builder module instead of only being implicit inside planning docs, which makes both catalog UI and verification easier to align with the current system.
+- The block authoring workflow and preview/export parity matrix now exist as durable artifacts, which makes future block additions easier to review before broader catalog growth resumes.
 - Export is clearer now that generated render support is split away from the main starter-artifact file, but it is not yet decomposed into highly granular generated components.
 - JSON import/export currently targets schema-safe builder state, not arbitrary roundtrip from generated code.
 - Backend integrations, auth, and data bindings are intentionally deferred.
@@ -167,6 +174,6 @@ The generated starter file plan now has a matching automated verification loop t
 - tighten canvas and outline parity on top of the shared command path
 - keep refining validation and invalid-drop feedback across editor surfaces
 - reduce the remaining interaction duplication between outline actions and canvas actions
-- reduce registry coupling before significantly expanding the catalog again
+- preserve the new contract-driven parity model while broader catalog or customization work resumes
 - keep builder/runtime/export parity healthy while these editor-system changes land
-- grow command-level verification alongside future wrap/unwrap or assistant-safe mutations
+- grow fast contract verification alongside command-level and browser-backed verification

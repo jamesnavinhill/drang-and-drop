@@ -1,11 +1,13 @@
 # Builder Block System Implementation Plan
 
 Date: April 1, 2026
+Status: Completed on April 1, 2026
 Related report: `docs/reports/02-builder-system-naming-and-mapping-report.md`
 Related roadmap: `docs/plans/02-product-roadmap-plan.md`
 Related shell plan: `docs/plans/03-builder-shell-and-assistant-foundation-plan.md`
 Related foundation plan: `docs/plans/04-editor-foundation-hardening-plan.md`
 Related architecture doc: `docs/operations/architecture.md`
+Related authoring doc: `docs/operations/block-authoring.md`
 
 ## Purpose
 
@@ -14,6 +16,29 @@ Turn the naming and mapping report into the next real implementation phase for t
 This plan assumes the codebase is at the end of the `04` editor-foundation slice, with only a small amount of export-parity work intentionally rolling forward into this phase.
 
 The goal of `05` is not broad catalog growth. The goal is to make the builder system canonical, uniform, and durable before customization depth and feature count expand further.
+
+## Completion Snapshot
+
+This phase is now landed in the current codebase.
+
+The main implementation outcomes are:
+
+- canonical `block` terminology across the active builder boundary, with older `component-*` modules reduced to compatibility shims
+- one explicit block contract per shipped block type, now including metadata, placement, render-parity metadata, capability tags, and verification expectations
+- a real family and capability map in code for the shipped catalog
+- a documented preview/export parity matrix for shipped block types
+- a dedicated block authoring checklist in code and in operations docs
+- fast contract-level verification via `pnpm verify:contracts`
+- updated architecture, development, verification, and handoff docs aligned with the finished block-system pass
+
+Primary landed files from this phase:
+
+- `apps/web/src/lib/builder/block-contracts.ts`
+- `apps/web/src/lib/builder/block-catalog.ts`
+- `apps/web/src/lib/builder/block-content.ts`
+- `apps/web/src/lib/builder/block-authoring.ts`
+- `apps/web/scripts/verify-builder-contracts.ts`
+- `docs/operations/block-authoring.md`
 
 ## Why This Phase Exists
 
@@ -90,6 +115,10 @@ This phase should leave behind these durable artifacts:
 - a preview/export parity matrix for shipped block types
 - a block authoring checklist for future implementation work
 - updated architecture, verification, and handoff docs that describe the new system honestly
+
+Current status:
+
+- complete
 
 ## Workstreams
 
@@ -334,6 +363,7 @@ Keep verification aligned with system changes:
 
 - keep `pnpm lint` green
 - keep `pnpm build` green
+- keep `pnpm verify:contracts` green
 - keep `pnpm verify:commands` green
 - keep `pnpm verify:dnd` green
 - keep `pnpm verify:starters` green
@@ -350,6 +380,10 @@ This phase is successful when all of the following are true:
 - preview/export parity is governed by a clearer shared contract than it is today
 - adding a new block is a professional, documented workflow
 - architecture, verification, and handoff docs all reflect the new reality of the codebase
+
+Current status:
+
+- satisfied by the current implementation baseline
 
 ## What Comes After This Phase
 

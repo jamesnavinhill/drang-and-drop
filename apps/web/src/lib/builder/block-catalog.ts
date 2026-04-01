@@ -66,6 +66,18 @@ export function getParityCriticalBlockTypes() {
     .map((contract) => contract.type);
 }
 
+export function getBlockParityMatrix(contracts: BlockContract[] = blockContracts) {
+  return contracts.map((contract) => ({
+    family: contract.family,
+    parityNotes: contract.render.parity.notes,
+    parityStrategy: contract.render.parity.strategy,
+    previewSurface: contract.render.preview.surface,
+    starterSurface: contract.render.starter.surface,
+    title: contract.definition.title,
+    type: contract.type,
+  }));
+}
+
 export function collectProjectBlockTypes(project: BuilderProject) {
   return new Set<BlockType>(Object.values(project.nodes).map((node) => node.type));
 }

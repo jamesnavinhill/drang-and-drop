@@ -8,7 +8,7 @@ import {
   parseTable,
   parseTranscript,
   toLines,
-} from "./component-content";
+} from "./block-content";
 import type { BuilderNode, BuilderProject, BuilderTheme } from "./types";
 
 export function getThemeStyles(theme: BuilderTheme): CSSProperties {

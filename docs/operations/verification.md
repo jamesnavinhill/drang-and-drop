@@ -7,6 +7,7 @@ Code quality checks completed from `apps/web`:
 ```powershell
 pnpm lint
 pnpm build
+pnpm verify:contracts
 pnpm verify:commands
 pnpm verify:dnd
 pnpm verify:starters
@@ -46,6 +47,14 @@ Direct command verification completed via `pnpm verify:commands`:
 6. Verified shared duplicate command behavior for subtree cloning with fresh ids.
 7. Verified shared remove command behavior for subtree deletion.
 8. Verified structural validation rejects invalid root placement and orphan nodes.
+
+Contract verification completed via `pnpm verify:contracts`:
+
+1. Verified every shipped `blockType` resolves to one canonical block contract.
+2. Verified family, capability, placement, and render-contract metadata remain internally consistent.
+3. Verified every inspector field has a matching default and every block contract has unique field keys and capabilities.
+4. Verified the authoring checklist still contains the required workflow checkpoints.
+5. Verified the internal block-contract coverage project still exercises every parity-critical shipped block type.
 
 Canvas interaction feedback is now also validated indirectly by the browser drag harness:
 
@@ -116,10 +125,12 @@ What is already in place to support that follow-up:
 - `scripts/verify-builder-commands.ts` now gives the structure-command layer a direct fast verification loop outside the browser
 - canonical block contracts now live in `src/lib/builder/block-contracts.ts`, with derived definition, placement, and preview modules built on top of that boundary
 - `src/lib/builder/block-catalog.ts` now exposes family/capability metadata used by both the builder UI and verification loops
+- `src/lib/builder/block-authoring.ts` and `docs/operations/block-authoring.md` now record the block authoring workflow and preview/export parity matrix as first-class artifacts
 - compatibility shims still exist for the older `component-*` module names, but the active builder codepaths now resolve through the canonical `block-*` modules
+- `scripts/verify-builder-contracts.ts` now gives the block system a fast contract-level verification loop before the heavier drag and starter checks run
 - starter verification now includes an internal block-contract coverage project so preview/export parity checks do not depend only on the shape of the shipped user-facing templates
 - placement rules now resolve through explicit `page-root` and `layout-container` target kinds, which gives validation and verification a clearer shared vocabulary
-- shared content parsing and fallback semantics now back both builder preview and generated starter render support, which reduces one more source of preview/export drift
+- shared block-content parsing and fallback semantics now back both builder preview and generated starter render support, which reduces one more source of preview/export drift
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 - the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized
 
@@ -129,4 +140,4 @@ Run these next:
 
 1. Expand builder drag verification around more placement-constraint edges, especially empty-container affordances and outline/canvas parity scenarios.
 2. Extend command verification when wrap/unwrap or assistant-safe mutation commands land.
-3. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions only after the export contract is tightened.
+3. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions only after the export contract is tightened further.

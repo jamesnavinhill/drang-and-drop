@@ -8,6 +8,7 @@ export const blockRegistry = blockContracts.map((contract) => ({
   capabilities: contract.capabilities,
   canHaveChildren: blockCanHaveChildren(contract.type),
   family: contract.family,
+  render: contract.render,
   rootOnly: isRootOnlyBlock(contract.type),
   verification: contract.verification,
 }));

@@ -1,16 +1,16 @@
-import { componentContentFallbacks } from "./component-content";
+import { blockContentFallbacks } from "./block-content";
 
 export function createStarterRenderSupportFile() {
   return `import type { CSSProperties, ReactNode } from "react";
 
-const componentContentFallbacks = {
-  activityMeta: ${JSON.stringify(componentContentFallbacks.activityMeta)},
-  activityStatus: ${JSON.stringify(componentContentFallbacks.activityStatus)},
-  activityTitle: ${JSON.stringify(componentContentFallbacks.activityTitle)},
-  faqAnswer: ${JSON.stringify(componentContentFallbacks.faqAnswer)},
-  faqQuestion: ${JSON.stringify(componentContentFallbacks.faqQuestion)},
-  messageSender: ${JSON.stringify(componentContentFallbacks.messageSender)},
-  transcriptMessage: ${JSON.stringify(componentContentFallbacks.transcriptMessage)},
+const blockContentFallbacks = {
+  activityMeta: ${JSON.stringify(blockContentFallbacks.activityMeta)},
+  activityStatus: ${JSON.stringify(blockContentFallbacks.activityStatus)},
+  activityTitle: ${JSON.stringify(blockContentFallbacks.activityTitle)},
+  faqAnswer: ${JSON.stringify(blockContentFallbacks.faqAnswer)},
+  faqQuestion: ${JSON.stringify(blockContentFallbacks.faqQuestion)},
+  messageSender: ${JSON.stringify(blockContentFallbacks.messageSender)},
+  transcriptMessage: ${JSON.stringify(blockContentFallbacks.transcriptMessage)},
 } as const;
 
 export function buttonVariant(label: string, variant: string, fullWidth?: boolean) {
@@ -82,11 +82,11 @@ export function parseTranscript(value: string) {
   return toLines(value).map((entry) => {
     const [sender, ...rest] = entry.split("|");
     const message = rest.join("|").trim();
-    const normalizedSender = sender.trim() || componentContentFallbacks.messageSender;
+    const normalizedSender = sender.trim() || blockContentFallbacks.messageSender;
 
     return {
       sender: normalizedSender,
-      message: message || componentContentFallbacks.transcriptMessage,
+      message: message || blockContentFallbacks.transcriptMessage,
       isAssistant: /assistant|copilot|system/i.test(normalizedSender),
     };
   });
@@ -98,8 +98,8 @@ export function parseFaqItems(value: string) {
     const answer = rest.join("|").trim();
 
     return {
-      answer: answer || componentContentFallbacks.faqAnswer,
-      question: question.trim() || componentContentFallbacks.faqQuestion,
+      answer: answer || blockContentFallbacks.faqAnswer,
+      question: question.trim() || blockContentFallbacks.faqQuestion,
     };
   });
 }
@@ -109,9 +109,9 @@ export function parseActivityEntries(value: string) {
     const [title, meta, status] = entry.split("|").map((item) => item.trim());
 
     return {
-      meta: meta || componentContentFallbacks.activityMeta,
-      status: status || componentContentFallbacks.activityStatus,
-      title: title || componentContentFallbacks.activityTitle,
+      meta: meta || blockContentFallbacks.activityMeta,
+      status: status || blockContentFallbacks.activityStatus,
+      title: title || blockContentFallbacks.activityTitle,
     };
   });
 }

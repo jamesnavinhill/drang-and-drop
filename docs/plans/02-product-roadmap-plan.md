@@ -11,7 +11,7 @@ Implemented in the current greenfield slice:
 
 - Next.js application scaffold at `apps/web`
 - schema-driven builder project model with persisted local state
-- component registry for layout, marketing, content, and app blocks
+- contract-driven block catalog for root, layout, content, and application families
 - visual editor shell with pages, library, canvas, inspector, and theming
 - route management plus page outline/layers controls in the left workspace
 - contextual block library guidance tied to the current insertion target
@@ -29,7 +29,9 @@ Implemented in the current greenfield slice:
 - shared outline/inspector node action controls for reorder, duplicate, and remove parity
 - split builder block definitions, placement rules, and preview rendering modules so the registry boundary is starting to harden
 - placement validation now resolves through explicit `page-root` and `layout-container` targets, giving command and drag verification a clearer shared model
-- shared content parsing/fallback helpers and generated render support are now separated so preview/export parity depends on fewer duplicated helper paths
+- shared block-content parsing/fallback helpers and generated render support are now separated so preview/export parity depends on fewer duplicated helper paths
+- block contracts now carry explicit preview/export render metadata, and the shipped family/capability map is now a first-class implementation artifact
+- a block authoring checklist and fast contract-level verification loop now exist to keep future catalog growth disciplined
 - automated generated-starter verification across all shipped templates with install/build/serve/route/static-asset and browser-rendered checks
 
 Open follow-up work after this slice:

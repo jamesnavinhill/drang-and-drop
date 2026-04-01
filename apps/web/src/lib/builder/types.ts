@@ -116,6 +116,24 @@ export interface BlockPlacementDefinition {
   childTargetKind?: PlacementTargetKind;
 }
 
+export type BlockRenderChildrenMode = "leaf" | "renders-children";
+export type BlockRenderParityStrategy = "shared-content" | "shared-layout" | "shared-shell";
+
+export interface BlockRenderSurfaceDefinition {
+  implementation: string;
+  surface: string;
+}
+
+export interface BlockRenderDefinition {
+  children: BlockRenderChildrenMode;
+  parity: {
+    notes: string[];
+    strategy: BlockRenderParityStrategy;
+  };
+  preview: BlockRenderSurfaceDefinition;
+  starter: BlockRenderSurfaceDefinition;
+}
+
 export interface BlockVerificationDefinition {
   previewExportParity: "required";
   structure: "required";
@@ -126,6 +144,7 @@ export interface BlockContract {
   family: BlockFamily;
   definition: BlockDefinition;
   placement: BlockPlacementDefinition;
+  render: BlockRenderDefinition;
   capabilities: BlockCapability[];
   verification: BlockVerificationDefinition;
 }
@@ -134,6 +153,7 @@ export type BlockRegistryEntry = BlockDefinition &
   BlockPlacementDefinition & {
     capabilities: BlockCapability[];
     family: BlockFamily;
+    render: BlockRenderDefinition;
     rootOnly: boolean;
     verification: BlockVerificationDefinition;
   };
