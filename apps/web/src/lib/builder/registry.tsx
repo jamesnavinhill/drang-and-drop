@@ -10,7 +10,71 @@ import type {
   ComponentType,
 } from "./types";
 
+const pageRootTypes: ComponentType[] = [
+  "navbar",
+  "hero",
+  "section",
+  "stack",
+  "grid",
+  "featureGrid",
+  "testimonialCard",
+  "dataTable",
+  "messageThread",
+  "formCard",
+  "pricingCard",
+  "sidebarShell",
+  "chatInput",
+  "text",
+];
+
+const containerChildTypes: ComponentType[] = [
+  "text",
+  "button",
+  "featureGrid",
+  "testimonialCard",
+  "statCard",
+  "formCard",
+  "pricingCard",
+  "chatInput",
+  "messageThread",
+  "dataTable",
+  "sidebarShell",
+  "stack",
+  "grid",
+  "section",
+];
+
 const definitions: Record<ComponentType, ComponentDefinition> = {
+  navbar: {
+    type: "navbar",
+    title: "Navbar",
+    description: "Root-level navigation bar with a logo, links, and optional CTA.",
+    icon: "N",
+    category: "Marketing",
+    canHaveChildren: false,
+    accepts: [],
+    rootOnly: true,
+    defaults: {
+      logo: "Signal Flow",
+      links: "Product\nPricing\nTemplates\nDocs",
+      ctaLabel: "Book demo",
+      align: "between",
+    },
+    fields: [
+      { key: "logo", label: "Logo label", type: "text" },
+      { key: "links", label: "Links", type: "textarea", placeholder: "One link per line" },
+      { key: "ctaLabel", label: "CTA label", type: "text" },
+      {
+        key: "align",
+        label: "Align",
+        type: "select",
+        options: [
+          { label: "Spread", value: "between" },
+          { label: "Centered", value: "center" },
+        ],
+      },
+    ],
+  },
   section: {
     type: "section",
     title: "Section",
@@ -18,7 +82,7 @@ const definitions: Record<ComponentType, ComponentDefinition> = {
     icon: "S",
     category: "Layout",
     canHaveChildren: true,
-    accepts: "any",
+    accepts: containerChildTypes,
     defaults: {
       title: "Section frame",
       backgroundStyle: "surface",
@@ -48,7 +112,7 @@ const definitions: Record<ComponentType, ComponentDefinition> = {
     icon: "V",
     category: "Layout",
     canHaveChildren: true,
-    accepts: "any",
+    accepts: containerChildTypes,
     defaults: {
       title: "Content stack",
       gap: 18,
@@ -76,18 +140,7 @@ const definitions: Record<ComponentType, ComponentDefinition> = {
     icon: "G",
     category: "Layout",
     canHaveChildren: true,
-    accepts: [
-      "text",
-      "button",
-      "featureGrid",
-      "statCard",
-      "formCard",
-      "pricingCard",
-      "chatInput",
-      "sidebarShell",
-      "section",
-      "stack",
-    ],
+    accepts: containerChildTypes,
     defaults: {
       title: "Grid",
       columns: 3,
@@ -207,6 +260,25 @@ const definitions: Record<ComponentType, ComponentDefinition> = {
       { key: "features", label: "Features", type: "textarea", placeholder: "One feature per line" },
     ],
   },
+  testimonialCard: {
+    type: "testimonialCard",
+    title: "Testimonial",
+    description: "Proof block with a quote, author, and role for social credibility.",
+    icon: "Q",
+    category: "Marketing",
+    canHaveChildren: false,
+    accepts: [],
+    defaults: {
+      quote: "This builder gave us a cleaner launch surface without boxing us into generated chaos.",
+      author: "Avery Stone",
+      role: "Product lead, Northline",
+    },
+    fields: [
+      { key: "quote", label: "Quote", type: "textarea" },
+      { key: "author", label: "Author", type: "text" },
+      { key: "role", label: "Role", type: "text" },
+    ],
+  },
   statCard: {
     type: "statCard",
     title: "Stat Card",
@@ -285,11 +357,58 @@ const definitions: Record<ComponentType, ComponentDefinition> = {
       { key: "buttonLabel", label: "Button label", type: "text" },
     ],
   },
+  messageThread: {
+    type: "messageThread",
+    title: "Message Thread",
+    description: "Conversation shell for copilots, support flows, or internal collaboration.",
+    icon: "M",
+    category: "Application",
+    canHaveChildren: false,
+    accepts: [],
+    defaults: {
+      title: "Latest handoff",
+      transcript:
+        "lead|Can we tighten the onboarding copy before launch?\nassistant|Yes. Start with the hero title and remove the second sentence.\nlead|Great. Queue that for review after the pricing pass.",
+    },
+    fields: [
+      { key: "title", label: "Thread title", type: "text" },
+      {
+        key: "transcript",
+        label: "Transcript",
+        type: "textarea",
+        placeholder: "Use sender|message format, one line per message",
+      },
+    ],
+  },
+  dataTable: {
+    type: "dataTable",
+    title: "Data Table",
+    description: "Compact table block for pricing comparisons, reports, or internal tooling views.",
+    icon: "D",
+    category: "Application",
+    canHaveChildren: false,
+    accepts: [],
+    defaults: {
+      title: "Launch report",
+      columns: "Team|Status|Owner",
+      rows: "Growth|Ready|Avery\nSupport|Review|Nina\nProduct|Blocked|Luca",
+    },
+    fields: [
+      { key: "title", label: "Table title", type: "text" },
+      { key: "columns", label: "Columns", type: "text", placeholder: "Use | between columns" },
+      {
+        key: "rows",
+        label: "Rows",
+        type: "textarea",
+        placeholder: "Use | between cells and one row per line",
+      },
+    ],
+  },
   sidebarShell: {
     type: "sidebarShell",
     title: "Sidebar Shell",
     description: "Navigation preview block for internal tools and dashboards.",
-    icon: "N",
+    icon: "R",
     category: "Application",
     canHaveChildren: false,
     accepts: [],
@@ -308,13 +427,55 @@ const definitions: Record<ComponentType, ComponentDefinition> = {
 
 export const componentRegistry = Object.values(definitions);
 
+function toLines(value: string) {
+  return value
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseTable(columnsValue: string, rowsValue: string) {
+  const columns = columnsValue
+    .split("|")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const rows = toLines(rowsValue).map((row) =>
+    row
+      .split("|")
+      .map((cell) => cell.trim())
+      .slice(0, columns.length || undefined),
+  );
+
+  return { columns, rows };
+}
+
+function parseTranscript(value: string) {
+  return toLines(value).map((entry) => {
+    const [sender, ...rest] = entry.split("|");
+    const message = rest.join("|").trim();
+    const normalizedSender = sender.trim() || "user";
+
+    return {
+      sender: normalizedSender,
+      message: message || "Message",
+      isAssistant: /assistant|copilot|system/i.test(normalizedSender),
+    };
+  });
+}
+
 export function getComponentDefinition(type: ComponentType) {
   return definitions[type];
 }
 
 export function canAcceptChild(parentType: ComponentType | "page", childType: ComponentType) {
+  const childDefinition = definitions[childType];
+
   if (parentType === "page") {
-    return childType !== "button";
+    return pageRootTypes.includes(childType);
+  }
+
+  if (childDefinition.rootOnly) {
+    return false;
   }
 
   const definition = definitions[parentType];
@@ -322,11 +483,7 @@ export function canAcceptChild(parentType: ComponentType | "page", childType: Co
     return false;
   }
 
-  if (definition.accepts === "any") {
-    return true;
-  }
-
-  return definition.accepts.includes(childType);
+  return definition.accepts === "any" ? true : definition.accepts.includes(childType);
 }
 
 export function getThemeStyles(theme: BuilderTheme): CSSProperties {
@@ -441,16 +598,12 @@ function GridLayout({
 function FeatureLines({ value }: { value: string }) {
   return (
     <ul className="grid gap-3 text-sm text-[color:var(--builder-muted)]">
-      {value
-        .split("\n")
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .map((item) => (
-          <li key={item} className="flex items-center gap-3">
-            <span className="h-2.5 w-2.5 rounded-full bg-[color:var(--builder-accent)]" />
-            <span>{item}</span>
-          </li>
-        ))}
+      {toLines(value).map((item) => (
+        <li key={item} className="flex items-center gap-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-[color:var(--builder-accent)]" />
+          <span>{item}</span>
+        </li>
+      ))}
     </ul>
   );
 }
@@ -463,13 +616,35 @@ export function renderNodePreview(
   void project;
 
   switch (node.type) {
+    case "navbar": {
+      const links = toLines(`${node.props.links}`);
+      const centered = node.props.align === "center";
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)+2px)] border border-[color:var(--builder-border)] bg-white/90 px-5 py-4">
+          <div className={cn("flex flex-wrap items-center gap-4", centered ? "justify-center" : "justify-between")}>
+            <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[color:var(--builder-foreground)]">
+              {`${node.props.logo}`}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {links.map((link) => (
+                <span
+                  key={link}
+                  className="rounded-full border border-[color:var(--builder-border)] px-3 py-2 text-xs font-medium text-[color:var(--builder-muted)]"
+                >
+                  {link}
+                </span>
+              ))}
+            </div>
+            <ButtonPreview label={`${node.props.ctaLabel}`} variant="primary" />
+          </div>
+        </div>
+      );
+    }
     case "section": {
       const backgroundStyle = `${node.props.backgroundStyle ?? "surface"}`;
       const surfaceStyles: Record<string, CSSProperties> = {
-        surface: {
-          background: "var(--builder-surface)",
-          border: "1px solid var(--builder-border)",
-        },
+        surface: { background: "var(--builder-surface)", border: "1px solid var(--builder-border)" },
         accent: {
           background:
             "linear-gradient(135deg, color-mix(in srgb, var(--builder-accent) 16%, white), rgba(255,255,255,0.72))",
@@ -541,11 +716,7 @@ export function renderNodePreview(
     case "text": {
       const size = `${node.props.size ?? "lg"}`;
       const bodyClasses =
-        size === "sm"
-          ? "text-sm leading-6"
-          : size === "md"
-            ? "text-base leading-7"
-            : "text-lg leading-8";
+        size === "sm" ? "text-sm leading-6" : size === "md" ? "text-base leading-7" : "text-lg leading-8";
 
       return (
         <div className="rounded-[calc(var(--builder-radius)-6px)] border border-[color:var(--builder-border)] bg-white/75 p-6">
@@ -571,6 +742,18 @@ export function renderNodePreview(
           <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
           <div className="mt-5">
             <FeatureLines value={`${node.props.features}`} />
+          </div>
+        </div>
+      );
+    case "testimonialCard":
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-6px)] border border-[color:var(--builder-border)] bg-white/86 p-6">
+          <p className="text-2xl leading-9 text-[color:var(--builder-foreground)]">
+            &quot;{`${node.props.quote}`}&quot;
+          </p>
+          <div className="mt-5 border-t border-[color:var(--builder-border)] pt-4">
+            <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.author}`}</p>
+            <p className="mt-1 text-xs uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">{`${node.props.role}`}</p>
           </div>
         </div>
       );
@@ -630,11 +813,84 @@ export function renderNodePreview(
           </div>
         </div>
       );
+    case "messageThread": {
+      const transcript = parseTranscript(`${node.props.transcript}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
+            <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
+              Thread
+            </span>
+          </div>
+          <div className="grid gap-3">
+            {transcript.map((entry, index) => (
+              <div
+                key={`${entry.sender}-${index}`}
+                className={cn(
+                  "max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6",
+                  entry.isAssistant
+                    ? "justify-self-start border border-[color:var(--builder-border)] bg-white text-[color:var(--builder-foreground)]"
+                    : "justify-self-end bg-[color:var(--builder-accent)] text-[color:var(--builder-accent-contrast)]",
+                )}
+              >
+                <p
+                  className={cn(
+                    "mb-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
+                    entry.isAssistant ? "text-[color:var(--builder-muted)]" : "text-current/80",
+                  )}
+                >
+                  {entry.sender}
+                </p>
+                <p>{entry.message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "dataTable": {
+      const { columns, rows } = parseTable(`${node.props.columns}`, `${node.props.rows}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/86 p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
+            <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
+              Table
+            </span>
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-[color:var(--builder-border)]">
+            <div
+              className="grid bg-[color:var(--builder-surface)]"
+              style={{ gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))` }}
+            >
+              {columns.map((column) => (
+                <div
+                  key={column}
+                  className="border-b border-[color:var(--builder-border)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--builder-muted)]"
+                >
+                  {column}
+                </div>
+              ))}
+              {rows.flatMap((row, rowIndex) =>
+                columns.map((column, columnIndex) => (
+                  <div
+                    key={`${rowIndex}-${column}-${columnIndex}`}
+                    className="border-b border-[color:var(--builder-border)] px-4 py-3 text-sm text-[color:var(--builder-foreground)]"
+                  >
+                    {row[columnIndex] ?? "--"}
+                  </div>
+                )),
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
     case "sidebarShell": {
-      const items = `${node.props.items}`
-        .split("\n")
-        .map((item) => item.trim())
-        .filter(Boolean);
+      const items = toLines(`${node.props.items}`);
 
       return (
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/86 p-4">
@@ -671,5 +927,5 @@ export function renderNodePreview(
 }
 
 export function getPageSummary(project: BuilderProject) {
-  return `${project.pages.length} page${project.pages.length === 1 ? "" : "s"} · ${Object.keys(project.nodes).length} nodes`;
+  return `${project.pages.length} page${project.pages.length === 1 ? "" : "s"} - ${Object.keys(project.nodes).length} nodes`;
 }

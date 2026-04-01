@@ -23,7 +23,7 @@ Open follow-up work after this slice:
 
 - tighten drag/drop verification coverage for explicit palette-to-canvas insertions and reordering flows
 - investigate the remaining local `next start` static asset serving issue observed during automated browser verification
-- expand the component catalog and add richer layout constraints
+- continue expanding the component catalog beyond the current marketing and internal-tool starter set
 - strengthen export parity tests and generated-project runtime verification
 - begin M2/M3 hardening on codegen cleanliness, route generation polish, and onboarding flows
 
@@ -254,7 +254,8 @@ Duration: 3-4 weeks
 Status:
 
 - partially completed in the current implementation slice
-- the initial component catalog supports these directions, but the library still needs expansion and more template polish
+- the current catalog includes navbars, testimonials, tables, message threads, dashboard shells, and starter-template coverage
+- follow-up work is focused on deeper library breadth, richer media/content blocks, and more polish across templates and validation
 
 ## M3: Multi-Page Workflows And Export
 

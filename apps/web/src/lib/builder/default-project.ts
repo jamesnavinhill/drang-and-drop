@@ -46,6 +46,7 @@ function createProjectFrame({
 }
 
 function createLaunchStudioProject(): BuilderProject {
+  const homeNavbarId = createId();
   const heroId = createId();
   const statsSectionId = createId();
   const statsGridId = createId();
@@ -55,8 +56,10 @@ function createLaunchStudioProject(): BuilderProject {
   const proofSectionId = createId();
   const proofGridId = createId();
   const featureId = createId();
+  const testimonialId = createId();
   const formId = createId();
   const chatId = createId();
+  const pricingNavbarId = createId();
   const pricingHeroId = createId();
   const pricingGridId = createId();
   const pricingCardId = createId();
@@ -85,17 +88,28 @@ function createLaunchStudioProject(): BuilderProject {
         name: "Home",
         path: "/",
         description: "Primary landing page with a focused product story.",
-        rootIds: [heroId, statsSectionId, proofSectionId],
+        rootIds: [homeNavbarId, heroId, statsSectionId, proofSectionId],
       },
       {
         id: pricingPageId,
         name: "Pricing",
         path: "/pricing",
         description: "Simple pricing and dashboard-flavored proof page.",
-        rootIds: [pricingHeroId, pricingGridId],
+        rootIds: [pricingNavbarId, pricingHeroId, pricingGridId],
       },
     ],
     nodes: {
+      [homeNavbarId]: {
+        id: homeNavbarId,
+        type: "navbar",
+        props: {
+          logo: "Launch Studio",
+          links: "Product\nTemplates\nPricing\nDocs",
+          ctaLabel: "Start free",
+          align: "between",
+        },
+        children: [],
+      },
       [heroId]: {
         id: heroId,
         type: "hero",
@@ -176,10 +190,10 @@ function createLaunchStudioProject(): BuilderProject {
         type: "grid",
         props: {
           title: "Proof grid",
-          columns: 3,
+          columns: 4,
           gap: 18,
         },
-        children: [featureId, formId, chatId],
+        children: [featureId, testimonialId, formId, chatId],
       },
       [featureId]: {
         id: featureId,
@@ -188,6 +202,16 @@ function createLaunchStudioProject(): BuilderProject {
           title: "Keep the system constrained",
           body: "This keeps drag/drop fast, responsive behavior predictable, and export quality high.",
           features: "Schema-driven page JSON\nMultiple pages and routes\nTheme controls\nZip export scaffold",
+        },
+        children: [],
+      },
+      [testimonialId]: {
+        id: testimonialId,
+        type: "testimonialCard",
+        props: {
+          quote: "We got to a polished launch surface in days, and the exported code still felt like ours.",
+          author: "Rae Bennett",
+          role: "Founder, Fieldnote",
         },
         children: [],
       },
@@ -208,6 +232,17 @@ function createLaunchStudioProject(): BuilderProject {
           label: "Copilot prompt shell",
           placeholder: "Turn this layout into a strong dashboard onboarding flow.",
           buttonLabel: "Generate",
+        },
+        children: [],
+      },
+      [pricingNavbarId]: {
+        id: pricingNavbarId,
+        type: "navbar",
+        props: {
+          logo: "Launch Studio",
+          links: "Overview\nPlans\nExport\nSettings",
+          ctaLabel: "Book intro",
+          align: "between",
         },
         children: [],
       },
@@ -260,21 +295,26 @@ function createLaunchStudioProject(): BuilderProject {
 }
 
 function createSignalFlowProject(): BuilderProject {
+  const homeNavbarId = createId();
   const heroId = createId();
   const socialProofSectionId = createId();
   const proofGridId = createId();
   const featureOneId = createId();
   const featureTwoId = createId();
   const featureThreeId = createId();
+  const testimonialId = createId();
   const conversionSectionId = createId();
   const conversionGridId = createId();
   const pricingId = createId();
   const formId = createId();
+  const pricingNavbarId = createId();
   const pricingHeroId = createId();
   const pricingSectionId = createId();
   const pricingGridId = createId();
   const starterPlanId = createId();
   const growthPlanId = createId();
+  const comparisonSectionId = createId();
+  const comparisonTableId = createId();
 
   const homeId = createId();
   const pricingPageId = createId();
@@ -299,17 +339,28 @@ function createSignalFlowProject(): BuilderProject {
         name: "Home",
         path: "/",
         description: "Marketing homepage for a workflow product launch.",
-        rootIds: [heroId, socialProofSectionId, conversionSectionId],
+        rootIds: [homeNavbarId, heroId, socialProofSectionId, conversionSectionId],
       },
       {
         id: pricingPageId,
         name: "Pricing",
         path: "/pricing",
         description: "Plan comparison page with conversion-ready cards.",
-        rootIds: [pricingHeroId, pricingSectionId],
+        rootIds: [pricingNavbarId, pricingHeroId, pricingSectionId, comparisonSectionId],
       },
     ],
     nodes: {
+      [homeNavbarId]: {
+        id: homeNavbarId,
+        type: "navbar",
+        props: {
+          logo: "Signal Flow",
+          links: "Product\nPricing\nCustomers\nDocs",
+          ctaLabel: "Book walkthrough",
+          align: "between",
+        },
+        children: [],
+      },
       [heroId]: {
         id: heroId,
         type: "hero",
@@ -339,10 +390,10 @@ function createSignalFlowProject(): BuilderProject {
         type: "grid",
         props: {
           title: "Value grid",
-          columns: 3,
+          columns: 4,
           gap: 18,
         },
-        children: [featureOneId, featureTwoId, featureThreeId],
+        children: [featureOneId, featureTwoId, featureThreeId, testimonialId],
       },
       [featureOneId]: {
         id: featureOneId,
@@ -371,6 +422,16 @@ function createSignalFlowProject(): BuilderProject {
           title: "Sharper executive reporting",
           body: "Show what changed, what shipped, and where momentum is blocked.",
           features: "Weekly rollups\nLaunch health view\nRisk summaries",
+        },
+        children: [],
+      },
+      [testimonialId]: {
+        id: testimonialId,
+        type: "testimonialCard",
+        props: {
+          quote: "Signal Flow replaced launch status theater with an operating rhythm our whole team could actually follow.",
+          author: "Jordan Park",
+          role: "VP Revenue, Fairline",
         },
         children: [],
       },
@@ -413,6 +474,17 @@ function createSignalFlowProject(): BuilderProject {
           title: "Talk to the team",
           body: "Use this section for demo requests, waitlists, or launch readiness reviews.",
           buttonLabel: "Request demo",
+        },
+        children: [],
+      },
+      [pricingNavbarId]: {
+        id: pricingNavbarId,
+        type: "navbar",
+        props: {
+          logo: "Signal Flow",
+          links: "Overview\nPlans\nSecurity\nDocs",
+          ctaLabel: "Talk sales",
+          align: "between",
         },
         children: [],
       },
@@ -472,6 +544,28 @@ function createSignalFlowProject(): BuilderProject {
         },
         children: [],
       },
+      [comparisonSectionId]: {
+        id: comparisonSectionId,
+        type: "section",
+        props: {
+          title: "Plan comparison",
+          backgroundStyle: "accent",
+          paddingY: 36,
+          inset: true,
+        },
+        children: [comparisonTableId],
+      },
+      [comparisonTableId]: {
+        id: comparisonTableId,
+        type: "dataTable",
+        props: {
+          title: "Included by plan",
+          columns: "Capability|Starter|Growth",
+          rows:
+            "Shared intake|Basic|Advanced\nApproval workflow|Limited|Unlimited\nExecutive rollups|Monthly|Weekly\nLaunch templates|2|10",
+        },
+        children: [],
+      },
     },
   });
 }
@@ -487,12 +581,14 @@ function createOpsHubProject(): BuilderProject {
   const guidanceSectionId = createId();
   const guidanceGridId = createId();
   const textId = createId();
+  const threadId = createId();
   const chatId = createId();
   const workspaceHeroId = createId();
   const workspaceProofSectionId = createId();
   const workspaceProofGridId = createId();
   const opsFeatureId = createId();
   const formId = createId();
+  const workspaceTableId = createId();
 
   const overviewId = createId();
   const workspaceId = createId();
@@ -618,10 +714,10 @@ function createOpsHubProject(): BuilderProject {
         type: "grid",
         props: {
           title: "Guidance grid",
-          columns: 2,
+          columns: 3,
           gap: 20,
         },
-        children: [textId, chatId],
+        children: [textId, threadId, chatId],
       },
       [textId]: {
         id: textId,
@@ -630,6 +726,16 @@ function createOpsHubProject(): BuilderProject {
           title: "What to review first",
           body: "Start with approvals that are aging out, then review the incidents queue and staffing coverage for the next handoff window.",
           size: "lg",
+        },
+        children: [],
+      },
+      [threadId]: {
+        id: threadId,
+        type: "messageThread",
+        props: {
+          title: "Approvals handoff",
+          transcript:
+            "lead|Flag the requests that will breach SLA before noon.\nassistant|Three approvals need escalation, and one owner is out today.\nlead|Perfect. Summarize that for the handoff note next.",
         },
         children: [],
       },
@@ -672,10 +778,10 @@ function createOpsHubProject(): BuilderProject {
         type: "grid",
         props: {
           title: "Modules grid",
-          columns: 2,
+          columns: 3,
           gap: 20,
         },
-        children: [opsFeatureId, formId],
+        children: [opsFeatureId, workspaceTableId, formId],
       },
       [opsFeatureId]: {
         id: opsFeatureId,
@@ -684,6 +790,16 @@ function createOpsHubProject(): BuilderProject {
           title: "Internal tools still need polish",
           body: "The same builder constraints that help marketing pages also help dashboard shells stay readable and maintainable.",
           features: "Strong route framing\nTheme tokens stay shared\nReusable cards and shells",
+        },
+        children: [],
+      },
+      [workspaceTableId]: {
+        id: workspaceTableId,
+        type: "dataTable",
+        props: {
+          title: "Team queue snapshot",
+          columns: "Queue|Open|Owner",
+          rows: "Approvals|14|Nina\nIncidents|3|Avery\nRequests|25|Luca",
         },
         children: [],
       },

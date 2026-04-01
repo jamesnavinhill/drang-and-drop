@@ -1,4 +1,5 @@
 export const componentTypes = [
+  "navbar",
   "section",
   "stack",
   "grid",
@@ -6,10 +7,13 @@ export const componentTypes = [
   "text",
   "button",
   "featureGrid",
+  "testimonialCard",
   "statCard",
   "formCard",
   "pricingCard",
   "chatInput",
+  "messageThread",
+  "dataTable",
   "sidebarShell",
 ] as const;
 

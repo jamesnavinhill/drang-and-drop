@@ -97,11 +97,7 @@ function buttonVariant(label: string, variant: string, fullWidth?: boolean) {
 function featureLines(value: string) {
   return (
     <ul style={{ display: "grid", gap: 12, listStyle: "none", margin: 0, padding: 0, color: "var(--builder-muted)" }}>
-      {value
-        .split("\\n")
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .map((item) => (
+      {toLines(value).map((item) => (
           <li key={item} style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ width: 10, height: 10, borderRadius: 999, background: "var(--builder-accent)", display: "inline-block" }} />
             <span>{item}</span>
@@ -111,11 +107,80 @@ function featureLines(value: string) {
   );
 }
 
+function toLines(value: string) {
+  return value
+    .split("\\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseTranscript(value: string) {
+  return toLines(value).map((entry) => {
+    const [sender, ...rest] = entry.split("|");
+    const message = rest.join("|").trim();
+    const normalizedSender = sender.trim() || "user";
+
+    return {
+      sender: normalizedSender,
+      message: message || "Message",
+      isAssistant: /assistant|copilot|system/i.test(normalizedSender),
+    };
+  });
+}
+
+function parseTable(columnsValue: string, rowsValue: string) {
+  const columns = columnsValue
+    .split("|")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const rows = toLines(rowsValue).map((row) =>
+    row
+      .split("|")
+      .map((cell) => cell.trim())
+      .slice(0, columns.length || undefined),
+  );
+
+  return { columns, rows };
+}
+
 function renderNode(nodeId: string): ReactNode {
   const node = project.nodes[nodeId];
   const children = node.children.map((childId) => renderNode(childId));
 
   switch (node.type) {
+    case "navbar": {
+      const links = toLines(\`\${node.props.links}\`);
+      const centered = node.props.align === "center";
+
+      return (
+        <nav
+          key={node.id}
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: centered ? "center" : "space-between",
+            gap: 16,
+            borderRadius: 20,
+            border: "1px solid var(--builder-border)",
+            background: "rgba(255,255,255,0.92)",
+            padding: "18px 20px",
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em" }}>
+            {\`\${node.props.logo}\`}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {links.map((link) => (
+              <span key={link} style={{ borderRadius: 999, border: "1px solid var(--builder-border)", padding: "8px 12px", fontSize: 12, color: "var(--builder-muted)" }}>
+                {link}
+              </span>
+            ))}
+          </div>
+          {buttonVariant(\`\${node.props.ctaLabel}\`, "primary")}
+        </nav>
+      );
+    }
     case "section": {
       const backgrounds: Record<string, CSSProperties> = {
         surface: { background: "var(--builder-surface)", border: "1px solid var(--builder-border)" },
@@ -205,6 +270,16 @@ function renderNode(nodeId: string): ReactNode {
           <div style={{ marginTop: 20 }}>{featureLines(\`\${node.props.features}\`)}</div>
         </div>
       );
+    case "testimonialCard":
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.86)", padding: 24 }}>
+          <p style={{ margin: 0, fontSize: 28, lineHeight: 1.55 }}>"{\`\${node.props.quote}\`}"</p>
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--builder-border)" }}>
+            <p style={{ margin: 0, fontWeight: 700 }}>{\`\${node.props.author}\`}</p>
+            <p style={{ margin: "6px 0 0", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>{\`\${node.props.role}\`}</p>
+          </div>
+        </div>
+      );
     case "statCard":
       return (
         <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 20 }}>
@@ -257,6 +332,72 @@ function renderNode(nodeId: string): ReactNode {
           </div>
         </div>
       );
+    case "messageThread": {
+      const transcript = parseTranscript(\`\${node.props.transcript}\`);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <p style={{ margin: 0, fontWeight: 600 }}>{\`\${node.props.title}\`}</p>
+            <span style={{ borderRadius: 999, border: "1px solid var(--builder-border)", padding: "4px 12px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>
+              Thread
+            </span>
+          </div>
+          <div style={{ display: "grid", gap: 12 }}>
+            {transcript.map((entry, index) => (
+              <div
+                key={\`\${entry.sender}-\${index}\`}
+                style={{
+                  justifySelf: entry.isAssistant ? "start" : "end",
+                  maxWidth: "88%",
+                  borderRadius: 18,
+                  padding: "12px 16px",
+                  border: entry.isAssistant ? "1px solid var(--builder-border)" : undefined,
+                  background: entry.isAssistant ? "rgba(255,255,255,0.92)" : "var(--builder-accent)",
+                  color: entry.isAssistant ? "var(--builder-foreground)" : "var(--builder-accent-contrast)",
+                }}
+              >
+                <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: entry.isAssistant ? "var(--builder-muted)" : "inherit", opacity: entry.isAssistant ? 1 : 0.84 }}>
+                  {entry.sender}
+                </p>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7 }}>{entry.message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "dataTable": {
+      const { columns, rows } = parseTable(\`\${node.props.columns}\`, \`\${node.props.rows}\`);
+      const columnCount = Math.max(columns.length, 1);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.86)", padding: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <p style={{ margin: 0, fontWeight: 600 }}>{\`\${node.props.title}\`}</p>
+            <span style={{ borderRadius: 999, border: "1px solid var(--builder-border)", padding: "4px 12px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>
+              Table
+            </span>
+          </div>
+          <div style={{ overflow: "hidden", borderRadius: 18, border: "1px solid var(--builder-border)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: \`repeat(\${columnCount}, minmax(0, 1fr))\`, background: "var(--builder-surface)" }}>
+              {columns.map((column) => (
+                <div key={column} style={{ borderBottom: "1px solid var(--builder-border)", padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
+                  {column}
+                </div>
+              ))}
+              {rows.flatMap((row, rowIndex) =>
+                columns.map((column, columnIndex) => (
+                  <div key={\`\${rowIndex}-\${column}-\${columnIndex}\`} style={{ borderBottom: "1px solid var(--builder-border)", padding: "12px 16px", fontSize: 14, color: "var(--builder-foreground)" }}>
+                    {row[columnIndex] ?? "--"}
+                  </div>
+                )),
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
     case "sidebarShell": {
       const items = \`\${node.props.items}\`
         .split("\\n")

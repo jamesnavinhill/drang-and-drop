@@ -37,9 +37,10 @@ The current desktop shell is organized as:
 ## Core Workflow Features
 
 - schema-driven multi-page builder state with undo/redo history
-- drag/drop composition with constrained layout primitives
+- drag/drop composition with constrained layout primitives and parent/child placement rules
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
+- expanded first-party block catalog including nav, testimonial, table, and message-thread shells
 - zip export to a runnable `Next.js` starter
 
 ## Assistant Status
