@@ -107,6 +107,8 @@ Current shipped slot-owning composites:
 
 - pricing card
 - CTA banner
+- form card
+- empty state
 - workspace header
 - sidebar shell
 
@@ -183,7 +185,7 @@ The generated starter file plan now has a matching automated verification loop t
 ## Known Architectural Constraints
 
 - Drag/drop is constrained, runs through shared insert/move command paths, and now surfaces invalid-drop reasoning in the canvas while failed structure commands surface through a shared shell notice.
-- Placement constraints are centralized for the current editor model and now resolve through explicit page-region plus block-region target kinds such as `layout-content` and `layout-sidebar`. The region contract is now canonical, shared region metadata now drives more of the authoring UI, `sidebarShell` carries the first configurable multi-region layout semantics, and `pricingCard`, `ctaBanner`, plus `workspaceHeader` now prove the lighter slot-owner path for composable block internals without introducing another broad layout family.
+- Placement constraints are centralized for the current editor model and now resolve through explicit page-region plus block-region target kinds such as `layout-content` and `layout-sidebar`. The region contract is now canonical, shared region metadata now drives more of the authoring UI, `sidebarShell` carries the first configurable multi-region layout semantics, and `pricingCard`, `ctaBanner`, `formCard`, `emptyState`, plus `workspaceHeader` now prove the lighter slot-owner path for composable block internals without introducing another broad layout family.
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.

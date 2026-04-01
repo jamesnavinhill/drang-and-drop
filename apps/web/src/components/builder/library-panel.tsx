@@ -10,7 +10,12 @@ import {
   groupBlockContractsByLibraryGroup,
 } from "@/lib/builder/block-catalog";
 import { blockContracts } from "@/lib/builder/block-contracts";
-import { blockCanHaveChildren, getBlockRegion, isRootOnlyBlock } from "@/lib/builder/block-placement";
+import {
+  blockCanHaveChildren,
+  describeAcceptedChildren,
+  getBlockRegion,
+  isRootOnlyBlock,
+} from "@/lib/builder/block-placement";
 import { getPageRegionDefinition } from "@/lib/builder/regions";
 import { describeInsertionTarget, validateBlockPlacement } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
@@ -136,6 +141,7 @@ function describeInsertionRegion(project: BuilderProject, target: ParentReferenc
   if (target.kind === "page-region") {
     const pageRegion = getPageRegionDefinition(target.regionId as PageRegionId);
     return {
+      acceptedChildrenLabel: null,
       description: pageRegion.description,
       roleLabel: pageRegion.role === "primary" ? "Primary region" : "Supporting region",
     };
@@ -145,6 +151,7 @@ function describeInsertionRegion(project: BuilderProject, target: ParentReferenc
   const region = node ? getBlockRegion(node.type, target.regionId) : null;
 
   return {
+    acceptedChildrenLabel: region?.acceptedChildren ? describeAcceptedChildren(region.acceptedChildren) : null,
     description: region?.description ?? "Add nested blocks here to continue the current layout flow.",
     roleLabel: region?.role === "supporting" ? "Supporting region" : "Primary region",
   };
@@ -229,6 +236,11 @@ export function LibraryPanel() {
           <p className="mt-3 text-sm leading-6 text-muted">
             {insertionRegion.description}
           </p>
+          {insertionRegion.acceptedChildrenLabel ? (
+            <p className="mt-2 text-sm leading-6 text-muted">
+              This region currently accepts {insertionRegion.acceptedChildrenLabel}.
+            </p>
+          ) : null}
           <p className="mt-2 text-sm leading-6 text-muted">
             {libraryView === "context"
               ? "These blocks are filtered to what can be dropped into the current insertion target."
@@ -272,8 +284,10 @@ export function LibraryPanel() {
                             ? "Not allowed in the current insertion target"
                             : isRootOnlyBlock(item.type)
                               ? "Root-level only"
-                              : blockCanHaveChildren(item.type)
-                                ? "Accepts nested blocks"
+                              : item.capabilities.includes("slot-owner")
+                                ? "Owns constrained named slots"
+                                : blockCanHaveChildren(item.type)
+                                  ? "Accepts nested blocks"
                                 : "Leaf content block"
                         }
                       />

@@ -393,7 +393,13 @@ export function renderNodePreview(
             <div className="rounded-2xl border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-4 py-3 text-sm text-[color:var(--builder-muted)]">
               Email address
             </div>
-            <ButtonPreview label={`${node.props.buttonLabel}`} variant="primary" fullWidth />
+            {contentChildren}
+          </div>
+          <div className="mt-5 grid gap-3">
+            {(node.regions.actions ?? []).length === 0 ? (
+              <ButtonPreview label={`${node.props.buttonLabel}`} variant="primary" fullWidth />
+            ) : null}
+            {actionChildren}
           </div>
         </div>
       );
@@ -698,9 +704,15 @@ export function renderNodePreview(
           </div>
           <h3 className="mt-4 text-2xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
-            <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
+          <div className="mt-5">{contentChildren}</div>
+          <div className="mt-5 grid gap-3">
+            {(node.regions.actions ?? []).length === 0 ? (
+              <div className="flex flex-wrap gap-3">
+                <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
+                <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
+              </div>
+            ) : null}
+            {actionChildren}
           </div>
         </div>
       );

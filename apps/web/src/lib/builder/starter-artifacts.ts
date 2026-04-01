@@ -354,14 +354,17 @@ function renderNode(nodeId: string): ReactNode {
     }
     case "formCard":
       return (
-        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
+        <div key={node.id} {...blockDataAttributes} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
           <h3 style={{ margin: 0, fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
           <p style={{ margin: "10px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
-          <div style={{ display: "grid", gap: 12, marginTop: 20 }}>
+          <div {...getRegionDataAttributes(node, "content")} style={{ display: "grid", gap: 12, marginTop: 20 }}>
             <div style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: "14px 16px", color: "var(--builder-muted)" }}>
               Email address
             </div>
-            {buttonVariant(\`\${node.props.buttonLabel}\`, "primary", true)}
+            {contentChildren}
+          </div>
+          <div {...getRegionDataAttributes(node, "actions")} style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {actionChildren.length > 0 ? actionChildren : buttonVariant(\`\${node.props.buttonLabel}\`, "primary", true)}
           </div>
         </div>
       );
@@ -640,15 +643,22 @@ function renderNode(nodeId: string): ReactNode {
     }
     case "emptyState":
       return (
-        <div key={node.id} style={{ borderRadius: 18, border: "1px dashed var(--builder-border)", background: "rgba(255,255,255,0.74)", padding: 24 }}>
+        <div key={node.id} {...blockDataAttributes} style={{ borderRadius: 18, border: "1px dashed var(--builder-border)", background: "rgba(255,255,255,0.74)", padding: 24 }}>
           <span style={{ display: "inline-flex", borderRadius: 999, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.92)", padding: "6px 12px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
             Empty state
           </span>
           <h3 style={{ margin: "16px 0 0", fontSize: 30 }}>{\`\${node.props.title}\`}</h3>
           <p style={{ margin: "12px 0 0", maxWidth: 760, color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
-            {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
-            {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
+          <div {...getRegionDataAttributes(node, "content")} style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {contentChildren}
+          </div>
+          <div {...getRegionDataAttributes(node, "actions")} style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {actionChildren.length > 0 ? actionChildren : (
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
+                {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
+              </div>
+            )}
           </div>
         </div>
       );

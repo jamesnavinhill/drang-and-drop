@@ -45,6 +45,15 @@ export function getBlockRegionRole(type: BlockType, regionId: string) {
   return getBlockRegion(type, regionId)?.role ?? "primary";
 }
 
+export function getBlockRegionAcceptedChildren(type: BlockType, regionId: string) {
+  return getBlockRegion(type, regionId)?.acceptedChildren ?? null;
+}
+
+export function getBlockRegionAcceptedChildrenLabel(type: BlockType, regionId: string) {
+  const acceptedChildren = getBlockRegionAcceptedChildren(type, regionId);
+  return acceptedChildren ? describeAcceptedChildren(acceptedChildren) : null;
+}
+
 export function getPrimaryBlockRegion(type: BlockType) {
   return getBlockRegions(type)[0] ?? null;
 }

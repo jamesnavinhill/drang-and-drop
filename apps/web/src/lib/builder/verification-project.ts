@@ -18,6 +18,8 @@ export function createBlockContractVerificationProject(): BuilderProject {
   const testimonialId = createId();
   const activityFeedId = createId();
   const formCardId = createId();
+  const formCardSupportTextId = createId();
+  const formCardActionButtonId = createId();
   const pricingCardId = createId();
   const pricingDetailTextId = createId();
   const pricingActionButtonId = createId();
@@ -33,6 +35,9 @@ export function createBlockContractVerificationProject(): BuilderProject {
   const profileCardId = createId();
   const chatInputId = createId();
   const emptyStateId = createId();
+  const emptyStateSupportTextId = createId();
+  const emptyStatePrimaryButtonId = createId();
+  const emptyStateSecondaryButtonId = createId();
   const workspaceHeaderId = createId();
   const workspaceHeaderTextId = createId();
   const workspaceHeaderActionButtonId = createId();
@@ -177,7 +182,6 @@ export function createBlockContractVerificationProject(): BuilderProject {
         type: "dataTable",
       },
       [emptyStateId]: {
-        children: [],
         id: emptyStateId,
         props: {
           body: "An empty-state block belongs in the foundational app catalog even before deeper workflow systems exist.",
@@ -185,7 +189,41 @@ export function createBlockContractVerificationProject(): BuilderProject {
           secondaryLabel: "Review setup guide",
           title: "No active workspace yet.",
         },
+        regions: {
+          actions: [emptyStatePrimaryButtonId, emptyStateSecondaryButtonId],
+          content: [emptyStateSupportTextId],
+        },
         type: "emptyState",
+      },
+      [emptyStatePrimaryButtonId]: {
+        children: [],
+        id: emptyStatePrimaryButtonId,
+        props: {
+          fullWidth: false,
+          label: "Create first route",
+          variant: "primary",
+        },
+        type: "button",
+      },
+      [emptyStateSecondaryButtonId]: {
+        children: [],
+        id: emptyStateSecondaryButtonId,
+        props: {
+          fullWidth: false,
+          label: "Review setup guide",
+          variant: "secondary",
+        },
+        type: "button",
+      },
+      [emptyStateSupportTextId]: {
+        children: [],
+        id: emptyStateSupportTextId,
+        props: {
+          body: "Supporting empty-state content should stay covered too, so guidance-oriented routes can evolve without becoming ad hoc page sections.",
+          size: "sm",
+          title: "Guidance slot coverage",
+        },
+        type: "text",
       },
       [faqId]: {
         children: [],
@@ -209,14 +247,37 @@ export function createBlockContractVerificationProject(): BuilderProject {
         type: "featureGrid",
       },
       [formCardId]: {
-        children: [],
         id: formCardId,
         props: {
           body: "Use the same exported shell for requests, approvals, or internal review loops.",
           buttonLabel: "Request review",
           title: "Form coverage",
         },
+        regions: {
+          actions: [formCardActionButtonId],
+          content: [formCardSupportTextId],
+        },
         type: "formCard",
+      },
+      [formCardActionButtonId]: {
+        children: [],
+        id: formCardActionButtonId,
+        props: {
+          fullWidth: true,
+          label: "Request review",
+          variant: "primary",
+        },
+        type: "button",
+      },
+      [formCardSupportTextId]: {
+        children: [],
+        id: formCardSupportTextId,
+        props: {
+          body: "Slot-owning form shells should cover supporting content too, not only the fallback CTA path.",
+          size: "sm",
+          title: "Form slot coverage",
+        },
+        type: "text",
       },
       [gridId]: {
         children: [

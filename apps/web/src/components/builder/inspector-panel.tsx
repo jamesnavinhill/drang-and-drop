@@ -4,6 +4,13 @@ import { Paintbrush, ScrollText, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
+import {
+  getBlockRegionAcceptedChildrenLabel,
+  getBlockRegionDescription,
+  getBlockRegionLabel,
+  getBlockRegionRole,
+  getBlockRegions,
+} from "@/lib/builder/block-placement";
 import { getPageRegionLabel } from "@/lib/builder/regions";
 import {
   findParentReference,
@@ -176,6 +183,7 @@ function SelectionTab({
   const selectedDefinition = selectedNode ? getBlockDefinition(selectedNode.type) : null;
   const selectedParent = selectedNode ? findParentReference(project, selectedNode.id) : null;
   const siblingPosition = selectedNode ? getNodeSiblingPosition(project, selectedNode.id) : null;
+  const selectedRegions = selectedNode ? getBlockRegions(selectedNode.type) : [];
   const parentLabel =
     selectedParent?.kind === "page-region"
       ? `${project.pages.find((page) => page.id === selectedParent.pageId)?.name ?? "Page"} ${getPageRegionLabel(selectedParent.regionId as PageRegionId)}`
@@ -223,6 +231,44 @@ function SelectionTab({
               from either surface without changing the mutation path.
             </p>
           </div>
+
+          {selectedRegions.length > 0 ? (
+            <div className="rounded-[22px] border border-border bg-white/78 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Owned regions</p>
+                  <h3 className="mt-1 text-base font-semibold text-foreground">Named authoring slots</h3>
+                </div>
+                <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+                  {selectedRegions.length} region{selectedRegions.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-3">
+                {selectedRegions.map((region) => (
+                  <div key={`${selectedNode.id}-${region.id}`} className="rounded-[18px] border border-border bg-white/80 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                          {getBlockRegionLabel(selectedNode.type, region.id)}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-muted">
+                          {getBlockRegionDescription(selectedNode.type, region.id)}
+                        </p>
+                        {getBlockRegionAcceptedChildrenLabel(selectedNode.type, region.id) ? (
+                          <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
+                            Accepts {getBlockRegionAcceptedChildrenLabel(selectedNode.type, region.id)}
+                          </p>
+                        ) : null}
+                      </div>
+                      <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
+                        {getBlockRegionRole(selectedNode.type, region.id) === "primary" ? "Primary region" : "Supporting region"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {siblingPosition ? (
             <NodeStructureActions

@@ -71,18 +71,18 @@ Current matrix:
 | `statCard` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `metricRow` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `activityFeed` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
-| `formCard` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `formCard` | `application` | `shared-composite` | `renders-children` | `builder-canvas` | `generated-route` |
 | `chatInput` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `messageThread` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `dataTable` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
-| `emptyState` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `emptyState` | `application` | `shared-composite` | `renders-children` | `builder-canvas` | `generated-route` |
 | `workspaceHeader` | `application` | `shared-composite` | `renders-children` | `builder-canvas` | `generated-route` |
 | `sidebarShell` | `application` | `shared-layout` | `renders-children` | `builder-canvas` | `generated-route` |
 
 Current region-aware structure note:
 
 - `sidebarShell` is the first configurable multi-region layout owner and now carries shared sidebar position, width, and inter-region gap semantics across preview and generated starter export.
-- `pricingCard`, `ctaBanner`, and `workspaceHeader` now act as slot-owning composites: they preserve their core props while exposing named nested regions for a more composable second-pass foundation.
+- `pricingCard`, `ctaBanner`, `formCard`, `emptyState`, and `workspaceHeader` now act as slot-owning composites: they preserve their core props while exposing named nested regions for a more composable second-pass foundation.
 
 ## Verification Expectations
 

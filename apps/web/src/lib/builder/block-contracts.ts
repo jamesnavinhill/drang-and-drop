@@ -167,6 +167,36 @@ const workspaceHeaderRegions = [
     role: "supporting",
   }),
 ] as const;
+const formCardRegions = [
+  defineRegion("content", "layout-content", "Supporting content", {
+    acceptedChildren: {
+      allowedFamilies: ["content"],
+    },
+    description: "Add supporting copy, trust, or lightweight detail blocks that help the form convert.",
+    emptyMessage: "Add supporting form content here.",
+  }),
+  defineRegion("actions", "layout-sidebar", "Actions", {
+    acceptedChildren: buttonOnlyChildren,
+    description: "Add one or more focused action buttons for the form card.",
+    emptyMessage: "Add action buttons here.",
+    role: "supporting",
+  }),
+] as const;
+const emptyStateRegions = [
+  defineRegion("content", "layout-content", "Supporting content", {
+    acceptedChildren: {
+      allowedFamilies: ["content"],
+    },
+    description: "Add supporting guidance, recovery notes, or compact helpful context here.",
+    emptyMessage: "Add supporting empty-state content here.",
+  }),
+  defineRegion("actions", "layout-sidebar", "Actions", {
+    acceptedChildren: buttonOnlyChildren,
+    description: "Add one or more recovery or next-step action buttons here.",
+    emptyMessage: "Add action buttons here.",
+    role: "supporting",
+  }),
+] as const;
 const sidebarShellRegions = [
   defineRegion("content", "layout-content", "Content", {
     description: "Compose the primary workspace surface here.",
@@ -661,7 +691,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
   }),
   formCard: defineBlockContract("formCard", {
-    capabilities: ["leaf", "parity-critical"],
+    capabilities: ["parity-critical", "slot-owner"],
     definition: {
       title: "Form Card",
       description: "A simple signup or request form shell.",
@@ -681,10 +711,10 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     family: "application",
     placement: {
       allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
-      regions: [],
+      regions: [...formCardRegions],
     },
-    render: defineLeafRender(
-      "Form card parity is based on the shared title, body, and button contract, with each surface free to keep its own surrounding shell details.",
+    render: defineCompositeRender(
+      "Form card parity is based on the shared title, body, action fallback behavior, and named supporting-content/actions slots staying aligned across preview and starter renderers.",
     ),
     verification: {
       previewExportParity: "required",
@@ -1088,7 +1118,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
   }),
   emptyState: defineBlockContract("emptyState", {
-    capabilities: ["leaf", "parity-critical"],
+    capabilities: ["parity-critical", "slot-owner"],
     definition: {
       title: "Empty State",
       description: "Guidance block for blank workspace states, first-use moments, and action-oriented setup screens.",
@@ -1110,10 +1140,10 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     family: "application",
     placement: {
       allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
-      regions: [],
+      regions: [...emptyStateRegions],
     },
-    render: defineLeafRender(
-      "Empty state parity keeps the same instructional copy and CTA semantics across builder preview and starter export while each surface keeps appropriate surrounding chrome.",
+    render: defineCompositeRender(
+      "Empty state parity keeps the same instructional copy, action fallback behavior, and named supporting-content/actions slots across builder preview and starter export while each surface keeps appropriate surrounding chrome.",
     ),
     verification: {
       previewExportParity: "required",

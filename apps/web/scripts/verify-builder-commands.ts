@@ -295,6 +295,110 @@ function main() {
   );
   assert.equal(project.nodes["pricing-actions-text-attempt"], undefined);
 
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("form-card-1", "formCard"),
+      parent: sidebarShellContentParent,
+    }),
+    "Expected form card insertion inside sidebar shell content to succeed.",
+  );
+  assert.deepEqual(project.nodes["sidebar-shell-1"]?.regions.content, ["thread-1", "form-card-1"]);
+
+  const formCardContentParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "form-card-1",
+    regionId: "content",
+  };
+  const formCardActionsParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "form-card-1",
+    regionId: "actions",
+  };
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("form-text-1", "text"),
+      parent: formCardContentParent,
+    }),
+    "Expected text insertion inside form card content to succeed.",
+  );
+  assert.deepEqual(project.nodes["form-card-1"]?.regions.content, ["form-text-1"]);
+
+  expectFailure(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("form-stat-attempt", "statCard"),
+      parent: formCardContentParent,
+    }),
+    "invalid-child",
+    "Inserting an application block into form card content should fail because the region only accepts content blocks.",
+  );
+  assert.equal(project.nodes["form-stat-attempt"], undefined);
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("form-button-1", "button"),
+      parent: formCardActionsParent,
+    }),
+    "Expected button insertion inside form card actions to succeed.",
+  );
+  assert.deepEqual(project.nodes["form-card-1"]?.regions.actions, ["form-button-1"]);
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("empty-state-1", "emptyState"),
+      parent: pageMainParent,
+    }),
+    "Expected empty state insertion in the page main region to succeed.",
+  );
+  assert.deepEqual(project.pages[0]?.regions.main, ["section-1", "sidebar-shell-1", "empty-state-1"]);
+
+  const emptyStateContentParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "empty-state-1",
+    regionId: "content",
+  };
+  const emptyStateActionsParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "empty-state-1",
+    regionId: "actions",
+  };
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("empty-text-1", "text"),
+      parent: emptyStateContentParent,
+    }),
+    "Expected text insertion inside empty state content to succeed.",
+  );
+  assert.deepEqual(project.nodes["empty-state-1"]?.regions.content, ["empty-text-1"]);
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("empty-button-1", "button"),
+      parent: emptyStateActionsParent,
+    }),
+    "Expected button insertion inside empty state actions to succeed.",
+  );
+  assert.deepEqual(project.nodes["empty-state-1"]?.regions.actions, ["empty-button-1"]);
+
+  expectFailure(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("empty-actions-text-attempt", "text"),
+      parent: emptyStateActionsParent,
+    }),
+    "invalid-child",
+    "Inserting text into empty state actions should fail because the region only accepts buttons.",
+  );
+  assert.equal(project.nodes["empty-actions-text-attempt"], undefined);
+
   const duplicateIdSequence = ["stack-copy", "text-copy", "stat-copy", "pricing-card-copy", "pricing-text-copy", "pricing-button-copy"];
   const duplicateResult = expectSuccess(
     executeStructureCommand(project, {

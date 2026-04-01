@@ -69,6 +69,8 @@ function createLaunchStudioProject(): BuilderProject {
   const testimonialId = createId();
   const profileCardId = createId();
   const formId = createId();
+  const formSupportTextId = createId();
+  const formActionButtonId = createId();
   const chatId = createId();
   const logoGridId = createId();
   const proofCalloutId = createId();
@@ -267,6 +269,29 @@ function createLaunchStudioProject(): BuilderProject {
           title: "Capture demand now",
           body: "Forms can ship visually in v1, then wire into your own services in v2.",
           buttonLabel: "Join the list",
+        },
+        regions: {
+          actions: [formActionButtonId],
+          content: [formSupportTextId],
+        },
+      },
+      [formSupportTextId]: {
+        id: formSupportTextId,
+        type: "text",
+        props: {
+          title: "Why this works",
+          body: "A little supporting context next to the form can explain the offer without turning the section into a giant custom layout.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [formActionButtonId]: {
+        id: formActionButtonId,
+        type: "button",
+        props: {
+          label: "Join the list",
+          variant: "primary",
+          fullWidth: true,
         },
         children: [],
       },
@@ -492,6 +517,8 @@ function createSignalFlowProject(): BuilderProject {
   const conversionGridId = createId();
   const pricingId = createId();
   const formId = createId();
+  const formSupportTextId = createId();
+  const formActionButtonId = createId();
   const pricingNavbarId = createId();
   const pricingHeroId = createId();
   const pricingSectionId = createId();
@@ -682,6 +709,29 @@ function createSignalFlowProject(): BuilderProject {
           body: "Use this section for demo requests, waitlists, or launch readiness reviews.",
           buttonLabel: "Request demo",
         },
+        regions: {
+          actions: [formActionButtonId],
+          content: [formSupportTextId],
+        },
+      },
+      [formSupportTextId]: {
+        id: formSupportTextId,
+        type: "text",
+        props: {
+          title: "Good fit",
+          body: "Use the supporting slot for a little qualification context, trust, or next-step guidance around the form.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [formActionButtonId]: {
+        id: formActionButtonId,
+        type: "button",
+        props: {
+          label: "Request demo",
+          variant: "primary",
+          fullWidth: true,
+        },
         children: [],
       },
       [pricingNavbarId]: {
@@ -813,8 +863,13 @@ function createOpsHubProject(): BuilderProject {
   const workspaceProofGridId = createId();
   const opsFeatureId = createId();
   const formId = createId();
+  const formSupportTextId = createId();
+  const formActionButtonId = createId();
   const workspaceTableId = createId();
   const emptyStateId = createId();
+  const emptyStateSupportTextId = createId();
+  const emptyStatePrimaryButtonId = createId();
+  const emptyStateSecondaryButtonId = createId();
   const workspaceSidebarTextId = createId();
   const workspaceSidebarButtonId = createId();
   const workspaceSidebarFeedId = createId();
@@ -1143,6 +1198,39 @@ function createOpsHubProject(): BuilderProject {
           primaryLabel: "Review setup",
           secondaryLabel: "Open handbook",
         },
+        regions: {
+          actions: [emptyStatePrimaryButtonId, emptyStateSecondaryButtonId],
+          content: [emptyStateSupportTextId],
+        },
+      },
+      [emptyStateSupportTextId]: {
+        id: emptyStateSupportTextId,
+        type: "text",
+        props: {
+          title: "Recovery note",
+          body: "Use the supporting slot for a short explanation of what this empty state means or what the team should watch next.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [emptyStatePrimaryButtonId]: {
+        id: emptyStatePrimaryButtonId,
+        type: "button",
+        props: {
+          label: "Review setup",
+          variant: "primary",
+          fullWidth: false,
+        },
+        children: [],
+      },
+      [emptyStateSecondaryButtonId]: {
+        id: emptyStateSecondaryButtonId,
+        type: "button",
+        props: {
+          label: "Open handbook",
+          variant: "secondary",
+          fullWidth: false,
+        },
         children: [],
       },
       [formId]: {
@@ -1152,6 +1240,29 @@ function createOpsHubProject(): BuilderProject {
           title: "Request access",
           body: "Use this shell for admin requests, workflow setup, or guided onboarding.",
           buttonLabel: "Submit request",
+        },
+        regions: {
+          actions: [formActionButtonId],
+          content: [formSupportTextId],
+        },
+      },
+      [formSupportTextId]: {
+        id: formSupportTextId,
+        type: "text",
+        props: {
+          title: "Who this is for",
+          body: "Use the content slot for a short explanation of what the request unlocks or who should submit it.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [formActionButtonId]: {
+        id: formActionButtonId,
+        type: "button",
+        props: {
+          label: "Submit request",
+          variant: "primary",
+          fullWidth: true,
         },
         children: [],
       },

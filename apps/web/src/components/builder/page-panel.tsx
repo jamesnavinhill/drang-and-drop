@@ -3,7 +3,12 @@
 import { Copy, FilePlus2, FolderTree, Route, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import { getBlockRegionDescription, getBlockRegionLabel, getBlockRegionRole } from "@/lib/builder/block-placement";
+import {
+  getBlockRegionAcceptedChildrenLabel,
+  getBlockRegionDescription,
+  getBlockRegionLabel,
+  getBlockRegionRole,
+} from "@/lib/builder/block-placement";
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
 import { getPageRegionDefinition, getPageRegionEmptyMessage, getPageRegionLabel } from "@/lib/builder/regions";
 import {
@@ -174,6 +179,11 @@ function OutlineNodeRow({
                       <p className="mt-1 text-xs leading-5 text-muted">
                         {getBlockRegionDescription(node.type, regionId)}
                       </p>
+                      {getBlockRegionAcceptedChildrenLabel(node.type, regionId) ? (
+                        <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
+                          Accepts {getBlockRegionAcceptedChildrenLabel(node.type, regionId)}
+                        </p>
+                      ) : null}
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       <RegionRoleBadge role={getBlockRegionRole(node.type, regionId)} />
@@ -312,7 +322,7 @@ function OutlineTab() {
   const selectedNode = selectedNodeId ? project.nodes[selectedNodeId] ?? null : null;
   const insertionContextMessage = selectedNode
     ? Object.keys(selectedNode.regions).length > 0
-      ? "New blocks will target the selected block's primary region unless you choose a different region explicitly."
+      ? "New blocks will target the selected block's primary region unless you choose a different named region explicitly."
       : "The selected block is a leaf, so new blocks will target its current parent region."
     : selectedRegionTarget
       ? "The library is now scoped to the selected region."
