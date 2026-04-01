@@ -18,11 +18,17 @@ import type {
 } from "./types";
 import type { BuilderTemplateId } from "./default-project";
 
+export interface BuilderEditorNotice {
+  message: string;
+  tone: "error" | "info";
+}
+
 interface BuilderState {
   project: BuilderProject;
   selectedPageId: string;
   selectedNodeId: string | null;
   previewMode: PreviewMode;
+  editorNotice: BuilderEditorNotice | null;
   hasHydrated: boolean;
   historyPast: BuilderSnapshot[];
   historyFuture: BuilderSnapshot[];
@@ -32,6 +38,7 @@ interface BuilderState {
   selectNode: (nodeId: string | null) => void;
   setPreviewMode: (mode: PreviewMode) => void;
   setHasHydrated: (hasHydrated: boolean) => void;
+  clearEditorNotice: () => void;
   updateProjectField: (key: "name" | "description", value: string) => void;
   updateThemeField: (key: keyof BuilderProject["theme"], value: PrimitiveValue) => void;
   updatePageField: (
@@ -185,6 +192,7 @@ export const useBuilderStore = create<BuilderState>()(
       selectedPageId: initialProject.pages[0]?.id ?? "",
       selectedNodeId: null,
       previewMode: "desktop",
+      editorNotice: null,
       hasHydrated: false,
       historyPast: [],
       historyFuture: [],
@@ -198,6 +206,7 @@ export const useBuilderStore = create<BuilderState>()(
       selectNode: (nodeId) => set({ selectedNodeId: nodeId }),
       setPreviewMode: (mode) => set({ previewMode: mode }),
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
+      clearEditorNotice: () => set({ editorNotice: null }),
       updateProjectField: (key, value) =>
         set((state) => {
           const project = cloneProject(state.project);
@@ -300,12 +309,18 @@ export const useBuilderStore = create<BuilderState>()(
           });
 
           if (!result.ok) {
-            return state;
+            return {
+              editorNotice: {
+                message: result.message,
+                tone: "error" as const,
+              },
+            };
           }
 
           didAdd = true;
 
           return withHistory(state, {
+            editorNotice: null,
             project: touch(project),
             selectedNodeId: result.nodeId,
             selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
@@ -327,12 +342,18 @@ export const useBuilderStore = create<BuilderState>()(
           });
 
           if (!result.ok) {
-            return state;
+            return {
+              editorNotice: {
+                message: result.message,
+                tone: "error" as const,
+              },
+            };
           }
 
           didMove = true;
 
           return withHistory(state, {
+            editorNotice: null,
             project: touch(project),
             selectedNodeId: result.nodeId,
             selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
@@ -353,12 +374,18 @@ export const useBuilderStore = create<BuilderState>()(
           });
 
           if (!result.ok) {
-            return state;
+            return {
+              editorNotice: {
+                message: result.message,
+                tone: "error" as const,
+              },
+            };
           }
 
           didDuplicate = true;
 
           return withHistory(state, {
+            editorNotice: null,
             project: touch(project),
             selectedNodeId: result.nodeId,
             selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
@@ -378,12 +405,18 @@ export const useBuilderStore = create<BuilderState>()(
           });
 
           if (!result.ok) {
-            return state;
+            return {
+              editorNotice: {
+                message: result.message,
+                tone: "error" as const,
+              },
+            };
           }
 
           didRemove = true;
 
           return withHistory(state, {
+            editorNotice: null,
             project: touch(project),
             selectedNodeId: selectionStillExists(project, state.selectedNodeId === nodeId ? null : state.selectedNodeId),
             selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,

@@ -120,10 +120,10 @@ The generated starter file plan now has a matching automated verification loop t
 
 ## Known Architectural Constraints
 
-- Drag/drop is constrained and now runs through shared insert/move command paths, but the canvas still does not surface invalid-drop reasoning in the UI.
+- Drag/drop is constrained, runs through shared insert/move command paths, and now surfaces invalid-drop reasoning in the canvas, but outline and canvas affordances still need tighter parity.
 - Placement constraints are centralized for the current editor model, but they are still derived from registry allowlists rather than a richer slot or region contract.
 - Duplicate and remove now share the same command layer as insert and move, but higher-level editor interactions still need clearer affordances and feedback.
-- Structural validation now covers shape plus layout semantics for import and persisted state, but mutation failures are still mostly silent outside verification.
+- Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
 - The registry still mixes metadata, editing schema, placement behavior, and builder preview rendering.
 - Export is readable, but not yet decomposed into highly granular generated components.
 - JSON import/export currently targets schema-safe builder state, not arbitrary roundtrip from generated code.
@@ -131,8 +131,8 @@ The generated starter file plan now has a matching automated verification loop t
 
 ## Current Architectural Priorities
 
-- harden canvas and outline interactions on top of the new shared command path
-- surface clearer validation and invalid-drop feedback in the UI
+- tighten canvas and outline parity on top of the shared command path
+- keep refining validation and invalid-drop feedback across editor surfaces
 - reduce registry coupling before significantly expanding the catalog again
 - keep builder/runtime/export parity healthy while these editor-system changes land
 - grow command-level verification alongside future wrap/unwrap or assistant-safe mutations

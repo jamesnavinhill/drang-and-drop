@@ -1,5 +1,11 @@
 import type { BuilderProject, ComponentType, ParentReference } from "./types";
-import { findParentReference, getParentChildren } from "./structure";
+import {
+  findParentReference,
+  getParentChildren,
+  validateComponentPlacement,
+  validateNodePlacement,
+  type BuilderPlacementResult,
+} from "./structure";
 
 export type BuilderActiveDragData =
   | {
@@ -19,8 +25,14 @@ export type BuilderOverDragData =
   | {
       index: number;
       kind: "node";
+      nodeId: string;
       parent: ParentReference;
     };
+
+export interface BuilderDragEvaluation {
+  target: { index: number; parent: ParentReference } | null;
+  validation: BuilderPlacementResult | null;
+}
 
 export function resolveBuilderDropTarget(
   project: BuilderProject,
@@ -45,6 +57,47 @@ export function resolveBuilderDropTarget(
   }
 
   return null;
+}
+
+export function evaluateBuilderDragOperation({
+  active,
+  over,
+  project,
+}: {
+  active: BuilderActiveDragData | undefined;
+  over: BuilderOverDragData | undefined;
+  project: BuilderProject;
+}): BuilderDragEvaluation {
+  const target = resolveBuilderDropTarget(project, over);
+
+  if (!active || !target) {
+    return {
+      target,
+      validation: null,
+    };
+  }
+
+  if (active.kind === "palette") {
+    return {
+      target,
+      validation: validateComponentPlacement({
+        childType: active.componentType,
+        index: target.index,
+        parent: target.parent,
+        project,
+      }),
+    };
+  }
+
+  return {
+    target,
+    validation: validateNodePlacement({
+      index: target.index,
+      nodeId: active.nodeId,
+      parent: target.parent,
+      project,
+    }),
+  };
 }
 
 export function applyBuilderDragOperation({
@@ -87,6 +140,7 @@ export function getNodeDropData(project: BuilderProject, nodeId: string): Builde
   return {
     index,
     kind: "node",
+    nodeId,
     parent,
   };
 }

@@ -24,6 +24,7 @@ Implemented in the current greenfield slice:
 - shared structure-command foundation for insert, move, duplicate, and remove node mutations
 - structural validation for invalid placement and orphan-node states during import and persisted-state parsing
 - direct command verification for shared builder mutation flows
+- canvas-side invalid-drop feedback and library placement hints driven by the shared placement validator
 - automated generated-starter verification across all shipped templates with install/build/serve/route/static-asset and browser-rendered checks
 
 Open follow-up work after this slice:

@@ -18,6 +18,7 @@ function PaletteItem({
   icon,
   category,
   helperLabel,
+  helperTone = "neutral",
 }: {
   title: string;
   type: string;
@@ -25,6 +26,7 @@ function PaletteItem({
   icon: string;
   category: string;
   helperLabel: string;
+  helperTone?: "neutral" | "warning";
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `palette:${type}`,
@@ -65,7 +67,9 @@ function PaletteItem({
             </span>
           </div>
           <p className="mt-1 text-xs leading-5 text-muted">{description}</p>
-          <p className="mt-2 text-[11px] font-medium text-muted">{helperLabel}</p>
+          <p className={cn("mt-2 text-[11px] font-medium", helperTone === "warning" ? "text-orange-600" : "text-muted")}>
+            {helperLabel}
+          </p>
         </div>
       </div>
     </button>
@@ -192,23 +196,34 @@ export function LibraryPanel() {
                   </span>
                 </div>
                 <div className="mt-3 grid gap-2">
-                  {items.map((item) => (
-                    <PaletteItem
-                      key={item.type}
-                      title={item.title}
-                      type={item.type}
-                      description={item.description}
-                      icon={item.icon}
-                      category={item.category}
-                      helperLabel={
-                        item.rootOnly
-                          ? "Root-level only"
-                          : item.canHaveChildren
-                            ? "Accepts nested blocks"
-                            : "Leaf content block"
-                      }
-                    />
-                  ))}
+                  {items.map((item) => {
+                    const placement = validateComponentPlacement({
+                      childType: item.type,
+                      parent: insertion.target,
+                      project,
+                    });
+
+                    return (
+                      <PaletteItem
+                        key={item.type}
+                        title={item.title}
+                        type={item.type}
+                        description={item.description}
+                        icon={item.icon}
+                        category={item.category}
+                        helperTone={libraryView === "all" && !placement.ok ? "warning" : "neutral"}
+                        helperLabel={
+                          libraryView === "all" && !placement.ok
+                            ? "Not allowed in the current insertion target"
+                            : item.rootOnly
+                              ? "Root-level only"
+                              : item.canHaveChildren
+                                ? "Accepts nested blocks"
+                                : "Leaf content block"
+                        }
+                      />
+                    );
+                  })}
                 </div>
               </div>
             ))

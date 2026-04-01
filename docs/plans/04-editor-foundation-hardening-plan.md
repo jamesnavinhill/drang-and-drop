@@ -20,6 +20,8 @@ Progress landed so far in the current codebase:
 - structural validation now rejects invalid placement and orphan-node states during import and persisted-state parsing
 - drag verification now covers a first set of deeper invalid nested and descendant scenarios
 - direct command verification now exists for shared insert/move/duplicate/remove behavior
+- the canvas now surfaces live invalid-drop reasoning from the shared validator
+- the full library catalog now flags blocks that do not fit the current insertion target
 
 This means the constraint-and-command foundation is partially landed. The next work inside this plan should lean harder into editor interaction clarity, validation surfacing, and registry separation instead of reopening already-centralized mutation paths.
 
@@ -285,6 +287,7 @@ Current status:
 - shared insert/move/duplicate/remove command execution is now in place
 - structural validation is now stronger for imported and persisted projects
 - direct mutation-level verification now exists alongside browser drag verification
+- canvas-side invalid-drop feedback is now in place for shared placement failures
 
 Suggested file focus:
 
@@ -297,6 +300,7 @@ Suggested acceptance criteria:
 
 - canvas and outline interactions remain easy to understand on top of the shared command path
 - invalid structural mutations are not only rejected consistently but are easier to explain to the user
+- contextual library and canvas feedback stay aligned with the same placement rules
 - drag/drop, outline reorder, and future assistant-safe edits continue to share the same mutation rules
 - existing verification remains green
 

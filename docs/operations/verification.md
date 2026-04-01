@@ -46,6 +46,12 @@ Direct command verification completed via `pnpm verify:commands`:
 6. Verified shared remove command behavior for subtree deletion.
 7. Verified structural validation rejects invalid root placement and orphan nodes.
 
+Canvas interaction feedback is now also validated indirectly by the browser drag harness:
+
+1. The canvas now renders live guidance while a drag is active.
+2. Invalid nested and descendant drag targets now surface the shared validation message before drop.
+3. Full-catalog library browsing now shows when a block is not allowed in the current insertion target.
+
 Verified undo/redo flow:
 
 - changed the project name from `Launch Studio` to `Launch Studio Prime`
@@ -93,7 +99,7 @@ The previous local `next start` concern no longer reproduces after the hydration
 
 The primary remaining verification gaps are now split between editor-foundation hardening and deeper generated-app fidelity coverage:
 
-- builder drag verification now covers the main insertion/reorder loop plus a first set of invalid nested and descendant scenarios, but not yet every placement-constraint edge case
+- builder drag verification now covers the main insertion/reorder loop plus invalid nested and descendant scenarios, but not yet outline/canvas parity or every placement-constraint edge case
 - command-path verification now covers shared insert/move/duplicate/remove behavior, but future command types still need to be added as they land
 - generated starter validation now includes browser-rendered route checks, but it still does not include visual diffing or richer semantic assertions against layout fidelity
 
