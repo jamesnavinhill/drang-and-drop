@@ -14,7 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AlertCircle, GripVertical, MousePointer2, MoveDown, X } from "lucide-react";
+import { AlertCircle, GripVertical, MousePointer2, MoveDown } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { getComponentDefinition, getThemeStyles, renderNodePreview } from "@/lib/builder/registry";
@@ -274,7 +274,6 @@ export function BuilderCanvas() {
   const selectedPageId = useBuilderStore((state) => state.selectedPageId);
   const selectedNodeId = useBuilderStore((state) => state.selectedNodeId);
   const previewMode = useBuilderStore((state) => state.previewMode);
-  const editorNotice = useBuilderStore((state) => state.editorNotice);
   const addNode = useBuilderStore((state) => state.addNode);
   const moveNode = useBuilderStore((state) => state.moveNode);
   const clearEditorNotice = useBuilderStore((state) => state.clearEditorNotice);
@@ -425,30 +424,6 @@ export function BuilderCanvas() {
                   className={cn("mt-0.5 h-4 w-4 shrink-0", dragMessage.tone === "error" ? "text-orange-500" : "text-muted")}
                 />
                 <p>{dragMessage.message}</p>
-              </div>
-            ) : editorNotice ? (
-              <div
-                className={cn(
-                  "mb-3 flex items-start justify-between gap-3 rounded-[22px] border px-4 py-3 text-sm leading-6",
-                  editorNotice.tone === "error"
-                    ? "border-orange-300 bg-orange-50 text-foreground"
-                    : "border-border bg-white/80 text-muted",
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <AlertCircle
-                    className={cn("mt-0.5 h-4 w-4 shrink-0", editorNotice.tone === "error" ? "text-orange-500" : "text-muted")}
-                  />
-                  <p>{editorNotice.message}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => clearEditorNotice()}
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-black/[0.04] hover:text-foreground"
-                  aria-label="Dismiss editor notice"
-                >
-                  <X className="h-4 w-4" />
-                </button>
               </div>
             ) : null}
 

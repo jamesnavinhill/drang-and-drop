@@ -194,6 +194,13 @@ async function getBuilderSnapshot(page: Page) {
   return snapshot;
 }
 
+async function expectEditorNotice(page: Page, expectedText: string) {
+  const notice = page.locator("[data-builder-editor-notice]");
+  await notice.waitFor({ state: "visible" });
+  const noticeText = await notice.textContent();
+  assert(noticeText?.includes(expectedText), `Expected editor notice to include "${expectedText}". Received "${noticeText ?? ""}".`);
+}
+
 async function dragBetween({
   page,
   sourceSelector,
@@ -474,6 +481,8 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
       throw new Error("Invalid hero nesting unexpectedly changed the builder structure.");
     }
 
+    await expectEditorNotice(page, "A hero block cannot be placed inside section.");
+
     await dragBetween({
       page,
       sourceSelector: `[data-builder-drag-handle="${sectionId}"]`,
@@ -495,6 +504,8 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
       ["text"],
       "Stack children after invalid descendant move",
     );
+
+    await expectEditorNotice(page, "A node cannot be inserted into one of its descendants.");
 
     const rootIdsBeforeInvalidDrop = [...currentPage.rootIds];
     const sectionChildrenBeforeInvalidDrop = [...(snapshot.nodes[sectionId]?.childIds ?? [])];
@@ -539,6 +550,10 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     if (rootIdsChanged || sectionChildrenChanged || stackChildrenChanged) {
       throw new Error("Invalid nested navbar drop unexpectedly changed the builder structure.");
     }
+
+    await expectEditorNotice(page, "A navbar block cannot be placed inside section.");
+    await page.click('[data-builder-editor-notice-dismiss="true"]');
+    await page.locator("[data-builder-editor-notice]").waitFor({ state: "hidden" });
 
     await page.screenshot({
       path: path.join(screenshotsDir, "builder-dnd.png"),

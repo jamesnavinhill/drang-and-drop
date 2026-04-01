@@ -51,6 +51,8 @@ The current desktop shell is organized as:
 - drag/drop composition with constrained layout primitives, centralized parent/child placement rules, and live invalid-drop feedback in the canvas
 - tabbed pages workspace with route management and page outline/layers controls
 - contextual library filtering plus full-catalog placement hints based on the active insertion target
+- shared editor notices surfaced at the studio shell level for failed structure-sensitive actions
+- outline insertion context cues that match the library and canvas targeting model
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
 - expanded first-party block catalog including nav, FAQ, activity feed, testimonial, table, and message-thread shells

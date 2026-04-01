@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { AssistantPanel } from "./assistant-panel";
 import { BuilderCanvas } from "./canvas";
 import { BuilderTestHooks } from "./builder-test-hooks";
+import { EditorNoticeBanner } from "./editor-notice-banner";
 import { InspectorPanel } from "./inspector-panel";
 import { LibraryPanel } from "./library-panel";
 import { PagePanel } from "./page-panel";
@@ -82,11 +83,13 @@ export function BuilderStudio() {
   const project = useBuilderStore((state) => state.project);
   const previewMode = useBuilderStore((state) => state.previewMode);
   const selectedPageId = useBuilderStore((state) => state.selectedPageId);
+  const editorNotice = useBuilderStore((state) => state.editorNotice);
   const hasHydrated = useBuilderStore((state) => state.hasHydrated);
   const canUndo = useBuilderStore((state) => state.canUndo);
   const canRedo = useBuilderStore((state) => state.canRedo);
   const setPreviewMode = useBuilderStore((state) => state.setPreviewMode);
   const setHasHydrated = useBuilderStore((state) => state.setHasHydrated);
+  const clearEditorNotice = useBuilderStore((state) => state.clearEditorNotice);
   const undo = useBuilderStore((state) => state.undo);
   const redo = useBuilderStore((state) => state.redo);
   const resetProject = useBuilderStore((state) => state.resetProject);
@@ -258,6 +261,12 @@ export function BuilderStudio() {
             </span>
           </div>
         </header>
+
+        {editorNotice ? (
+          <div className="mt-4">
+            <EditorNoticeBanner notice={editorNotice} onDismiss={clearEditorNotice} />
+          </div>
+        ) : null}
 
         <div className="mt-4 grid min-h-0 flex-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
           <aside className="panel-surface flex min-h-0 flex-col rounded-[28px] p-3">

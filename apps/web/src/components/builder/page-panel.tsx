@@ -7,6 +7,7 @@ import { getComponentDefinition } from "@/lib/builder/registry";
 import {
   countPageNodes,
   countSubtreeNodes,
+  describeInsertionTarget,
   getNodeDisplayLabel,
   getParentChildren,
 } from "@/lib/builder/structure";
@@ -276,6 +277,14 @@ function OutlineTab() {
   const selectedNodeId = useBuilderStore((state) => state.selectedNodeId);
   const selectNode = useBuilderStore((state) => state.selectNode);
   const page = project.pages.find((entry) => entry.id === selectedPageId) ?? project.pages[0];
+  const insertion = describeInsertionTarget(project, selectedPageId, selectedNodeId);
+  const selectedNode = selectedNodeId ? project.nodes[selectedNodeId] ?? null : null;
+  const selectedDefinition = selectedNode ? getComponentDefinition(selectedNode.type) : null;
+  const insertionContextMessage = selectedNode
+    ? selectedDefinition?.canHaveChildren
+      ? "New blocks can be inserted directly into the selected container."
+      : "The selected block is a leaf, so new blocks will target its parent container or page root."
+    : "Nothing is selected, so new blocks will insert at the page root.";
 
   return (
     <section className="rounded-[24px] border border-border bg-white/72 p-4">
@@ -307,6 +316,19 @@ function OutlineTab() {
           Use the outline to select blocks quickly, reorder siblings, and manage nested structure without hunting on the
           canvas.
         </p>
+      </div>
+
+      <div className="mt-4 rounded-[22px] border border-border bg-white/76 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Current insertion target</p>
+            <h3 className="mt-1 text-base font-semibold text-foreground">{insertion.label}</h3>
+          </div>
+          <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
+            {insertion.kind === "page" ? "Root" : "Container"}
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-muted">{insertionContextMessage}</p>
       </div>
 
       <div className="mt-4 space-y-2">
