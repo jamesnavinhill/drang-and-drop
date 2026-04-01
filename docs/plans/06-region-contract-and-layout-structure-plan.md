@@ -63,6 +63,49 @@ Landed in the follow-up slice:
 - builder preview, starter export, template data, and the internal coverage project now all exercise the same canonical sidebar-shell region shape
 - command-level and browser drag verification now cover valid and invalid sidebar-region interactions directly
 
+Verification completed after the follow-up slice:
+
+- `pnpm lint`
+- `pnpm build`
+- `pnpm verify:contracts`
+- `pnpm verify:commands`
+- `pnpm verify:dnd`
+- `pnpm verify:starters`
+
+## Next Session Starting Point
+
+This plan is now ready to resume from the post-cutover baseline.
+
+What is already settled:
+
+- the canonical region graph is the active persisted and runtime model
+- pages own explicit `header`, `main`, and `footer` regions
+- layout-owner blocks declare explicit owned regions in the block contract
+- `sidebarShell` is the first shipped multi-region proof block, with canonical `sidebar` and `content` regions
+- preview, export, template data, and verification all traverse the same region graph
+
+What should not be revisited unless a real problem appears:
+
+- legacy `rootIds` / `children` compatibility inside active authoring flows
+- old `page-root` / `layout-container` vocabulary in new implementation work
+- compatibility shims for pre-cutover starter shapes when the canonical region model can be applied directly instead
+
+Recommended next slice:
+
+- continue `06` by building on the settled region model rather than doing another structural rewrite
+- prefer the next work to stay in “follow-up layout customization on top of the settled region model”
+- good candidates are:
+  - more granular layout-owner configuration now that explicit regions exist
+  - another intentional multi-region block family if it proves a real authoring need
+  - tighter canvas and outline affordances around multi-region authoring
+  - stronger generated-app fidelity assertions for region-owned layouts
+
+Suggested next-session framing:
+
+- assume the region graph itself is stable
+- treat new work as productizing and extending the region model, not re-proving it
+- keep docs and verification updated in the same slice as any new region-aware behavior
+
 ## Why This Phase Exists
 
 The current builder is now strong enough to justify a deeper placement model:
