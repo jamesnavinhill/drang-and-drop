@@ -221,8 +221,6 @@ Implement `06` in these large logical groups:
 5. verification expansion around region behavior
 6. follow-up layout customization work on top of the settled region model
 
-## First Big Slice
-
 ### Canonical Region Ownership
 
 Goal:
