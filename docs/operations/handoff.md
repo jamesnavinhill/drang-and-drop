@@ -21,13 +21,16 @@
 
 ## Next Best Slice
 
-The next session should focus on one cohesive editor-foundation slice:
+The next session should transition from the end of the `04` editor-foundation slice into the `05` block-system slice defined in `docs/plans/05-builder-block-system-implementation-plan.md`.
 
-- continue from the new split builder modules instead of re-growing the compatibility barrel
-- build on the new `page-root` / `layout-container` placement model toward clearer slot or region contracts
-- tighten builder/export parity now that preview rendering, shared content parsing, and generated render support have clearer seams
-- keep verification green while the placement/export contracts are tightened
+Immediate focus:
+
+- normalize the builder boundary around canonical `block` terminology
+- turn the current split modules into an explicit block-contract system
+- map the current shipped catalog into clear block families and capabilities
+- fold the remaining preview/export parity follow-up into that new contract model
+- keep verification and operating docs aligned while the system is reorganized
 
 ## Suggested Starting Prompt
 
-Continue from `apps/web` and follow `docs/plans/04-editor-foundation-hardening-plan.md`. The structure-command foundation is in place, the outline/inspector action surface is shared, the old builder registry has been split into block-definition, placement, and preview modules, placement validation now resolves through explicit `page-root` and `layout-container` target kinds, and shared content parsing plus generated render support have been extracted from the old export catch-all. Next, keep hardening export parity on top of those seams without re-centralizing logic into the compatibility barrel.
+Continue from `apps/web` and follow `docs/plans/05-builder-block-system-implementation-plan.md`. The structure-command foundation from `04` is already in place, the old builder registry has been split into definition, placement, and preview modules, placement validation now resolves through explicit `page-root` and `layout-container` target kinds, and export/render seams are clearer than before. Next, make the builder system canonical around `block` terminology, define an explicit block contract, map the shipped block families, and fold the remaining export-parity work into that cleaner contract without rebuilding a monolithic registry layer.
