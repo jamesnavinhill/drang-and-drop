@@ -388,9 +388,9 @@ Not:
 
 - a giant final block backlog with immediate implementation commitments
 
-## Clarifying Questions
+## Working Decisions
 
-These are the questions I think are worth settling next, with the tradeoffs attached.
+These are the current working decisions based on the present codebase and the latest planning alignment.
 
 ### 1. Do we want `hero` and `navbar` treated as long-term root-only composite blocks, or as first examples of a future page-shell/section-region model?
 
@@ -404,10 +404,26 @@ Technical tradeoff in this codebase:
 - root-only is already supported cleanly by current placement targets
 - regions would require a richer placement contract, probably beyond `page-root` and `layout-container`
 
-My recommendation:
+Decision:
 
 - keep them root-only for now
-- treat them as future region-model pressure cases, not as reasons to redesign immediately
+- explicitly treat them as pressure cases for a future page-shell and section-region model
+- design future layout work with customization in mind:
+  - sidebars
+  - rails
+  - panels
+  - content regions
+  - columns
+  - bento layouts
+  - split layouts
+- do not build all of that now
+- do account for those future behaviors when defining the next structural contracts
+
+Implementation guidance for this codebase:
+
+- the current `page-root` and `layout-container` model should remain stable in the short term
+- future flexibility should come from a richer layout or region system, not from making individual blocks like `hero` and `navbar` increasingly special-case
+- this keeps current editor hardening work on schedule while still designing toward the real product direction
 
 ### 2. Do we want templates to stay mostly project-level starters, or eventually support page-level block compositions as reusable authored assets?
 
@@ -421,10 +437,18 @@ Technical tradeoff in this codebase:
 - project starters already fit the current export model
 - reusable page-level compositions would want clearer block contracts and stronger import/export discipline
 
-My recommendation:
+Decision:
 
 - keep `template` meaning starter project for now
 - introduce smaller reusable authored units later under a different name if needed
+
+Implementation guidance for this codebase:
+
+- do not overload `template` to mean both starter projects and reusable page fragments
+- if reusable authored compositions are introduced later, they should likely get their own term such as:
+  - `pattern`
+  - `section preset`
+  - `saved composition`
 
 ### 3. How far do we want to push export parity before resuming broader block implementation?
 
@@ -438,10 +462,22 @@ Technical tradeoff in this codebase:
 - current helper drift is improving
 - per-block JSX duplication is still the main remaining parity risk
 
-My recommendation:
+Decision:
 
 - do a bit more parity shaping first
 - specifically, define a clearer shared block render contract before broad catalog growth
+- keep preview and export moving logically in unison where it makes sense
+- because this is a greenfield build, do not let one side run far ahead of the other
+
+Implementation guidance for this codebase:
+
+- every meaningful new block-family decision should define:
+  - placement expectations
+  - preview expectations
+  - export expectations
+  - verification expectations
+- that does not mean every future block must be fully implemented now
+- it does mean the contract should be mapped before the catalog expands broadly
 
 ### 4. Do we want to eventually rename code modules from `component-*` to `block-*`, or keep the current filenames and use product-language translation in docs/UI?
 
@@ -455,8 +491,39 @@ Technical tradeoff in this codebase:
 - current filenames are already stable and understandable
 - renaming now adds noise without much system benefit
 
-My recommendation:
+Relevant current files:
+
+- [component-content.ts](/c:/Users/james/projects/drag-and-drop/apps/web/src/lib/builder/component-content.ts)
+- [component-definitions.ts](/c:/Users/james/projects/drag-and-drop/apps/web/src/lib/builder/component-definitions.ts)
+- [component-placement.ts](/c:/Users/james/projects/drag-and-drop/apps/web/src/lib/builder/component-placement.ts)
+- [component-preview.tsx](/c:/Users/james/projects/drag-and-drop/apps/web/src/lib/builder/component-preview.tsx)
+- [types.ts](/c:/Users/james/projects/drag-and-drop/apps/web/src/lib/builder/types.ts)
+- [registry.tsx](/c:/Users/james/projects/drag-and-drop/apps/web/src/lib/builder/registry.tsx)
+
+Decision:
 
 - keep current filenames for now
-- standardize the docs/UI vocabulary first
-- revisit code-level renames only if the mismatch starts causing confusion
+- standardize the docs and UI vocabulary first
+- revisit code-level renames only if the mismatch starts causing confusion or slowing development
+
+Implementation guidance for this codebase:
+
+- prefer language translation rather than code churn right now:
+  - docs and UI say `block`
+  - schema continues to use `node`
+  - implementation files can stay on `component-*` for now
+
+## Next Planning Move
+
+The best next planning artifact after this report is:
+
+- a block-family map
+- a region or layout capability map
+- a block authoring checklist
+- a preview/export parity matrix
+
+That combination would help us:
+
+- design for future customization flexibility
+- avoid premature broad catalog work
+- keep implementation sequencing aligned with the current hardening plan
