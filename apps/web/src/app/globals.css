@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f3efe4;
+  --foreground: #101828;
+  --muted: #5f6c84;
+  --surface: rgba(255, 255, 255, 0.74);
+  --surface-strong: rgba(255, 255, 255, 0.9);
+  --border: rgba(16, 24, 40, 0.12);
+  --border-strong: rgba(16, 24, 40, 0.18);
+  --accent: #0f766e;
+  --accent-contrast: #effcf8;
+  --danger: #c2410c;
+  --shadow: 0 22px 60px rgba(16, 24, 40, 0.12);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 34%),
+    radial-gradient(circle at top right, rgba(194, 65, 12, 0.11), transparent 28%),
+    linear-gradient(180deg, #fcfaf6 0%, #efe6d6 100%);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 18%, white);
+}
+
+.app-shell {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.75), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.06));
+  backdrop-filter: blur(18px);
+}
+
+.panel-surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.builder-theme {
+  --builder-background: var(--background);
+  --builder-foreground: var(--foreground);
+  --builder-muted: var(--muted);
+  --builder-surface: var(--surface-strong);
+  --builder-border: var(--border);
+  --builder-accent: var(--accent);
+  --builder-accent-contrast: var(--accent-contrast);
+  --builder-radius: 24px;
+  --builder-shadow: 0 18px 44px rgba(16, 24, 40, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 246, 240, 0.96));
+  color: var(--builder-foreground);
+  border-radius: calc(var(--builder-radius) + 8px);
+  border: 1px solid color-mix(in srgb, var(--builder-border) 92%, white);
+  box-shadow: var(--builder-shadow);
+}
+
+.builder-pill {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.builder-pill:hover {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateY(-1px);
+}
+
+.builder-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 24, 40, 0.18) transparent;
+}
+
+.builder-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.builder-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(16, 24, 40, 0.18);
+  border-radius: 999px;
+}
+
+.builder-grid {
+  background-image:
+    linear-gradient(to right, rgba(16, 24, 40, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 24, 40, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.drag-overlay-card {
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16);
+  transform: rotate(1deg);
+}
