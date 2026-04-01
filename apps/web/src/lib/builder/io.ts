@@ -21,7 +21,8 @@ export async function parseProjectJsonFile(file: File) {
   const result = validateProject(parsed);
 
   if (!result.success) {
-    throw new Error("The selected file is not a valid builder project JSON export.");
+    const firstIssue = result.error.issues[0]?.message;
+    throw new Error(firstIssue ?? "The selected file is not a valid builder project JSON export.");
   }
 
   return result.data;

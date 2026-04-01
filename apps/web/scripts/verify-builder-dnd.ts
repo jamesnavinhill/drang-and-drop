@@ -386,11 +386,119 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     currentPage = getCurrentPage(snapshot);
     assertNodeTypeSequence(snapshot, currentPage.rootIds, ["hero", "section"], "Root order after reordering");
 
+    await dragBetween({
+      page,
+      sourceSelector: '[data-builder-palette="stack"]',
+      targetSelector: `[data-builder-drop-target="node:${sectionId}"]`,
+    });
+
+    snapshot = await getBuilderSnapshot(page);
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[sectionId]?.childIds ?? [],
+      ["button", "text", "stack"],
+      "Section children after inserting stack",
+    );
+
+    const stackId = (snapshot.nodes[sectionId]?.childIds ?? [])[2];
+    assert(stackId, "Expected the inserted stack node to exist.");
+
+    await dragBetween({
+      page,
+      sourceSelector: `[data-builder-drag-handle="${textId}"]`,
+      targetSelector: `[data-builder-drop-target="node:${stackId}"]`,
+    });
+
+    snapshot = await getBuilderSnapshot(page);
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[sectionId]?.childIds ?? [],
+      ["button", "stack"],
+      "Section children after moving text into nested stack",
+    );
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[stackId]?.childIds ?? [],
+      ["text"],
+      "Stack children after moving text into nested stack",
+    );
+
     await page.click('[data-builder-library-view="all"]');
     await page.waitForTimeout(100);
 
+    const rootIdsBeforeInvalidHeroMove = [...currentPage.rootIds];
+    const sectionChildrenBeforeInvalidHeroMove = [...(snapshot.nodes[sectionId]?.childIds ?? [])];
+    const stackChildrenBeforeInvalidHeroMove = [...(snapshot.nodes[stackId]?.childIds ?? [])];
+
+    await dragBetween({
+      page,
+      sourceSelector: `[data-builder-drag-handle="${heroId}"]`,
+      targetSelector: `[data-builder-drop-target="node:${sectionId}"]`,
+    });
+
+    snapshot = await getBuilderSnapshot(page);
+    currentPage = getCurrentPage(snapshot);
+    assertNodeTypeSequence(snapshot, currentPage.rootIds, ["hero", "section"], "Root order after invalid hero nesting");
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[sectionId]?.childIds ?? [],
+      ["button", "stack"],
+      "Section children after invalid hero nesting",
+    );
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[stackId]?.childIds ?? [],
+      ["text"],
+      "Stack children after invalid hero nesting",
+    );
+
+    const rootIdsChangedAfterInvalidHeroMove =
+      currentPage.rootIds.length !== rootIdsBeforeInvalidHeroMove.length ||
+      currentPage.rootIds.some((nodeId, index) => nodeId !== rootIdsBeforeInvalidHeroMove[index]);
+    const sectionChildrenChangedAfterInvalidHeroMove =
+      (snapshot.nodes[sectionId]?.childIds ?? []).length !== sectionChildrenBeforeInvalidHeroMove.length ||
+      (snapshot.nodes[sectionId]?.childIds ?? []).some(
+        (nodeId, index) => nodeId !== sectionChildrenBeforeInvalidHeroMove[index],
+      );
+    const stackChildrenChangedAfterInvalidHeroMove =
+      (snapshot.nodes[stackId]?.childIds ?? []).length !== stackChildrenBeforeInvalidHeroMove.length ||
+      (snapshot.nodes[stackId]?.childIds ?? []).some(
+        (nodeId, index) => nodeId !== stackChildrenBeforeInvalidHeroMove[index],
+      );
+
+    if (
+      rootIdsChangedAfterInvalidHeroMove ||
+      sectionChildrenChangedAfterInvalidHeroMove ||
+      stackChildrenChangedAfterInvalidHeroMove
+    ) {
+      throw new Error("Invalid hero nesting unexpectedly changed the builder structure.");
+    }
+
+    await dragBetween({
+      page,
+      sourceSelector: `[data-builder-drag-handle="${sectionId}"]`,
+      targetSelector: `[data-builder-drop-target="node:${stackId}"]`,
+    });
+
+    snapshot = await getBuilderSnapshot(page);
+    currentPage = getCurrentPage(snapshot);
+    assertNodeTypeSequence(snapshot, currentPage.rootIds, ["hero", "section"], "Root order after invalid descendant move");
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[sectionId]?.childIds ?? [],
+      ["button", "stack"],
+      "Section children after invalid descendant move",
+    );
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[stackId]?.childIds ?? [],
+      ["text"],
+      "Stack children after invalid descendant move",
+    );
+
     const rootIdsBeforeInvalidDrop = [...currentPage.rootIds];
     const sectionChildrenBeforeInvalidDrop = [...(snapshot.nodes[sectionId]?.childIds ?? [])];
+    const stackChildrenBeforeInvalidDrop = [...(snapshot.nodes[stackId]?.childIds ?? [])];
 
     await dragBetween({
       page,
@@ -404,8 +512,14 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     assertNodeTypeSequence(
       snapshot,
       snapshot.nodes[sectionId]?.childIds ?? [],
-      ["button", "text"],
+      ["button", "stack"],
       "Section children after invalid navbar drop",
+    );
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[stackId]?.childIds ?? [],
+      ["text"],
+      "Stack children after invalid navbar drop",
     );
 
     const rootIdsChanged =
@@ -416,8 +530,13 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
       (snapshot.nodes[sectionId]?.childIds ?? []).some(
         (nodeId, index) => nodeId !== sectionChildrenBeforeInvalidDrop[index],
       );
+    const stackChildrenChanged =
+      (snapshot.nodes[stackId]?.childIds ?? []).length !== stackChildrenBeforeInvalidDrop.length ||
+      (snapshot.nodes[stackId]?.childIds ?? []).some(
+        (nodeId, index) => nodeId !== stackChildrenBeforeInvalidDrop[index],
+      );
 
-    if (rootIdsChanged || sectionChildrenChanged) {
+    if (rootIdsChanged || sectionChildrenChanged || stackChildrenChanged) {
       throw new Error("Invalid nested navbar drop unexpectedly changed the builder structure.");
     }
 

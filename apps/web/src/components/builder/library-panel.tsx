@@ -4,8 +4,8 @@ import { useDraggable } from "@dnd-kit/core";
 import { Compass, Filter, Layers3 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { canAcceptChild, componentRegistry } from "@/lib/builder/registry";
-import { describeInsertionTarget } from "@/lib/builder/structure";
+import { componentRegistry } from "@/lib/builder/registry";
+import { describeInsertionTarget, validateComponentPlacement } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
 import { cn } from "@/lib/utils";
 
@@ -113,11 +113,14 @@ export function LibraryPanel() {
       return componentRegistry;
     }
 
-    const parentType =
-      insertion.target.kind === "page" ? "page" : (project.nodes[insertion.target.id]?.type ?? "page");
-
-    return componentRegistry.filter((item) => canAcceptChild(parentType, item.type));
-  }, [insertion.target.id, insertion.target.kind, libraryView, project.nodes]);
+    return componentRegistry.filter((item) =>
+      validateComponentPlacement({
+        childType: item.type,
+        parent: insertion.target,
+        project,
+      }).ok,
+    );
+  }, [insertion.target, libraryView, project]);
 
   const groups = visibleItems.reduce<Record<string, typeof visibleItems>>((accumulator, item) => {
     accumulator[item.category] ??= [];

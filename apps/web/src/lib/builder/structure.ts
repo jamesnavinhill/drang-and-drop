@@ -1,5 +1,66 @@
-import { getComponentDefinition } from "./registry";
-import type { BuilderNode, BuilderProject, ParentReference } from "./types";
+import { canAcceptChild, getComponentDefinition } from "./registry";
+import type { BuilderNode, BuilderProject, ComponentType, ParentReference } from "./types";
+
+export type BuilderPlacementFailureReason =
+  | "duplicate-node-id"
+  | "missing-node"
+  | "missing-parent"
+  | "self-target"
+  | "descendant-target"
+  | "invalid-child";
+
+export type BuilderPlacementResult =
+  | {
+      ok: true;
+      index: number;
+      parent: ParentReference;
+    }
+  | {
+      ok: false;
+      reason: BuilderPlacementFailureReason;
+      message: string;
+    };
+
+export type BuilderStructureCommand =
+  | {
+      kind: "insert";
+      index?: number;
+      node: BuilderNode;
+      parent: ParentReference;
+    }
+  | {
+      kind: "move";
+      index: number;
+      nodeId: string;
+      parent: ParentReference;
+    };
+
+export type BuilderStructureCommandResult =
+  | {
+      ok: true;
+      index: number;
+      nodeId: string;
+      parent: ParentReference;
+      previousIndex?: number;
+      previousParent?: ParentReference;
+    }
+  | {
+      ok: false;
+      reason: BuilderPlacementFailureReason;
+      message: string;
+    };
+
+export interface BuilderStructureIssue {
+  code:
+    | "cycle"
+    | "duplicate-parent"
+    | "invalid-node-key"
+    | "invalid-placement"
+    | "missing-node-reference"
+    | "orphan-node";
+  message: string;
+  path: Array<number | string>;
+}
 
 const labelKeys = [
   "title",
@@ -44,6 +105,401 @@ export function getParentChildren(project: BuilderProject, parent: ParentReferen
   }
 
   return project.nodes[parent.id]?.children ?? [];
+}
+
+export function getParentType(project: BuilderProject, parent: ParentReference): ComponentType | "page" | null {
+  if (parent.kind === "page") {
+    return project.pages.some((page) => page.id === parent.id) ? "page" : null;
+  }
+
+  return project.nodes[parent.id]?.type ?? null;
+}
+
+function setParentChildren(project: BuilderProject, parent: ParentReference, nextChildren: string[]) {
+  if (parent.kind === "page") {
+    const page = project.pages.find((entry) => entry.id === parent.id);
+    if (page) {
+      page.rootIds = nextChildren;
+    }
+    return;
+  }
+
+  const node = project.nodes[parent.id];
+  if (node) {
+    node.children = nextChildren;
+  }
+}
+
+function insertChildReference(project: BuilderProject, parent: ParentReference, nodeId: string, index?: number) {
+  const children = [...getParentChildren(project, parent)];
+  const safeIndex = index === undefined ? children.length : Math.max(0, Math.min(index, children.length));
+  children.splice(safeIndex, 0, nodeId);
+  setParentChildren(project, parent, children);
+  return safeIndex;
+}
+
+function removeChildReference(project: BuilderProject, nodeId: string) {
+  const parent = findParentReference(project, nodeId);
+  if (!parent) {
+    return null;
+  }
+
+  const children = [...getParentChildren(project, parent)];
+  const index = children.indexOf(nodeId);
+  if (index < 0) {
+    return null;
+  }
+
+  children.splice(index, 1);
+  setParentChildren(project, parent, children);
+
+  return { index, parent };
+}
+
+export function isDescendantNode(project: BuilderProject, ancestorId: string, potentialDescendantId: string): boolean {
+  const visited = new Set<string>();
+
+  function visit(nodeId: string): boolean {
+    if (visited.has(nodeId)) {
+      return false;
+    }
+
+    visited.add(nodeId);
+
+    const node = project.nodes[nodeId];
+    if (!node) {
+      return false;
+    }
+
+    for (const childId of node.children) {
+      if (childId === potentialDescendantId || visit(childId)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return visit(ancestorId);
+}
+
+export function validateComponentPlacement({
+  childType,
+  index,
+  parent,
+  project,
+}: {
+  childType: ComponentType;
+  index?: number;
+  parent: ParentReference;
+  project: BuilderProject;
+}): BuilderPlacementResult {
+  const parentType = getParentType(project, parent);
+  if (!parentType) {
+    return {
+      ok: false,
+      reason: "missing-parent",
+      message: "The requested parent target does not exist.",
+    };
+  }
+
+  if (!canAcceptChild(parentType, childType)) {
+    return {
+      ok: false,
+      reason: "invalid-child",
+      message: `A ${childType} block cannot be placed inside ${parentType === "page" ? "the page root" : parentType}.`,
+    };
+  }
+
+  return {
+    ok: true,
+    index: index === undefined ? getParentChildren(project, parent).length : Math.max(0, Math.min(index, getParentChildren(project, parent).length)),
+    parent,
+  };
+}
+
+export function validateNodePlacement({
+  index,
+  nodeId,
+  parent,
+  project,
+}: {
+  index?: number;
+  nodeId: string;
+  parent: ParentReference;
+  project: BuilderProject;
+}): BuilderPlacementResult {
+  const node = project.nodes[nodeId];
+  if (!node) {
+    return {
+      ok: false,
+      reason: "missing-node",
+      message: "The requested node does not exist.",
+    };
+  }
+
+  if (parent.kind === "node" && parent.id === nodeId) {
+    return {
+      ok: false,
+      reason: "self-target",
+      message: "A node cannot be inserted into itself.",
+    };
+  }
+
+  if (parent.kind === "node" && isDescendantNode(project, nodeId, parent.id)) {
+    return {
+      ok: false,
+      reason: "descendant-target",
+      message: "A node cannot be inserted into one of its descendants.",
+    };
+  }
+
+  return validateComponentPlacement({
+    childType: node.type,
+    index,
+    parent,
+    project,
+  });
+}
+
+export function executeStructureCommand(
+  project: BuilderProject,
+  command: BuilderStructureCommand,
+): BuilderStructureCommandResult {
+  if (command.kind === "insert") {
+    if (project.nodes[command.node.id]) {
+      return {
+        ok: false,
+        reason: "duplicate-node-id",
+        message: `The node id "${command.node.id}" already exists in the project.`,
+      };
+    }
+
+    const placement = validateComponentPlacement({
+      childType: command.node.type,
+      index: command.index,
+      parent: command.parent,
+      project,
+    });
+    if (!placement.ok) {
+      return placement;
+    }
+
+    project.nodes[command.node.id] = command.node;
+    const insertedIndex = insertChildReference(project, placement.parent, command.node.id, placement.index);
+
+    return {
+      ok: true,
+      index: insertedIndex,
+      nodeId: command.node.id,
+      parent: placement.parent,
+    };
+  }
+
+  const placement = validateNodePlacement({
+    index: command.index,
+    nodeId: command.nodeId,
+    parent: command.parent,
+    project,
+  });
+  if (!placement.ok) {
+    return placement;
+  }
+
+  const previous = removeChildReference(project, command.nodeId);
+  if (!previous) {
+    return {
+      ok: false,
+      reason: "missing-parent",
+      message: "The requested node is not attached to any current parent.",
+    };
+  }
+
+  let targetIndex = placement.index;
+  if (
+    previous.parent.kind === placement.parent.kind &&
+    previous.parent.id === placement.parent.id &&
+    previous.index < placement.index
+  ) {
+    targetIndex = placement.index - 1;
+  }
+
+  const insertedIndex = insertChildReference(project, placement.parent, command.nodeId, targetIndex);
+
+  return {
+    ok: true,
+    index: insertedIndex,
+    nodeId: command.nodeId,
+    parent: placement.parent,
+    previousIndex: previous.index,
+    previousParent: previous.parent,
+  };
+}
+
+export function collectProjectStructureIssues(project: BuilderProject): BuilderStructureIssue[] {
+  const issues = new Map<string, BuilderStructureIssue>();
+  const parentReferences = new Map<string, ParentReference[]>();
+
+  function addIssue(issue: BuilderStructureIssue, key = `${issue.code}:${issue.path.join(".")}:${issue.message}`) {
+    if (!issues.has(key)) {
+      issues.set(key, issue);
+    }
+  }
+
+  function trackParent(nodeId: string, parent: ParentReference) {
+    const parents = parentReferences.get(nodeId) ?? [];
+    parents.push(parent);
+    parentReferences.set(nodeId, parents);
+  }
+
+  for (const [nodeKey, node] of Object.entries(project.nodes)) {
+    if (node.id !== nodeKey) {
+      addIssue({
+        code: "invalid-node-key",
+        message: `Node record key "${nodeKey}" does not match node.id "${node.id}".`,
+        path: ["nodes", nodeKey, "id"],
+      });
+    }
+  }
+
+  project.pages.forEach((page, pageIndex) => {
+    page.rootIds.forEach((rootId, rootIndex) => {
+      const rootNode = project.nodes[rootId];
+      const path = ["pages", pageIndex, "rootIds", rootIndex] satisfies Array<number | string>;
+
+      if (!rootNode) {
+        addIssue({
+          code: "missing-node-reference",
+          message: `Page "${page.name}" references missing node "${rootId}".`,
+          path,
+        });
+        return;
+      }
+
+      trackParent(rootId, { kind: "page", id: page.id });
+
+      const placement = validateComponentPlacement({
+        childType: rootNode.type,
+        index: rootIndex,
+        parent: { kind: "page", id: page.id },
+        project,
+      });
+
+      if (!placement.ok) {
+        addIssue({
+          code: "invalid-placement",
+          message: `Page "${page.name}" contains an invalid root ${rootNode.type} block.`,
+          path,
+        });
+      }
+    });
+  });
+
+  Object.values(project.nodes).forEach((node) => {
+    node.children.forEach((childId, childIndex) => {
+      const childNode = project.nodes[childId];
+      const path = ["nodes", node.id, "children", childIndex] satisfies Array<number | string>;
+
+      if (!childNode) {
+        addIssue({
+          code: "missing-node-reference",
+          message: `Node "${node.id}" references missing child "${childId}".`,
+          path,
+        });
+        return;
+      }
+
+      trackParent(childId, { kind: "node", id: node.id });
+
+      const placement = validateComponentPlacement({
+        childType: childNode.type,
+        index: childIndex,
+        parent: { kind: "node", id: node.id },
+        project,
+      });
+
+      if (!placement.ok) {
+        addIssue({
+          code: "invalid-placement",
+          message: `A ${childNode.type} block cannot be nested inside ${node.type}.`,
+          path,
+        });
+      }
+    });
+  });
+
+  Object.keys(project.nodes).forEach((nodeId) => {
+    const parents = parentReferences.get(nodeId) ?? [];
+
+    if (parents.length === 0) {
+      addIssue({
+        code: "orphan-node",
+        message: `Node "${nodeId}" is not reachable from any page root.`,
+        path: ["nodes", nodeId],
+      });
+    }
+
+    if (parents.length > 1) {
+      addIssue(
+        {
+          code: "duplicate-parent",
+          message: `Node "${nodeId}" is attached to multiple parents.`,
+          path: ["nodes", nodeId],
+        },
+        `duplicate-parent:${nodeId}`,
+      );
+    }
+  });
+
+  const visitState = new Map<string, "visiting" | "visited">();
+
+  function visit(nodeId: string, path: string[]) {
+    const currentState = visitState.get(nodeId);
+    if (currentState === "visiting") {
+      addIssue(
+        {
+          code: "cycle",
+          message: `Node cycle detected through "${nodeId}".`,
+          path: ["nodes", nodeId, "children"],
+        },
+        `cycle:${[...path, nodeId].join("->")}`,
+      );
+      return;
+    }
+
+    if (currentState === "visited") {
+      return;
+    }
+
+    visitState.set(nodeId, "visiting");
+
+    const node = project.nodes[nodeId];
+    if (node) {
+      node.children.forEach((childId) => {
+        if (project.nodes[childId]) {
+          visit(childId, [...path, nodeId]);
+        }
+      });
+    }
+
+    visitState.set(nodeId, "visited");
+  }
+
+  project.pages.forEach((page) => {
+    page.rootIds.forEach((rootId) => {
+      if (project.nodes[rootId]) {
+        visit(rootId, []);
+      }
+    });
+  });
+
+  Object.keys(project.nodes).forEach((nodeId) => {
+    if (!visitState.has(nodeId)) {
+      visit(nodeId, []);
+    }
+  });
+
+  return [...issues.values()];
 }
 
 export function countSubtreeNodes(project: BuilderProject, nodeId: string): number {

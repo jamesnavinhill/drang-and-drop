@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { componentTypes } from "./types";
+import { collectProjectStructureIssues } from "./structure";
 
 const primitiveValueSchema = z.union([z.string(), z.number(), z.boolean()]);
 
@@ -42,5 +43,24 @@ export const builderProjectSchema = z.object({
 });
 
 export function validateProject(candidate: unknown) {
-  return builderProjectSchema.safeParse(candidate);
+  const parsed = builderProjectSchema.safeParse(candidate);
+  if (!parsed.success) {
+    return parsed;
+  }
+
+  const structureIssues = collectProjectStructureIssues(parsed.data);
+  if (structureIssues.length === 0) {
+    return parsed;
+  }
+
+  return {
+    success: false as const,
+    error: new z.ZodError(
+      structureIssues.map((issue) => ({
+        code: "custom" as const,
+        message: issue.message,
+        path: issue.path,
+      })),
+    ),
+  };
 }

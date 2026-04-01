@@ -4,8 +4,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { createDefaultProject, createId, createProjectFromTemplate } from "./default-project";
-import { canAcceptChild, getComponentDefinition } from "./registry";
+import { getComponentDefinition } from "./registry";
 import { validateProject } from "./schema";
+import { executeStructureCommand, findParentReference, getParentChildren } from "./structure";
 import type {
   BuilderNode,
   BuilderPage,
@@ -41,8 +42,8 @@ interface BuilderState {
   addPage: () => void;
   duplicatePage: (pageId: string) => void;
   removePage: (pageId: string) => void;
-  addNode: (type: ComponentType, parent: ParentReference, index?: number) => void;
-  moveNode: (nodeId: string, parent: ParentReference, index: number) => void;
+  addNode: (type: ComponentType, parent: ParentReference, index?: number) => boolean;
+  moveNode: (nodeId: string, parent: ParentReference, index: number) => boolean;
   duplicateNode: (nodeId: string) => void;
   removeNode: (nodeId: string) => void;
   updateNodeField: (nodeId: string, key: string, value: PrimitiveValue) => void;
@@ -106,16 +107,7 @@ function getNode(project: BuilderProject, nodeId: string) {
   return project.nodes[nodeId];
 }
 
-function getChildArray(project: BuilderProject, parent: ParentReference) {
-  if (parent.kind === "page") {
-    const page = getPage(project, parent.id);
-    return page?.rootIds ?? [];
-  }
-
-  return getNode(project, parent.id)?.children ?? [];
-}
-
-function setChildArray(project: BuilderProject, parent: ParentReference, nextChildren: string[]) {
+function setParentChildren(project: BuilderProject, parent: ParentReference, nextChildren: string[]) {
   if (parent.kind === "page") {
     const page = getPage(project, parent.id);
     if (page) {
@@ -130,59 +122,28 @@ function setChildArray(project: BuilderProject, parent: ParentReference, nextChi
   }
 }
 
-function findParent(project: BuilderProject, nodeId: string): ParentReference | null {
-  for (const page of project.pages) {
-    if (page.rootIds.includes(nodeId)) {
-      return { kind: "page", id: page.id };
-    }
-  }
-
-  for (const node of Object.values(project.nodes)) {
-    if (node.children.includes(nodeId)) {
-      return { kind: "node", id: node.id };
-    }
-  }
-
-  return null;
-}
-
 function insertIntoParent(project: BuilderProject, parent: ParentReference, nodeId: string, index?: number) {
-  const children = [...getChildArray(project, parent)];
+  const children = [...getParentChildren(project, parent)];
   const safeIndex = index === undefined ? children.length : Math.max(0, Math.min(index, children.length));
   children.splice(safeIndex, 0, nodeId);
-  setChildArray(project, parent, children);
+  setParentChildren(project, parent, children);
 }
 
 function removeFromParent(project: BuilderProject, nodeId: string) {
-  const parent = findParent(project, nodeId);
+  const parent = findParentReference(project, nodeId);
   if (!parent) {
     return null;
   }
 
-  const children = [...getChildArray(project, parent)];
+  const children = [...getParentChildren(project, parent)];
   const index = children.indexOf(nodeId);
 
   if (index >= 0) {
     children.splice(index, 1);
-    setChildArray(project, parent, children);
+    setParentChildren(project, parent, children);
   }
 
   return { parent, index };
-}
-
-function isDescendant(project: BuilderProject, ancestorId: string, potentialDescendantId: string): boolean {
-  const ancestor = getNode(project, ancestorId);
-  if (!ancestor) {
-    return false;
-  }
-
-  for (const childId of ancestor.children) {
-    if (childId === potentialDescendantId || isDescendant(project, childId, potentialDescendantId)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 function createNode(type: ComponentType): BuilderNode {
@@ -364,70 +325,69 @@ export const useBuilderStore = create<BuilderState>()(
             selectedNodeId: null,
           });
         }),
-      addNode: (type, parent, index) =>
+      addNode: (type, parent, index) => {
+        let didAdd = false;
+
         set((state) => {
           const project = cloneProject(state.project);
-          const parentType = parent.kind === "page" ? "page" : getNode(project, parent.id)?.type;
-          if (!parentType || !canAcceptChild(parentType, type)) {
-            return state;
-          }
-
           const node = createNode(type);
-          project.nodes[node.id] = node;
-          insertIntoParent(project, parent, node.id, index);
+          const result = executeStructureCommand(project, {
+            kind: "insert",
+            index,
+            node,
+            parent,
+          });
+
+          if (!result.ok) {
+            return state;
+          }
+
+          didAdd = true;
 
           return withHistory(state, {
             project: touch(project),
-            selectedNodeId: node.id,
-            selectedPageId: parent.kind === "page" ? parent.id : state.selectedPageId,
+            selectedNodeId: result.nodeId,
+            selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
           });
-        }),
-      moveNode: (nodeId, parent, index) =>
+        });
+
+        return didAdd;
+      },
+      moveNode: (nodeId, parent, index) => {
+        let didMove = false;
+
         set((state) => {
           const project = cloneProject(state.project);
-          const node = getNode(project, nodeId);
-          if (!node) {
+          const result = executeStructureCommand(project, {
+            kind: "move",
+            index,
+            nodeId,
+            parent,
+          });
+
+          if (!result.ok) {
             return state;
           }
 
-          const parentType = parent.kind === "page" ? "page" : getNode(project, parent.id)?.type;
-          if (!parentType || !canAcceptChild(parentType, node.type)) {
-            return state;
-          }
+          didMove = true;
 
-          if (parent.kind === "node" && (parent.id === nodeId || isDescendant(project, nodeId, parent.id))) {
-            return state;
-          }
-
-          const previous = removeFromParent(project, nodeId);
-          if (!previous) {
-            return state;
-          }
-
-          let targetIndex = index;
-          if (
-            previous.parent.kind === parent.kind &&
-            previous.parent.id === parent.id &&
-            previous.index < index
-          ) {
-            targetIndex = index - 1;
-          }
-
-          insertIntoParent(project, parent, nodeId, targetIndex);
           return withHistory(state, {
             project: touch(project),
-            selectedNodeId: nodeId,
-            selectedPageId: parent.kind === "page" ? parent.id : state.selectedPageId,
+            selectedNodeId: result.nodeId,
+            selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
           });
-        }),
+        });
+
+        return didMove;
+      },
       duplicateNode: (nodeId) =>
         set((state) => {
           const project = cloneProject(state.project);
-          const parent = findParent(project, nodeId);
+          const parent = findParentReference(project, nodeId);
           if (!parent) {
             return state;
           }
-          const children = getChildArray(project, parent);
+          const children = getParentChildren(project, parent);
           const currentIndex = children.indexOf(nodeId);
           const clonedId = cloneSubtree(project, nodeId);
           insertIntoParent(project, parent, clonedId, currentIndex + 1);
@@ -584,5 +544,5 @@ export function getSelectedNode(state: BuilderState) {
 }
 
 export function getParentReference(project: BuilderProject, nodeId: string) {
-  return findParent(project, nodeId);
+  return findParentReference(project, nodeId);
 }

@@ -22,14 +22,6 @@ export type BuilderOverDragData =
       parent: ParentReference;
     };
 
-function getChildren(project: BuilderProject, parent: ParentReference) {
-  if (parent.kind === "page") {
-    return project.pages.find((page) => page.id === parent.id)?.rootIds ?? [];
-  }
-
-  return project.nodes[parent.id]?.children ?? [];
-}
-
 export function resolveBuilderDropTarget(
   project: BuilderProject,
   overData: BuilderOverDragData | undefined,
@@ -40,7 +32,7 @@ export function resolveBuilderDropTarget(
 
   if (overData.kind === "container") {
     return {
-      index: getChildren(project, overData.parent).length,
+      index: getParentChildren(project, overData.parent).length,
       parent: overData.parent,
     };
   }
@@ -63,8 +55,8 @@ export function applyBuilderDragOperation({
   project,
 }: {
   active: BuilderActiveDragData | undefined;
-  addNode: (type: ComponentType, parent: ParentReference, index: number) => void;
-  moveNode: (nodeId: string, parent: ParentReference, index: number) => void;
+  addNode: (type: ComponentType, parent: ParentReference, index: number) => boolean;
+  moveNode: (nodeId: string, parent: ParentReference, index: number) => boolean;
   over: BuilderOverDragData | undefined;
   project: BuilderProject;
 }) {
@@ -75,12 +67,10 @@ export function applyBuilderDragOperation({
   }
 
   if (active.kind === "palette") {
-    addNode(active.componentType, target.parent, target.index);
-    return true;
+    return addNode(active.componentType, target.parent, target.index);
   }
 
-  moveNode(active.nodeId, target.parent, target.index);
-  return true;
+  return moveNode(active.nodeId, target.parent, target.index);
 }
 
 export function getNodeDropData(project: BuilderProject, nodeId: string): BuilderOverDragData | null {
