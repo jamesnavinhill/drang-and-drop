@@ -6,7 +6,7 @@ import { persist } from "zustand/middleware";
 import { createDefaultProject, createId, createProjectFromTemplate } from "./default-project";
 import { getComponentDefinition } from "./registry";
 import { validateProject } from "./schema";
-import { executeStructureCommand, findParentReference, getParentChildren } from "./structure";
+import { executeStructureCommand, findParentReference } from "./structure";
 import type {
   BuilderNode,
   BuilderPage,
@@ -44,8 +44,8 @@ interface BuilderState {
   removePage: (pageId: string) => void;
   addNode: (type: ComponentType, parent: ParentReference, index?: number) => boolean;
   moveNode: (nodeId: string, parent: ParentReference, index: number) => boolean;
-  duplicateNode: (nodeId: string) => void;
-  removeNode: (nodeId: string) => void;
+  duplicateNode: (nodeId: string) => boolean;
+  removeNode: (nodeId: string) => boolean;
   updateNodeField: (nodeId: string, key: string, value: PrimitiveValue) => void;
   importProject: (project: BuilderProject) => void;
   applyTemplate: (templateId: BuilderTemplateId) => void;
@@ -105,45 +105,6 @@ function getPage(project: BuilderProject, pageId: string) {
 
 function getNode(project: BuilderProject, nodeId: string) {
   return project.nodes[nodeId];
-}
-
-function setParentChildren(project: BuilderProject, parent: ParentReference, nextChildren: string[]) {
-  if (parent.kind === "page") {
-    const page = getPage(project, parent.id);
-    if (page) {
-      page.rootIds = nextChildren;
-    }
-    return;
-  }
-
-  const node = getNode(project, parent.id);
-  if (node) {
-    node.children = nextChildren;
-  }
-}
-
-function insertIntoParent(project: BuilderProject, parent: ParentReference, nodeId: string, index?: number) {
-  const children = [...getParentChildren(project, parent)];
-  const safeIndex = index === undefined ? children.length : Math.max(0, Math.min(index, children.length));
-  children.splice(safeIndex, 0, nodeId);
-  setParentChildren(project, parent, children);
-}
-
-function removeFromParent(project: BuilderProject, nodeId: string) {
-  const parent = findParentReference(project, nodeId);
-  if (!parent) {
-    return null;
-  }
-
-  const children = [...getParentChildren(project, parent)];
-  const index = children.indexOf(nodeId);
-
-  if (index >= 0) {
-    children.splice(index, 1);
-    setParentChildren(project, parent, children);
-  }
-
-  return { parent, index };
 }
 
 function createNode(type: ComponentType): BuilderNode {
@@ -380,35 +341,57 @@ export const useBuilderStore = create<BuilderState>()(
 
         return didMove;
       },
-      duplicateNode: (nodeId) =>
+      duplicateNode: (nodeId) => {
+        let didDuplicate = false;
+
         set((state) => {
           const project = cloneProject(state.project);
-          const parent = findParentReference(project, nodeId);
-          if (!parent) {
+          const result = executeStructureCommand(project, {
+            createNodeId: createId,
+            kind: "duplicate",
+            nodeId,
+          });
+
+          if (!result.ok) {
             return state;
           }
-          const children = getParentChildren(project, parent);
-          const currentIndex = children.indexOf(nodeId);
-          const clonedId = cloneSubtree(project, nodeId);
-          insertIntoParent(project, parent, clonedId, currentIndex + 1);
+
+          didDuplicate = true;
+
           return withHistory(state, {
             project: touch(project),
-            selectedNodeId: clonedId,
+            selectedNodeId: result.nodeId,
+            selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
           });
-        }),
-      removeNode: (nodeId) =>
+        });
+
+        return didDuplicate;
+      },
+      removeNode: (nodeId) => {
+        let didRemove = false;
+
         set((state) => {
           const project = cloneProject(state.project);
-          const removal = removeFromParent(project, nodeId);
-          if (!removal) {
+          const result = executeStructureCommand(project, {
+            kind: "remove",
+            nodeId,
+          });
+
+          if (!result.ok) {
             return state;
           }
-          deleteSubtree(project, nodeId);
+
+          didRemove = true;
+
           return withHistory(state, {
             project: touch(project),
             selectedNodeId: selectionStillExists(project, state.selectedNodeId === nodeId ? null : state.selectedNodeId),
+            selectedPageId: result.parent.kind === "page" ? result.parent.id : state.selectedPageId,
           });
-        }),
+        });
+
+        return didRemove;
+      },
       updateNodeField: (nodeId, key, value) =>
         set((state) => {
           const project = cloneProject(state.project);

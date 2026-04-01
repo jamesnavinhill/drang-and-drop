@@ -21,13 +21,15 @@ Implemented in the current greenfield slice:
 - starter zip export with generated `Next.js` project files
 - verification coverage for build, lint, live browser rendering, page switching, node selection, preview mode changes, and export download
 - deterministic builder drag verification for explicit palette insertion, nested insertion, reorder, and invalid-drop coverage
+- shared structure-command foundation for insert, move, duplicate, and remove node mutations
+- structural validation for invalid placement and orphan-node states during import and persisted-state parsing
+- direct command verification for shared builder mutation flows
 - automated generated-starter verification across all shipped templates with install/build/serve/route/static-asset and browser-rendered checks
 
 Open follow-up work after this slice:
 
 - strengthen the editor foundation before accelerating more catalog breadth
-- centralize placement constraints, command handling, and structural validation
-- harden canvas behavior and layout edge-case handling
+- harden canvas behavior, validation surfacing, and layout edge-case handling on top of the new command layer
 - expand builder drag verification across more block combinations and placement edge cases
 - strengthen export parity tests and generated-project runtime verification
 - deepen generated-app assertions beyond the current browser smoke checks and runtime harness

@@ -7,6 +7,7 @@ Code quality checks completed from `apps/web`:
 ```powershell
 pnpm lint
 pnpm build
+pnpm verify:commands
 pnpm verify:dnd
 pnpm verify:starters
 ```
@@ -34,6 +35,16 @@ Verified behaviors:
 - app shell renders correctly in production mode
 - undo/redo buttons activate after an edit and restore/reapply project state
 - export button triggers a starter zip download
+
+Direct command verification completed via `pnpm verify:commands`:
+
+1. Verified shared insert command behavior for valid page-root and nested placements.
+2. Verified shared move command behavior for nested-container moves.
+3. Verified descendant-target rejection for invalid moves.
+4. Verified root-only placement rejection for invalid nested inserts.
+5. Verified shared duplicate command behavior for subtree cloning with fresh ids.
+6. Verified shared remove command behavior for subtree deletion.
+7. Verified structural validation rejects invalid root placement and orphan nodes.
 
 Verified undo/redo flow:
 
@@ -69,9 +80,12 @@ Automated builder drag validation completed via `pnpm verify:dnd`:
 5. Verified nested reordering by moving `button` ahead of `text`.
 6. Verified another root insertion for `hero`.
 7. Verified root-level reordering by moving `hero` ahead of `section`.
-8. Verified an invalid nested `navbar` drop does not mutate the builder structure.
-9. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
-10. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
+8. Verified nested insertion for `stack`, then moved `text` into that nested container.
+9. Verified an invalid nested `hero` move does not mutate the builder structure.
+10. Verified an invalid descendant move does not mutate the builder structure.
+11. Verified an invalid nested `navbar` drop does not mutate the builder structure.
+12. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
+13. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
 
 ## Remaining Caveat
 
@@ -79,13 +93,14 @@ The previous local `next start` concern no longer reproduces after the hydration
 
 The primary remaining verification gaps are now split between editor-foundation hardening and deeper generated-app fidelity coverage:
 
-- builder drag verification currently covers the core insertion/reorder loop, but not yet the full placement-constraint surface or every nested edge case
-- structural validation and command-path changes are not yet covered by dedicated mutation-level verification
+- builder drag verification now covers the main insertion/reorder loop plus a first set of invalid nested and descendant scenarios, but not yet every placement-constraint edge case
+- command-path verification now covers shared insert/move/duplicate/remove behavior, but future command types still need to be added as they land
 - generated starter validation now includes browser-rendered route checks, but it still does not include visual diffing or richer semantic assertions against layout fidelity
 
 What is already in place to support that follow-up:
 
 - stable `data-builder-*` hooks now back both browser automation selectors and the deterministic builder drag verification hook
+- `scripts/verify-builder-commands.ts` now gives the structure-command layer a direct fast verification loop outside the browser
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 - the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized
 
@@ -93,6 +108,6 @@ What is already in place to support that follow-up:
 
 Run these next:
 
-1. Expand builder drag verification around placement-constraint edges, invalid drops, and nested-container behavior as the editor foundation work lands.
-2. Add mutation-level verification for shared insert, move, duplicate, and remove command paths once those operations are more explicitly centralized.
+1. Expand builder drag verification around more placement-constraint edges, especially empty-container affordances and outline/canvas parity scenarios.
+2. Extend command verification when wrap/unwrap or assistant-safe mutation commands land.
 3. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions only after the export contract is tightened.

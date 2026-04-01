@@ -11,6 +11,18 @@ Re-center the next implementation slices on the editor substrate instead of acce
 
 This plan pulls together unfinished work that was previously split across roadmap follow-ups, verification notes, and handoff guidance, then turns that work into a single foundation-first sequence for the current codebase in `apps/web`.
 
+## Progress Update
+
+Progress landed so far in the current codebase:
+
+- shared placement validation now lives in `src/lib/builder/structure.ts`
+- insert, move, duplicate, and remove now share a structure-command path before store history is recorded
+- structural validation now rejects invalid placement and orphan-node states during import and persisted-state parsing
+- drag verification now covers a first set of deeper invalid nested and descendant scenarios
+- direct command verification now exists for shared insert/move/duplicate/remove behavior
+
+This means the constraint-and-command foundation is partially landed. The next work inside this plan should lean harder into editor interaction clarity, validation surfacing, and registry separation instead of reopening already-centralized mutation paths.
+
 ## Why This Plan Exists
 
 The current builder already has:
@@ -268,19 +280,24 @@ Scope:
 - begin separating editor commands from UI-specific drag behavior
 - harden structural validation around insert and move flows
 
+Current status:
+
+- shared insert/move/duplicate/remove command execution is now in place
+- structural validation is now stronger for imported and persisted projects
+- direct mutation-level verification now exists alongside browser drag verification
+
 Suggested file focus:
 
-- `apps/web/src/lib/builder/dnd.ts`
-- `apps/web/src/lib/builder/store.ts`
-- `apps/web/src/lib/builder/structure.ts`
-- `apps/web/src/lib/builder/schema.ts`
 - `apps/web/src/components/builder/canvas.tsx`
+- `apps/web/src/components/builder/page-panel.tsx`
+- `apps/web/src/components/builder/inspector-panel.tsx`
+- `apps/web/src/lib/builder/registry.tsx`
 
 Suggested acceptance criteria:
 
-- insert and move operations go through a shared constraint-aware path
-- invalid structural mutations are rejected consistently
-- drag/drop, outline reorder, and future assistant-safe edits can share the same mutation rules
+- canvas and outline interactions remain easy to understand on top of the shared command path
+- invalid structural mutations are not only rejected consistently but are easier to explain to the user
+- drag/drop, outline reorder, and future assistant-safe edits continue to share the same mutation rules
 - existing verification remains green
 
 ## Verification Expectations For This Phase

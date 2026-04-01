@@ -16,6 +16,7 @@ pnpm dev --port 3000
 ```powershell
 pnpm lint
 pnpm build
+pnpm verify:commands
 pnpm verify:dnd
 pnpm verify:starters
 ```
@@ -45,7 +46,9 @@ The current desktop shell is organized as:
 ## Core Workflow Features
 
 - schema-driven multi-page builder state with undo/redo history
-- drag/drop composition with constrained layout primitives and parent/child placement rules
+- shared structure-command layer for insert, move, duplicate, and remove operations
+- structural project validation for import, persisted state hydration, and command-safe mutations
+- drag/drop composition with constrained layout primitives and centralized parent/child placement rules
 - tabbed pages workspace with route management and page outline/layers controls
 - contextual library filtering based on the active insertion target
 - project JSON import/export for backup and reuse
@@ -53,6 +56,7 @@ The current desktop shell is organized as:
 - expanded first-party block catalog including nav, FAQ, activity feed, testimonial, table, and message-thread shells
 - zip export to a runnable `Next.js` starter
 - deterministic builder drag verification for palette insertion, nested insertion, reorder, and invalid-drop coverage
+- direct builder command verification for shared insert/move/duplicate/remove and structural validation flows
 - automated generated-starter verification across all shipped templates
 - browser-rendered starter verification with screenshots, console/page error checks, and route assertions
 
@@ -82,5 +86,7 @@ If both provider credentials are present, also set:
 - Assistant route: `src/app/api/chat/route.ts`
 - Assistant config: `src/lib/ai`
 - Builder store: `src/lib/builder/store.ts`
+- Structure commands and validation: `src/lib/builder/structure.ts`
 - Registry and rendering: `src/lib/builder/registry.tsx`
 - Export generation: `src/lib/builder/export.ts`
+- Command verification: `scripts/verify-builder-commands.ts`

@@ -14,8 +14,10 @@ Core layers:
   Currently owns the component catalog, prop controls, placement constraints, theme style mapping, and preview rendering; this layer should be split further as the editor foundation hardening plan progresses.
 - `src/lib/builder/dnd.ts`
   Owns shared drag/drop resolution helpers used by both the live canvas and deterministic browser verification.
+- `src/lib/builder/structure.ts`
+  Owns shared placement validation, structure-command execution for insert/move/duplicate/remove, subtree helpers, and structural issue detection.
 - `src/lib/builder/store.ts`
-  Owns Zustand state, persistence, history, node/page mutations, duplication, deletion, and selection.
+  Owns Zustand state, persistence, history, node/page mutations, and selection while delegating structure-sensitive node commands to `structure.ts`.
 - `src/lib/builder/export.ts`
   Generates the zipped starter project from the current builder state.
 - `src/lib/builder/starter-artifacts.ts`
@@ -25,7 +27,9 @@ Core layers:
 - `src/components/builder/*`
   Implements the editor shell: page panel, library, canvas, inspector, and browser verification hook.
 - `scripts/verify-builder-dnd.ts`
-  Rebuilds and serves the builder app, then validates palette insertion, nested insertion, reorder, and invalid-drop behavior through the browser harness.
+  Rebuilds and serves the builder app, then validates palette insertion, nested insertion, reorder, invalid root-only nesting, and descendant-move rejection through the browser harness.
+- `scripts/verify-builder-commands.ts`
+  Runs direct command-layer verification for shared insert/move/duplicate/remove behavior and structural validation failure cases.
 - `scripts/verify-generated-starters.ts`
   Generates clean starter workspaces for each shipped template, then runs install/build/start/route/static-asset verification plus browser-rendered checks and screenshots.
 
@@ -116,10 +120,10 @@ The generated starter file plan now has a matching automated verification loop t
 
 ## Known Architectural Constraints
 
-- Drag/drop is constrained, but not deeply guarded against every layout edge case yet.
-- Placement constraints are still simpler allowlists rather than a more expressive placement model.
-- Mutation handling still lives too directly inside store actions and UI flows, which makes future command reuse harder.
-- Structural validation is still lighter than the editor now needs for broader catalog and template growth.
+- Drag/drop is constrained and now runs through shared insert/move command paths, but the canvas still does not surface invalid-drop reasoning in the UI.
+- Placement constraints are centralized for the current editor model, but they are still derived from registry allowlists rather than a richer slot or region contract.
+- Duplicate and remove now share the same command layer as insert and move, but higher-level editor interactions still need clearer affordances and feedback.
+- Structural validation now covers shape plus layout semantics for import and persisted state, but mutation failures are still mostly silent outside verification.
 - The registry still mixes metadata, editing schema, placement behavior, and builder preview rendering.
 - Export is readable, but not yet decomposed into highly granular generated components.
 - JSON import/export currently targets schema-safe builder state, not arbitrary roundtrip from generated code.
@@ -127,8 +131,8 @@ The generated starter file plan now has a matching automated verification loop t
 
 ## Current Architectural Priorities
 
-- centralize placement rules and drop-target resolution
-- introduce clearer command boundaries for insert, move, duplicate, and remove operations
-- strengthen structural validation beyond shape-only schema parsing
+- harden canvas and outline interactions on top of the new shared command path
+- surface clearer validation and invalid-drop feedback in the UI
 - reduce registry coupling before significantly expanding the catalog again
 - keep builder/runtime/export parity healthy while these editor-system changes land
+- grow command-level verification alongside future wrap/unwrap or assistant-safe mutations

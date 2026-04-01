@@ -29,20 +29,31 @@ export type BuilderStructureCommand =
       parent: ParentReference;
     }
   | {
+      createNodeId: () => string;
+      kind: "duplicate";
+      nodeId: string;
+    }
+  | {
       kind: "move";
       index: number;
       nodeId: string;
       parent: ParentReference;
+    }
+  | {
+      kind: "remove";
+      nodeId: string;
     };
 
 export type BuilderStructureCommandResult =
   | {
+      createdNodeIds?: string[];
       ok: true;
       index: number;
       nodeId: string;
       parent: ParentReference;
       previousIndex?: number;
       previousParent?: ParentReference;
+      removedNodeIds?: string[];
     }
   | {
       ok: false;
@@ -156,6 +167,70 @@ function removeChildReference(project: BuilderProject, nodeId: string) {
   return { index, parent };
 }
 
+function createUniqueNodeId(project: BuilderProject, createNodeId: () => string) {
+  let nextId = createNodeId();
+
+  while (project.nodes[nextId]) {
+    nextId = createNodeId();
+  }
+
+  return nextId;
+}
+
+export function cloneNodeSubtree(
+  project: BuilderProject,
+  nodeId: string,
+  createNodeId: () => string,
+): { createdNodeIds: string[]; rootId: string } | null {
+  const source = project.nodes[nodeId];
+  if (!source) {
+    return null;
+  }
+
+  const nextId = createUniqueNodeId(project, createNodeId);
+  const nextChildren: string[] = [];
+  const createdNodeIds = [nextId];
+
+  for (const childId of source.children) {
+    const childClone = cloneNodeSubtree(project, childId, createNodeId);
+    if (!childClone) {
+      return null;
+    }
+
+    nextChildren.push(childClone.rootId);
+    createdNodeIds.push(...childClone.createdNodeIds);
+  }
+
+  project.nodes[nextId] = {
+    ...structuredClone(source),
+    id: nextId,
+    children: nextChildren,
+  };
+
+  return {
+    createdNodeIds,
+    rootId: nextId,
+  };
+}
+
+export function deleteNodeSubtree(project: BuilderProject, nodeId: string): string[] {
+  const node = project.nodes[nodeId];
+  if (!node) {
+    return [];
+  }
+
+  const removedNodeIds: string[] = [];
+
+  for (const childId of node.children) {
+    removedNodeIds.push(...deleteNodeSubtree(project, childId));
+  }
+
+  delete project.nodes[nodeId];
+  removedNodeIds.push(nodeId);
+
+  return removedNodeIds;
+}
+
 export function isDescendantNode(project: BuilderProject, ancestorId: string, potentialDescendantId: string): boolean {
   const visited = new Set<string>();
 
@@ -266,74 +341,166 @@ export function executeStructureCommand(
   project: BuilderProject,
   command: BuilderStructureCommand,
 ): BuilderStructureCommandResult {
-  if (command.kind === "insert") {
-    if (project.nodes[command.node.id]) {
+  switch (command.kind) {
+    case "insert": {
+      if (project.nodes[command.node.id]) {
+        return {
+          ok: false,
+          reason: "duplicate-node-id",
+          message: `The node id "${command.node.id}" already exists in the project.`,
+        };
+      }
+
+      const placement = validateComponentPlacement({
+        childType: command.node.type,
+        index: command.index,
+        parent: command.parent,
+        project,
+      });
+      if (!placement.ok) {
+        return placement;
+      }
+
+      project.nodes[command.node.id] = command.node;
+      const insertedIndex = insertChildReference(project, placement.parent, command.node.id, placement.index);
+
       return {
-        ok: false,
-        reason: "duplicate-node-id",
-        message: `The node id "${command.node.id}" already exists in the project.`,
+        ok: true,
+        index: insertedIndex,
+        nodeId: command.node.id,
+        parent: placement.parent,
       };
     }
 
-    const placement = validateComponentPlacement({
-      childType: command.node.type,
-      index: command.index,
-      parent: command.parent,
-      project,
-    });
-    if (!placement.ok) {
-      return placement;
+    case "move": {
+      const placement = validateNodePlacement({
+        index: command.index,
+        nodeId: command.nodeId,
+        parent: command.parent,
+        project,
+      });
+      if (!placement.ok) {
+        return placement;
+      }
+
+      const previous = removeChildReference(project, command.nodeId);
+      if (!previous) {
+        return {
+          ok: false,
+          reason: "missing-parent",
+          message: "The requested node is not attached to any current parent.",
+        };
+      }
+
+      let targetIndex = placement.index;
+      if (
+        previous.parent.kind === placement.parent.kind &&
+        previous.parent.id === placement.parent.id &&
+        previous.index < placement.index
+      ) {
+        targetIndex = placement.index - 1;
+      }
+
+      const insertedIndex = insertChildReference(project, placement.parent, command.nodeId, targetIndex);
+
+      return {
+        ok: true,
+        index: insertedIndex,
+        nodeId: command.nodeId,
+        parent: placement.parent,
+        previousIndex: previous.index,
+        previousParent: previous.parent,
+      };
     }
 
-    project.nodes[command.node.id] = command.node;
-    const insertedIndex = insertChildReference(project, placement.parent, command.node.id, placement.index);
+    case "duplicate": {
+      const source = project.nodes[command.nodeId];
+      if (!source) {
+        return {
+          ok: false,
+          reason: "missing-node",
+          message: "The requested node does not exist.",
+        };
+      }
 
-    return {
-      ok: true,
-      index: insertedIndex,
-      nodeId: command.node.id,
-      parent: placement.parent,
-    };
+      const parent = findParentReference(project, command.nodeId);
+      if (!parent) {
+        return {
+          ok: false,
+          reason: "missing-parent",
+          message: "The requested node is not attached to any current parent.",
+        };
+      }
+
+      const siblingIds = getParentChildren(project, parent);
+      const currentIndex = siblingIds.indexOf(command.nodeId);
+      const clone = cloneNodeSubtree(project, command.nodeId, command.createNodeId);
+      if (!clone) {
+        return {
+          ok: false,
+          reason: "missing-node",
+          message: "The requested node subtree could not be cloned cleanly.",
+        };
+      }
+
+      const placement = validateComponentPlacement({
+        childType: source.type,
+        index: currentIndex + 1,
+        parent,
+        project,
+      });
+      if (!placement.ok) {
+        clone.createdNodeIds.forEach((createdNodeId) => {
+          delete project.nodes[createdNodeId];
+        });
+        return placement;
+      }
+
+      const insertedIndex = insertChildReference(project, parent, clone.rootId, currentIndex + 1);
+
+      return {
+        ok: true,
+        createdNodeIds: clone.createdNodeIds,
+        index: insertedIndex,
+        nodeId: clone.rootId,
+        parent,
+        previousIndex: currentIndex,
+        previousParent: parent,
+      };
+    }
+
+    case "remove": {
+      const node = project.nodes[command.nodeId];
+      if (!node) {
+        return {
+          ok: false,
+          reason: "missing-node",
+          message: "The requested node does not exist.",
+        };
+      }
+
+      const previous = removeChildReference(project, command.nodeId);
+      if (!previous) {
+        return {
+          ok: false,
+          reason: "missing-parent",
+          message: "The requested node is not attached to any current parent.",
+        };
+      }
+
+      const removedNodeIds = deleteNodeSubtree(project, node.id);
+
+      return {
+        ok: true,
+        index: previous.index,
+        nodeId: node.id,
+        parent: previous.parent,
+        previousIndex: previous.index,
+        previousParent: previous.parent,
+        removedNodeIds,
+      };
+    }
   }
-
-  const placement = validateNodePlacement({
-    index: command.index,
-    nodeId: command.nodeId,
-    parent: command.parent,
-    project,
-  });
-  if (!placement.ok) {
-    return placement;
-  }
-
-  const previous = removeChildReference(project, command.nodeId);
-  if (!previous) {
-    return {
-      ok: false,
-      reason: "missing-parent",
-      message: "The requested node is not attached to any current parent.",
-    };
-  }
-
-  let targetIndex = placement.index;
-  if (
-    previous.parent.kind === placement.parent.kind &&
-    previous.parent.id === placement.parent.id &&
-    previous.index < placement.index
-  ) {
-    targetIndex = placement.index - 1;
-  }
-
-  const insertedIndex = insertChildReference(project, placement.parent, command.nodeId, targetIndex);
-
-  return {
-    ok: true,
-    index: insertedIndex,
-    nodeId: command.nodeId,
-    parent: placement.parent,
-    previousIndex: previous.index,
-    previousParent: previous.parent,
-  };
 }
 
 export function collectProjectStructureIssues(project: BuilderProject): BuilderStructureIssue[] {
