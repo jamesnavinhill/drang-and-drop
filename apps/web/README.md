@@ -93,10 +93,12 @@ If both provider credentials are present, also set:
 - Builder store: `src/lib/builder/store.ts`
 - Structure commands and validation: `src/lib/builder/structure.ts`
 - Canonical block contracts: `src/lib/builder/block-contracts.ts`
+- Derived block catalog metadata: `src/lib/builder/block-catalog.ts`
 - Shared content parsing: `src/lib/builder/component-content.ts`
 - Block definitions: `src/lib/builder/block-definitions.ts`
 - Placement rules: `src/lib/builder/block-placement.ts`
 - Preview rendering: `src/lib/builder/block-preview.tsx`
+- Internal parity coverage project: `src/lib/builder/verification-project.ts`
 - Generated render support source: `src/lib/builder/starter-render-support.ts`
 - Registry compatibility barrel: `src/lib/builder/registry.tsx`
 - Export generation: `src/lib/builder/export.ts`

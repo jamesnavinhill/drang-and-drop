@@ -16,8 +16,10 @@
 - Outline and inspector now share the same node-structure action surface for reorder, duplicate, and remove controls.
 - Builder block definitions, placement rules, and preview rendering are now split into focused modules, and `src/lib/builder/registry.tsx` is reduced to a compatibility barrel instead of the implementation catch-all.
 - The canonical builder boundary now resolves through `block-contracts.ts`, `block-definitions.ts`, `block-placement.ts`, and `block-preview.tsx`, with the older `component-*` files reduced to compatibility shims.
+- A derived `block-catalog.ts` layer now exposes family and capability metadata for the builder UI, assistant context, and contract-driven verification work.
 - Placement validation now resolves against explicit `page-root` and `layout-container` target kinds instead of only raw parent-type allowlists, and command verification now covers those target boundaries directly.
 - Shared block-content parsing and fallback semantics now live in one builder module, and generated starters receive a dedicated `render-support` file instead of keeping those helpers inline in the main page renderer.
+- Starter verification now includes an internal block-contract coverage project so exported rendering stays exercised across every parity-critical shipped block type even when the public starter templates change.
 - The roadmap and operations docs have been updated to reflect the current implementation baseline and next slices.
 
 ## Next Best Slice

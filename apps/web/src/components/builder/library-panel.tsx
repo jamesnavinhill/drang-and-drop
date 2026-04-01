@@ -4,7 +4,8 @@ import { useDraggable } from "@dnd-kit/core";
 import { Compass, Filter, Layers3 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { blockDefinitions } from "@/lib/builder/block-definitions";
+import { getDisplayableBlockCapabilityLabels, groupBlockContractsByFamily } from "@/lib/builder/block-catalog";
+import { blockContracts } from "@/lib/builder/block-contracts";
 import { blockCanHaveChildren, isRootOnlyBlock } from "@/lib/builder/block-placement";
 import { describeInsertionTarget, validateBlockPlacement } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
@@ -18,7 +19,9 @@ function PaletteItem({
   description,
   icon,
   category,
+  familyLabel,
   helperLabel,
+  capabilityLabels,
   helperTone = "neutral",
 }: {
   title: string;
@@ -26,7 +29,9 @@ function PaletteItem({
   description: string;
   icon: string;
   category: string;
+  familyLabel: string;
   helperLabel: string;
+  capabilityLabels: string[];
   helperTone?: "neutral" | "warning";
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -66,8 +71,23 @@ function PaletteItem({
             <span className="rounded-full border border-border bg-white/75 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-muted">
               {category}
             </span>
+            <span className="rounded-full border border-border bg-white/75 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-muted">
+              {familyLabel}
+            </span>
           </div>
           <p className="mt-1 text-xs leading-5 text-muted">{description}</p>
+          {capabilityLabels.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {capabilityLabels.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full border border-border bg-white/80 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <p className={cn("mt-2 text-[11px] font-medium", helperTone === "warning" ? "text-orange-600" : "text-muted")}>
             {helperLabel}
           </p>
@@ -113,12 +133,12 @@ export function LibraryPanel() {
   const [libraryView, setLibraryView] = useState<LibraryView>("context");
   const insertion = describeInsertionTarget(project, selectedPageId, selectedNodeId);
 
-  const visibleItems = useMemo(() => {
+  const visibleContracts = useMemo(() => {
     if (libraryView === "all") {
-      return blockDefinitions;
+      return blockContracts;
     }
 
-    return blockDefinitions.filter((item) =>
+    return blockContracts.filter((item) =>
       validateBlockPlacement({
         childType: item.type,
         parent: insertion.target,
@@ -127,11 +147,7 @@ export function LibraryPanel() {
     );
   }, [insertion.target, libraryView, project]);
 
-  const groups = visibleItems.reduce<Record<string, typeof visibleItems>>((accumulator, item) => {
-    accumulator[item.category] ??= [];
-    accumulator[item.category].push(item);
-    return accumulator;
-  }, {});
+  const familyGroups = useMemo(() => groupBlockContractsByFamily(visibleContracts), [visibleContracts]);
 
   return (
     <div className="space-y-4">
@@ -152,7 +168,7 @@ export function LibraryPanel() {
             value="all"
           />
           <span className="ml-auto rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
-            {visibleItems.length} option{visibleItems.length === 1 ? "" : "s"}
+            {visibleContracts.length} option{visibleContracts.length === 1 ? "" : "s"}
           </span>
         </div>
       </div>
@@ -187,17 +203,20 @@ export function LibraryPanel() {
         </div>
 
         <div className="mt-5 grid gap-5">
-          {Object.entries(groups).length > 0 ? (
-            Object.entries(groups).map(([category, items]) => (
-              <div key={category}>
+          {familyGroups.length > 0 ? (
+            familyGroups.map((group) => (
+              <div key={group.family}>
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{category}</h3>
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{group.title}</h3>
+                    <p className="mt-1 text-xs leading-5 text-muted">{group.description}</p>
+                  </div>
                   <span className="text-[11px] text-muted">
-                    {items.length} block{items.length === 1 ? "" : "s"}
+                    {group.contracts.length} block{group.contracts.length === 1 ? "" : "s"}
                   </span>
                 </div>
                 <div className="mt-3 grid gap-2">
-                  {items.map((item) => {
+                  {group.contracts.map((item) => {
                     const placement = validateBlockPlacement({
                       childType: item.type,
                       parent: insertion.target,
@@ -206,11 +225,13 @@ export function LibraryPanel() {
                     return (
                       <PaletteItem
                         key={item.type}
-                        title={item.title}
+                        title={item.definition.title}
                         type={item.type}
-                        description={item.description}
-                        icon={item.icon}
-                        category={item.category}
+                        description={item.definition.description}
+                        icon={item.definition.icon}
+                        category={item.definition.category}
+                        familyLabel={group.title}
+                        capabilityLabels={getDisplayableBlockCapabilityLabels(item.capabilities)}
                         helperTone={libraryView === "all" && !placement.ok ? "warning" : "neutral"}
                         helperLabel={
                           libraryView === "all" && !placement.ok

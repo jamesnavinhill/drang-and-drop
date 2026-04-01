@@ -23,16 +23,20 @@ export interface BuilderAssistantContext {
     rootCount: number;
   } | null;
   selection: {
+    capabilities: string[];
+    family: string;
     type: string;
     title: string;
     description: string;
     props: Record<string, string | number | boolean>;
   } | null;
   availableBlocks: Array<{
+    capabilities: string[];
     type: string;
     title: string;
     category: string;
     description: string;
+    family: string;
     canHaveChildren: boolean;
   }>;
 }
@@ -57,6 +61,8 @@ export const builderAssistantContextSchema = z.object({
     .nullable(),
   selection: z
     .object({
+      capabilities: z.array(z.string()),
+      family: z.string(),
       type: z.string(),
       title: z.string(),
       description: z.string(),
@@ -65,10 +71,12 @@ export const builderAssistantContextSchema = z.object({
     .nullable(),
   availableBlocks: z.array(
     z.object({
+      capabilities: z.array(z.string()),
       type: z.string(),
       title: z.string(),
       category: z.string(),
       description: z.string(),
+      family: z.string(),
       canHaveChildren: z.boolean(),
     }),
   ),

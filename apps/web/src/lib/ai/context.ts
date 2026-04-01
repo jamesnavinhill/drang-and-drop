@@ -1,4 +1,6 @@
-import { blockDefinitions, getBlockDefinition } from "@/lib/builder/block-definitions";
+import { getBlockCapabilityLabels } from "@/lib/builder/block-catalog";
+import { blockContracts } from "@/lib/builder/block-contracts";
+import { getBlockDefinition } from "@/lib/builder/block-definitions";
 import { blockCanHaveChildren } from "@/lib/builder/block-placement";
 import type { BuilderProject, PreviewMode } from "@/lib/builder/types";
 
@@ -42,17 +44,23 @@ export function buildBuilderAssistantContext({
     selection:
       selectedNode && selectedDefinition
         ? {
+            capabilities: getBlockCapabilityLabels(
+              blockContracts.find((contract) => contract.type === selectedNode.type)?.capabilities ?? [],
+            ),
+            family: blockContracts.find((contract) => contract.type === selectedNode.type)?.family ?? "content",
             type: selectedNode.type,
             title: selectedDefinition.title,
             description: selectedDefinition.description,
             props: selectedNode.props,
           }
         : null,
-    availableBlocks: blockDefinitions.map((block) => ({
+    availableBlocks: blockContracts.map((block) => ({
       type: block.type,
-      title: block.title,
-      category: block.category,
-      description: block.description,
+      title: block.definition.title,
+      category: block.definition.category,
+      description: block.definition.description,
+      family: block.family,
+      capabilities: getBlockCapabilityLabels(block.capabilities),
       canHaveChildren: blockCanHaveChildren(block.type),
     })),
   };

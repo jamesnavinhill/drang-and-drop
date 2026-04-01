@@ -3,15 +3,17 @@ import type { BuilderAssistantContext } from "./types";
 function formatContext(context: BuilderAssistantContext) {
   const blockList = context.availableBlocks
     .map((block) =>
-      `${block.title} (${block.type}) - category: ${block.category}; children: ${
+      `${block.title} (${block.type}) - family: ${block.family}; category: ${block.category}; children: ${
         block.canHaveChildren ? "yes" : "no"
-      }; ${block.description}`,
+      }; capabilities: ${block.capabilities.join(", ") || "none"}; ${block.description}`,
     )
     .join("\n");
 
   const selectionSummary = context.selection
     ? [
         `Selected block: ${context.selection.title} (${context.selection.type})`,
+        `Block family: ${context.selection.family}`,
+        `Block capabilities: ${context.selection.capabilities.join(", ") || "none"}`,
         `Block description: ${context.selection.description}`,
         `Block props: ${JSON.stringify(context.selection.props)}`,
       ].join("\n")

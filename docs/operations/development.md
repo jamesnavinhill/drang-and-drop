@@ -91,10 +91,12 @@ pnpm verify:playwright:install
 - Assistant config and prompting: `apps/web/src/lib/ai`
 - Project store: `apps/web/src/lib/builder/store.ts`
 - Canonical block contracts: `apps/web/src/lib/builder/block-contracts.ts`
+- Derived block catalog metadata: `apps/web/src/lib/builder/block-catalog.ts`
 - Shared content parsing: `apps/web/src/lib/builder/component-content.ts`
 - Block definitions: `apps/web/src/lib/builder/block-definitions.ts`
 - Placement rules: `apps/web/src/lib/builder/block-placement.ts`
 - Preview rendering: `apps/web/src/lib/builder/block-preview.tsx`
+- Internal parity coverage project: `apps/web/src/lib/builder/verification-project.ts`
 - Generated render support source: `apps/web/src/lib/builder/starter-render-support.ts`
 - Registry compatibility barrel: `apps/web/src/lib/builder/registry.tsx`
 - Export generation: `apps/web/src/lib/builder/export.ts`

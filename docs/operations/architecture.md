@@ -12,6 +12,8 @@ Core layers:
   Seeds the starter templates, demo project, and template factories.
 - `src/lib/builder/block-contracts.ts`
   Owns the canonical block contracts, including family, metadata, placement, capability tags, and verification expectations for each shipped block type.
+- `src/lib/builder/block-catalog.ts`
+  Owns derived family metadata, capability labeling, and contract-driven catalog helpers used by the UI and verification.
 - `src/lib/builder/block-definitions.ts`
   Derives block metadata, defaults, and inspector field definitions from the canonical block contracts.
 - `src/lib/builder/block-placement.ts`
@@ -28,6 +30,8 @@ Core layers:
   Compatibility shim that re-exports the canonical block-preview boundary.
 - `src/lib/builder/starter-render-support.ts`
   Owns the generated starter render-support file source so export helper behavior can stay aligned with the builder-side content contract.
+- `src/lib/builder/verification-project.ts`
+  Owns the internal block-contract coverage project used to keep starter verification exercising every parity-critical shipped block type.
 - `src/lib/builder/registry.tsx`
   Assembles the block registry from canonical block contracts and remains the compatibility barrel for older imports.
 - `src/lib/builder/dnd.ts`
@@ -49,7 +53,7 @@ Core layers:
 - `scripts/verify-builder-commands.ts`
   Runs direct command-layer verification for shared insert/move/duplicate/remove behavior and structural validation failure cases.
 - `scripts/verify-generated-starters.ts`
-  Generates clean starter workspaces for each shipped template, then runs install/build/start/route/static-asset verification plus browser-rendered checks and screenshots.
+  Generates clean starter workspaces for each shipped template plus the internal block-contract coverage project, then runs install/build/start/route/static-asset verification plus browser-rendered checks and screenshots.
 
 ## Data Model
 
@@ -153,6 +157,7 @@ The generated starter file plan now has a matching automated verification loop t
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
 - Registry implementation coupling is lower now that canonical block contracts, derived block-definition/placement modules, and block preview rendering are split into separate modules, but the placement model still stops short of slot or region contracts and preview/export still duplicate most JSX block layouts.
+- The family and capability map is now a real derived builder module instead of only being implicit inside planning docs, which makes both catalog UI and verification easier to align with the current system.
 - Export is clearer now that generated render support is split away from the main starter-artifact file, but it is not yet decomposed into highly granular generated components.
 - JSON import/export currently targets schema-safe builder state, not arbitrary roundtrip from generated code.
 - Backend integrations, auth, and data bindings are intentionally deferred.

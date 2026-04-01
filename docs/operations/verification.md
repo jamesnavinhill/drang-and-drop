@@ -69,16 +69,17 @@ Verified export artifact:
 Automated generated starter validation completed via `pnpm verify:starters`:
 
 1. Generated clean starter workspaces under `apps/web/output/starter-verification`.
-2. Ran `pnpm install` for each shipped template.
-3. Ran `pnpm build` for each generated starter.
-4. Ran `pnpm start --port <port>` for each generated starter.
-5. Confirmed every generated route returned `200`.
-6. Confirmed expected rendered content appeared in the HTML for each route.
-7. Confirmed a live `/_next/static/*` asset request returned `200` for each starter.
-8. Opened each generated route in headless Chromium.
-9. Confirmed `main` rendered visibly and matched expected page content.
-10. Confirmed no browser `pageerror`, no browser console error, and no failed network request for each route.
-11. Saved browser screenshots for each generated route under the template verification workspace.
+2. Included the internal block-contract coverage project alongside the shipped templates so every parity-critical shipped block type stays exercised.
+3. Ran `pnpm install` for each generated starter.
+4. Ran `pnpm build` for each generated starter.
+5. Ran `pnpm start --port <port>` for each generated starter.
+6. Confirmed every generated route returned `200`.
+7. Confirmed expected rendered content appeared in the HTML for each route.
+8. Confirmed a live `/_next/static/*` asset request returned `200` for each starter.
+9. Opened each generated route in headless Chromium.
+10. Confirmed `main` rendered visibly and matched expected page content.
+11. Confirmed no browser `pageerror`, no browser console error, and no failed network request for each route.
+12. Saved browser screenshots for each generated route under the template verification workspace.
 
 Automated builder drag validation completed via `pnpm verify:dnd`:
 
@@ -114,7 +115,9 @@ What is already in place to support that follow-up:
 - stable `data-builder-*` hooks now back both browser automation selectors and the deterministic builder drag verification hook
 - `scripts/verify-builder-commands.ts` now gives the structure-command layer a direct fast verification loop outside the browser
 - canonical block contracts now live in `src/lib/builder/block-contracts.ts`, with derived definition, placement, and preview modules built on top of that boundary
+- `src/lib/builder/block-catalog.ts` now exposes family/capability metadata used by both the builder UI and verification loops
 - compatibility shims still exist for the older `component-*` module names, but the active builder codepaths now resolve through the canonical `block-*` modules
+- starter verification now includes an internal block-contract coverage project so preview/export parity checks do not depend only on the shape of the shipped user-facing templates
 - placement rules now resolve through explicit `page-root` and `layout-container` target kinds, which gives validation and verification a clearer shared vocabulary
 - shared content parsing and fallback semantics now back both builder preview and generated starter render support, which reduces one more source of preview/export drift
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks

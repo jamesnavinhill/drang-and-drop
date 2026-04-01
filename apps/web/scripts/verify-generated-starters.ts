@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
+import { collectProjectBlockTypes, getParityCriticalBlockTypes } from "../src/lib/builder/block-catalog";
 import {
   builderTemplateCatalog,
   createProjectFromTemplate,
@@ -13,6 +14,7 @@ import {
   getStarterArchiveBaseName,
   getStarterProjectFiles,
 } from "../src/lib/builder/starter-artifacts";
+import { createBlockContractVerificationProject } from "../src/lib/builder/verification-project";
 import type { BuilderPage, BuilderProject } from "../src/lib/builder/types";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -110,6 +112,24 @@ function routePathToFileStem(pathname: string) {
   }
 
   return pathname.replace(/^\//, "").replace(/[\\/]+/g, "-");
+}
+
+function assertParityCoverage(projects: BuilderProject[]) {
+  const coveredTypes = new Set<string>();
+
+  for (const project of projects) {
+    for (const type of collectProjectBlockTypes(project)) {
+      coveredTypes.add(type);
+    }
+  }
+
+  const missingTypes = getParityCriticalBlockTypes().filter((type) => !coveredTypes.has(type));
+
+  if (missingTypes.length > 0) {
+    throw new Error(
+      `Starter verification is missing parity coverage for: ${missingTypes.join(", ")}. Add them to a shipped template or the internal coverage project.`,
+    );
+  }
 }
 
 async function writeStarterWorkspace(project: BuilderProject, workspaceDir: string) {
@@ -400,20 +420,29 @@ async function verifyRoutesInBrowser(project: BuilderProject, baseUrl: string, s
   }
 }
 
-async function verifyTemplate(templateId: BuilderTemplateId, port: number, verifyBrowser: boolean) {
-  const project = createProjectFromTemplate(templateId);
-  const workspaceDir = path.join(outputRoot, templateId, getStarterArchiveBaseName(project));
+async function verifyProject({
+  port,
+  project,
+  projectId,
+  verifyBrowser,
+}: {
+  port: number;
+  project: BuilderProject;
+  projectId: string;
+  verifyBrowser: boolean;
+}) {
+  const workspaceDir = path.join(outputRoot, projectId, getStarterArchiveBaseName(project));
   const logsDir = path.join(workspaceDir, ".verification");
   const screenshotsDir = path.join(logsDir, "screenshots");
 
-  console.log(`\n[verify:starters] Preparing ${templateId} in ${workspaceDir}`);
+  console.log(`\n[verify:starters] Preparing ${projectId} in ${workspaceDir}`);
   await writeStarterWorkspace(project, workspaceDir);
   await fs.mkdir(logsDir, { recursive: true });
   await fs.mkdir(screenshotsDir, { recursive: true });
 
   await runCommand({
     cwd: workspaceDir,
-    label: `${templateId} install`,
+    label: `${projectId} install`,
     args: ["install"],
     stdoutPath: path.join(logsDir, "install.stdout.log"),
     stderrPath: path.join(logsDir, "install.stderr.log"),
@@ -421,7 +450,7 @@ async function verifyTemplate(templateId: BuilderTemplateId, port: number, verif
 
   await runCommand({
     cwd: workspaceDir,
-    label: `${templateId} build`,
+    label: `${projectId} build`,
     args: ["build"],
     stdoutPath: path.join(logsDir, "build.stdout.log"),
     stderrPath: path.join(logsDir, "build.stderr.log"),
@@ -439,7 +468,7 @@ async function verifyTemplate(templateId: BuilderTemplateId, port: number, verif
   }
 
   console.log(
-    `[verify:starters] ${templateId} passed ${
+    `[verify:starters] ${projectId} passed ${
       verifyBrowser ? "runtime and browser-rendered" : "runtime"
     } checks on port ${port}.`,
   );
@@ -463,11 +492,35 @@ async function main() {
 
   await fs.mkdir(outputRoot, { recursive: true });
 
+  const verificationProjects = [
+    ...templateIds.map((templateId) => createProjectFromTemplate(templateId)),
+    createBlockContractVerificationProject(),
+  ];
+  assertParityCoverage(verificationProjects);
+
   for (const [index, templateId] of templateIds.entries()) {
-    await verifyTemplate(templateId, basePort + index, verifyBrowser);
+    await verifyProject({
+      port: basePort + index,
+      project: createProjectFromTemplate(templateId),
+      projectId: templateId,
+      verifyBrowser,
+    });
   }
 
-  console.log(`\n[verify:starters] Completed ${templateIds.length} template verification run(s).`);
+  if (!requestedTemplate) {
+    await verifyProject({
+      port: basePort + templateIds.length,
+      project: createBlockContractVerificationProject(),
+      projectId: "block-contract-coverage",
+      verifyBrowser,
+    });
+  }
+
+  console.log(
+    `\n[verify:starters] Completed ${
+      templateIds.length + (requestedTemplate ? 0 : 1)
+    } verification run(s).`,
+  );
 }
 
 main().catch((error) => {
