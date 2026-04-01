@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Copy, FilePlus2, FolderTree, Route, Trash2 } from "lucide-react";
+import { Copy, FilePlus2, FolderTree, Route, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { getComponentDefinition } from "@/lib/builder/registry";
@@ -14,6 +14,8 @@ import {
 import { useBuilderStore } from "@/lib/builder/store";
 import type { BuilderProject, ParentReference } from "@/lib/builder/types";
 import { cn } from "@/lib/utils";
+
+import { NodeStructureActions } from "./node-structure-actions";
 
 type PagePanelTab = "routes" | "outline";
 
@@ -62,9 +64,6 @@ function OutlineNodeRow({
   selectedNodeId: string | null;
 }) {
   const selectNode = useBuilderStore((state) => state.selectNode);
-  const moveNode = useBuilderStore((state) => state.moveNode);
-  const duplicateNode = useBuilderStore((state) => state.duplicateNode);
-  const removeNode = useBuilderStore((state) => state.removeNode);
   const node = project.nodes[nodeId];
 
   if (!node) {
@@ -73,8 +72,6 @@ function OutlineNodeRow({
 
   const definition = getComponentDefinition(node.type);
   const siblingIds = getParentChildren(project, parent);
-  const canMoveUp = index > 0;
-  const canMoveDown = index < siblingIds.length - 1;
   const descendantCount = countSubtreeNodes(project, node.id) - 1;
 
   return (
@@ -109,46 +106,13 @@ function OutlineNodeRow({
         </button>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => moveNode(node.id, parent, index - 1)}
-            disabled={!canMoveUp}
-            className={cn(
-              "builder-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-semibold",
-              canMoveUp ? "text-foreground" : "cursor-not-allowed text-muted/60",
-            )}
-          >
-            <ArrowUp className="h-3 w-3" />
-            Up
-          </button>
-          <button
-            type="button"
-            onClick={() => moveNode(node.id, parent, index + 2)}
-            disabled={!canMoveDown}
-            className={cn(
-              "builder-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-semibold",
-              canMoveDown ? "text-foreground" : "cursor-not-allowed text-muted/60",
-            )}
-          >
-            <ArrowDown className="h-3 w-3" />
-            Down
-          </button>
-          <button
-            type="button"
-            onClick={() => duplicateNode(node.id)}
-            className="builder-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-foreground"
-          >
-            <Copy className="h-3 w-3" />
-            Duplicate
-          </button>
-          <button
-            type="button"
-            onClick={() => removeNode(node.id)}
-            className="builder-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-danger"
-          >
-            <Trash2 className="h-3 w-3" />
-            Remove
-          </button>
+          <NodeStructureActions
+            index={index}
+            nodeId={node.id}
+            parent={parent}
+            siblingCount={siblingIds.length}
+            surface="outline"
+          />
           {descendantCount > 0 ? (
             <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
               {descendantCount} nested

@@ -52,6 +52,7 @@ Canvas interaction feedback is now also validated indirectly by the browser drag
 2. Invalid nested and descendant drag targets now surface the shared validation message before drop.
 3. Full-catalog library browsing now shows when a block is not allowed in the current insertion target.
 4. Invalid structure-sensitive actions now surface a shared editor notice at the studio shell level.
+5. Inspector-driven node reorder now uses the same structure action surface as the outline and is covered by the browser harness.
 
 Verified undo/redo flow:
 
@@ -93,8 +94,9 @@ Automated builder drag validation completed via `pnpm verify:dnd`:
 11. Verified an invalid nested `navbar` drop does not mutate the builder structure.
 12. Verified invalid hero, descendant, and navbar interactions surface a visible editor notice.
 13. Verified the shared editor notice can be dismissed.
-14. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
-15. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
+14. Verified inspector-driven reorder can move a selected node down and restore it back up.
+15. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
+16. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
 
 ## Remaining Caveat
 
@@ -102,7 +104,7 @@ The previous local `next start` concern no longer reproduces after the hydration
 
 The primary remaining verification gaps are now split between editor-foundation hardening and deeper generated-app fidelity coverage:
 
-- builder drag verification now covers the main insertion/reorder loop plus invalid nested and descendant scenarios with visible notice assertions, but not yet outline/canvas parity or every placement-constraint edge case
+- builder drag verification now covers the main insertion/reorder loop plus invalid nested and descendant scenarios with visible notice assertions and an inspector parity check, but not yet every outline/canvas parity scenario or every placement-constraint edge case
 - command-path verification now covers shared insert/move/duplicate/remove behavior, but future command types still need to be added as they land
 - generated starter validation now includes browser-rendered route checks, but it still does not include visual diffing or richer semantic assertions against layout fidelity
 

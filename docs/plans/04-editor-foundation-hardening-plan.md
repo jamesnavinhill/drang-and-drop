@@ -24,6 +24,7 @@ Progress landed so far in the current codebase:
 - the full library catalog now flags blocks that do not fit the current insertion target
 - failed structure-sensitive actions now surface through a shared shell-level editor notice
 - the outline now shows the current insertion target so selection and insertion intent are easier to read
+- outline and inspector now share the same structure-action controls for reorder, duplicate, and remove
 
 This means the constraint-and-command foundation is partially landed. The next work inside this plan should lean harder into editor interaction clarity, validation surfacing, and registry separation instead of reopening already-centralized mutation paths.
 
@@ -292,6 +293,7 @@ Current status:
 - canvas-side invalid-drop feedback is now in place for shared placement failures
 - shell-level editor notices now surface failed structure-sensitive actions across the workspace
 - outline insertion context now reflects the same target model used by the library
+- outline and inspector now share a single node-action surface, reducing editor-surface drift
 
 Suggested file focus:
 
@@ -306,6 +308,7 @@ Suggested acceptance criteria:
 - invalid structural mutations are not only rejected consistently but are easier to explain to the user
 - contextual library and canvas feedback stay aligned with the same placement rules
 - shared notices and insertion context reduce the gap between outline and canvas mental models
+- reorder, duplicate, and remove controls stay aligned across at least outline and inspector
 - drag/drop, outline reorder, and future assistant-safe edits continue to share the same mutation rules
 - existing verification remains green
 

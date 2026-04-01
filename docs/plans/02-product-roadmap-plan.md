@@ -26,6 +26,7 @@ Implemented in the current greenfield slice:
 - direct command verification for shared builder mutation flows
 - canvas-side invalid-drop feedback and library placement hints driven by the shared placement validator
 - shared shell-level editor notices plus outline insertion-context cues for clearer editor parity
+- shared outline/inspector node action controls for reorder, duplicate, and remove parity
 - automated generated-starter verification across all shipped templates with install/build/serve/route/static-asset and browser-rendered checks
 
 Open follow-up work after this slice:

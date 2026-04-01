@@ -123,6 +123,7 @@ The generated starter file plan now has a matching automated verification loop t
 - Drag/drop is constrained, runs through shared insert/move command paths, and now surfaces invalid-drop reasoning in the canvas while failed structure commands surface through a shared shell notice.
 - Placement constraints are centralized for the current editor model, but they are still derived from registry allowlists rather than a richer slot or region contract.
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
+- Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
 - The registry still mixes metadata, editing schema, placement behavior, and builder preview rendering.
 - Export is readable, but not yet decomposed into highly granular generated components.
@@ -133,7 +134,7 @@ The generated starter file plan now has a matching automated verification loop t
 
 - tighten canvas and outline parity on top of the shared command path
 - keep refining validation and invalid-drop feedback across editor surfaces
-- reduce interaction duplication between outline actions and canvas actions
+- reduce the remaining interaction duplication between outline actions and canvas actions
 - reduce registry coupling before significantly expanding the catalog again
 - keep builder/runtime/export parity healthy while these editor-system changes land
 - grow command-level verification alongside future wrap/unwrap or assistant-safe mutations

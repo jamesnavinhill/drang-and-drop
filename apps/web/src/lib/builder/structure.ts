@@ -719,6 +719,25 @@ export function getNodeHierarchyDepth(project: BuilderProject, nodeId: string) {
   return depth;
 }
 
+export function getNodeSiblingPosition(project: BuilderProject, nodeId: string) {
+  const parent = findParentReference(project, nodeId);
+  if (!parent) {
+    return null;
+  }
+
+  const siblingIds = getParentChildren(project, parent);
+  const index = siblingIds.indexOf(nodeId);
+  if (index < 0) {
+    return null;
+  }
+
+  return {
+    index,
+    parent,
+    siblingCount: siblingIds.length,
+  };
+}
+
 export function getInsertionTarget(
   project: BuilderProject,
   selectedPageId: string,

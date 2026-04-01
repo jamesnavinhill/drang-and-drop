@@ -430,6 +430,36 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
       "Stack children after moving text into nested stack",
     );
 
+    await page.click(`[data-builder-node="${buttonId}"]`);
+    await page.waitForTimeout(100);
+    await page.click('[data-builder-inspector-tab="selection"]');
+    await page.waitForTimeout(100);
+    await page.click(
+      `[data-builder-node-action-surface="inspector"][data-builder-node-action="down"][data-builder-node-action-target="${buttonId}"]`,
+    );
+    await page.waitForTimeout(200);
+
+    snapshot = await getBuilderSnapshot(page);
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[sectionId]?.childIds ?? [],
+      ["stack", "button"],
+      "Section children after inspector move down",
+    );
+
+    await page.click(
+      `[data-builder-node-action-surface="inspector"][data-builder-node-action="up"][data-builder-node-action-target="${buttonId}"]`,
+    );
+    await page.waitForTimeout(200);
+
+    snapshot = await getBuilderSnapshot(page);
+    assertNodeTypeSequence(
+      snapshot,
+      snapshot.nodes[sectionId]?.childIds ?? [],
+      ["button", "stack"],
+      "Section children after inspector move restore",
+    );
+
     await page.click('[data-builder-library-view="all"]');
     await page.waitForTimeout(100);
 

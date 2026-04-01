@@ -53,6 +53,7 @@ The current desktop shell is organized as:
 - contextual library filtering plus full-catalog placement hints based on the active insertion target
 - shared editor notices surfaced at the studio shell level for failed structure-sensitive actions
 - outline insertion context cues that match the library and canvas targeting model
+- shared node structure actions across outline and inspector so reorder/duplicate/remove stay aligned
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
 - expanded first-party block catalog including nav, FAQ, activity feed, testimonial, table, and message-thread shells

@@ -1,13 +1,20 @@
 "use client";
 
-import { Copy, Paintbrush, ScrollText, Sparkles, Trash2 } from "lucide-react";
+import { Paintbrush, ScrollText, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { getComponentDefinition } from "@/lib/builder/registry";
-import { findParentReference, getNodeDisplayLabel, getNodeHierarchyDepth } from "@/lib/builder/structure";
+import {
+  findParentReference,
+  getNodeDisplayLabel,
+  getNodeHierarchyDepth,
+  getNodeSiblingPosition,
+} from "@/lib/builder/structure";
 import { getSelectedNode, getSelectedPage, useBuilderStore } from "@/lib/builder/store";
 import type { ControlField } from "@/lib/builder/types";
 import { clamp, cn } from "@/lib/utils";
+
+import { NodeStructureActions } from "./node-structure-actions";
 
 type InspectorTab = "selection" | "page" | "theme";
 
@@ -131,16 +138,19 @@ function TabButton({
   icon: Icon,
   label,
   onClick,
+  value,
 }: {
   active: boolean;
   icon: typeof Sparkles;
   label: string;
   onClick: () => void;
+  value: InspectorTab;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      data-builder-inspector-tab={value}
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
         active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
@@ -162,10 +172,9 @@ function SelectionTab({
   const project = useBuilderStore((state) => state.project);
   const selectedNode = useBuilderStore(getSelectedNode);
   const updateNodeField = useBuilderStore((state) => state.updateNodeField);
-  const duplicateNode = useBuilderStore((state) => state.duplicateNode);
-  const removeNode = useBuilderStore((state) => state.removeNode);
   const selectedDefinition = selectedNode ? getComponentDefinition(selectedNode.type) : null;
   const selectedParent = selectedNode ? findParentReference(project, selectedNode.id) : null;
+  const siblingPosition = selectedNode ? getNodeSiblingPosition(project, selectedNode.id) : null;
   const parentLabel =
     selectedParent?.kind === "page"
       ? `${project.pages.find((page) => page.id === selectedParent.id)?.name ?? "Page"} root`
@@ -202,31 +211,28 @@ function SelectionTab({
               <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
                 Parent: {parentLabel}
               </span>
+              {siblingPosition ? (
+                <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+                  Sibling {siblingPosition.index + 1} of {siblingPosition.siblingCount}
+                </span>
+              ) : null}
             </div>
             <p className="mt-3 text-sm leading-6 text-muted">
-              Use the outline in the pages panel to reorder this block among siblings or to understand its nesting at a
-              glance.
+              Canvas selection and outline selection now share the same structure actions, so you can reorder this block
+              from either surface without changing the mutation path.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => duplicateNode(selectedNode.id)}
-              className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-foreground"
-            >
-              <Copy className="h-3.5 w-3.5" />
-              Duplicate
-            </button>
-            <button
-              type="button"
-              onClick={() => removeNode(selectedNode.id)}
-              className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-danger"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Remove
-            </button>
-          </div>
+          {siblingPosition ? (
+            <NodeStructureActions
+              index={siblingPosition.index}
+              nodeId={selectedNode.id}
+              parent={siblingPosition.parent}
+              siblingCount={siblingPosition.siblingCount}
+              size="md"
+              surface="inspector"
+            />
+          ) : null}
 
           <div className="grid gap-3">
             {selectedDefinition.fields.map((field) => (
@@ -368,13 +374,21 @@ export function InspectorPanel() {
             icon={Sparkles}
             label="Selection"
             onClick={() => setActiveTab("selection")}
+            value="selection"
           />
-          <TabButton active={activeTab === "page"} icon={ScrollText} label="Page" onClick={() => setActiveTab("page")} />
+          <TabButton
+            active={activeTab === "page"}
+            icon={ScrollText}
+            label="Page"
+            onClick={() => setActiveTab("page")}
+            value="page"
+          />
           <TabButton
             active={activeTab === "theme"}
             icon={Paintbrush}
             label="Theme"
             onClick={() => setActiveTab("theme")}
+            value="theme"
           />
         </div>
       </div>
