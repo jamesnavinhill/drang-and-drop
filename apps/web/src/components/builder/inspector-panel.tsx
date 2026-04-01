@@ -1,11 +1,14 @@
 "use client";
 
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Paintbrush, ScrollText, Sparkles, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 import { getComponentDefinition } from "@/lib/builder/registry";
 import { getSelectedNode, getSelectedPage, useBuilderStore } from "@/lib/builder/store";
 import type { ControlField } from "@/lib/builder/types";
 import { clamp, cn } from "@/lib/utils";
+
+type InspectorTab = "selection" | "page" | "theme";
 
 function FieldControl({
   field,
@@ -122,16 +125,160 @@ function FieldControl({
   );
 }
 
-export function InspectorPanel() {
-  const project = useBuilderStore((state) => state.project);
-  const selectedPage = useBuilderStore(getSelectedPage);
+function TabButton({
+  active,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: typeof Sparkles;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+        active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
+  );
+}
+
+function SelectionTab({
+  active,
+  onShowPage,
+}: {
+  active: boolean;
+  onShowPage: () => void;
+}) {
   const selectedNode = useBuilderStore(getSelectedNode);
-  const updateProjectField = useBuilderStore((state) => state.updateProjectField);
-  const updateThemeField = useBuilderStore((state) => state.updateThemeField);
-  const updatePageField = useBuilderStore((state) => state.updatePageField);
   const updateNodeField = useBuilderStore((state) => state.updateNodeField);
   const duplicateNode = useBuilderStore((state) => state.duplicateNode);
   const removeNode = useBuilderStore((state) => state.removeNode);
+  const selectedDefinition = selectedNode ? getComponentDefinition(selectedNode.type) : null;
+
+  return (
+    <section className="rounded-[24px] border border-border bg-white/72 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Selection</p>
+          <h2 className="mt-1 text-lg font-semibold text-foreground">
+            {selectedDefinition ? selectedDefinition.title : "Nothing selected"}
+          </h2>
+        </div>
+        {active ? (
+          <span className="rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
+            Contextual
+          </span>
+        ) : null}
+      </div>
+
+      {selectedNode && selectedDefinition ? (
+        <div className="mt-4 grid gap-4">
+          <p className="text-sm leading-6 text-muted">{selectedDefinition.description}</p>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => duplicateNode(selectedNode.id)}
+              className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-foreground"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              Duplicate
+            </button>
+            <button
+              type="button"
+              onClick={() => removeNode(selectedNode.id)}
+              className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-danger"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Remove
+            </button>
+          </div>
+
+          <div className="grid gap-3">
+            {selectedDefinition.fields.map((field) => (
+              <div key={field.key}>
+                {field.type !== "toggle" && (
+                  <label className="mb-2 block text-xs font-medium text-muted">{field.label}</label>
+                )}
+                <FieldControl
+                  field={field}
+                  value={selectedNode.props[field.key]}
+                  onChange={(next) => updateNodeField(selectedNode.id, field.key, next)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4 rounded-[22px] border border-dashed border-border bg-white/70 p-4 text-sm leading-6 text-muted">
+          Select a block on the canvas to edit its fields here. If you want to keep working without a selection, use the
+          page tab for route details or the theme tab for visual tokens.
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={onShowPage}
+              className="builder-pill rounded-full px-3 py-2 text-xs font-semibold text-foreground"
+            >
+              Go to page details
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PageTab() {
+  const selectedPage = useBuilderStore(getSelectedPage);
+  const updatePageField = useBuilderStore((state) => state.updatePageField);
+
+  return (
+    <section className="rounded-[24px] border border-border bg-white/72 p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Page</p>
+      <h2 className="mt-1 text-lg font-semibold text-foreground">{selectedPage.name}</h2>
+      <div className="mt-4 grid gap-3">
+        <div>
+          <label className="mb-2 block text-xs font-medium text-muted">Page name</label>
+          <input
+            value={selectedPage.name}
+            onChange={(event) => updatePageField(selectedPage.id, "name", event.target.value)}
+            className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
+          />
+        </div>
+        <div>
+          <label className="mb-2 block text-xs font-medium text-muted">Route path</label>
+          <input
+            value={selectedPage.path}
+            onChange={(event) => updatePageField(selectedPage.id, "path", event.target.value)}
+            className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
+          />
+        </div>
+        <div>
+          <label className="mb-2 block text-xs font-medium text-muted">Page summary</label>
+          <textarea
+            value={selectedPage.description}
+            onChange={(event) => updatePageField(selectedPage.id, "description", event.target.value)}
+            rows={5}
+            className="min-h-28 w-full rounded-[24px] border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ThemeTab() {
+  const project = useBuilderStore((state) => state.project);
+  const updateThemeField = useBuilderStore((state) => state.updateThemeField);
 
   const themeFields: ControlField[] = [
     { key: "accent", label: "Accent", type: "color" },
@@ -154,138 +301,64 @@ export function InspectorPanel() {
     },
   ];
 
-  const selectedDefinition = selectedNode ? getComponentDefinition(selectedNode.type) : null;
+  return (
+    <section className="rounded-[24px] border border-border bg-white/72 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Theme</p>
+          <h2 className="mt-1 text-lg font-semibold text-foreground">Global visual tokens</h2>
+        </div>
+        <span className="rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
+          Page-wide
+        </span>
+      </div>
+      <div className="mt-4 grid gap-3">
+        {themeFields.map((field) => (
+          <div key={field.key}>
+            {field.type !== "toggle" && (
+              <label className="mb-2 block text-xs font-medium text-muted">{field.label}</label>
+            )}
+            <FieldControl
+              field={field}
+              value={project.theme[field.key as keyof typeof project.theme]}
+              onChange={(next) => updateThemeField(field.key as keyof typeof project.theme, next)}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function InspectorPanel() {
+  const selectedNode = useBuilderStore(getSelectedNode);
+  const [activeTab, setActiveTab] = useState<InspectorTab>(selectedNode ? "selection" : "page");
 
   return (
-    <div className="grid gap-4">
-      <section className="rounded-[24px] border border-border bg-white/72 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Project</p>
-        <div className="mt-3 grid gap-3">
-          <div>
-            <label className="mb-2 block text-xs font-medium text-muted">Name</label>
-            <input
-              value={project.name}
-              onChange={(event) => updateProjectField("name", event.target.value)}
-              className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-xs font-medium text-muted">Description</label>
-            <textarea
-              value={project.description}
-              onChange={(event) => updateProjectField("description", event.target.value)}
-              rows={4}
-              className="min-h-24 w-full rounded-[24px] border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
-            />
-          </div>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="rounded-[24px] border border-border bg-white/76 p-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <TabButton
+            active={activeTab === "selection"}
+            icon={Sparkles}
+            label="Selection"
+            onClick={() => setActiveTab("selection")}
+          />
+          <TabButton active={activeTab === "page"} icon={ScrollText} label="Page" onClick={() => setActiveTab("page")} />
+          <TabButton
+            active={activeTab === "theme"}
+            icon={Paintbrush}
+            label="Theme"
+            onClick={() => setActiveTab("theme")}
+          />
         </div>
-      </section>
+      </div>
 
-      <section className="rounded-[24px] border border-border bg-white/72 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Page</p>
-        <h2 className="mt-1 text-lg font-semibold text-foreground">{selectedPage.name}</h2>
-        <div className="mt-4 grid gap-3">
-          <div>
-            <label className="mb-2 block text-xs font-medium text-muted">Page name</label>
-            <input
-              value={selectedPage.name}
-              onChange={(event) => updatePageField(selectedPage.id, "name", event.target.value)}
-              className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-xs font-medium text-muted">Route path</label>
-            <input
-              value={selectedPage.path}
-              onChange={(event) => updatePageField(selectedPage.id, "path", event.target.value)}
-              className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-xs font-medium text-muted">Page summary</label>
-            <textarea
-              value={selectedPage.description}
-              onChange={(event) => updatePageField(selectedPage.id, "description", event.target.value)}
-              rows={4}
-              className="min-h-24 w-full rounded-[24px] border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-[24px] border border-border bg-white/72 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Selection</p>
-        {selectedNode && selectedDefinition ? (
-          <div className="mt-3 grid gap-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">{selectedDefinition.title}</h2>
-                <p className="mt-1 text-sm leading-6 text-muted">{selectedDefinition.description}</p>
-              </div>
-              <span className="rounded-full border border-border bg-white/80 px-3 py-1 text-xs text-muted">
-                {selectedNode.type}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => duplicateNode(selectedNode.id)}
-                className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-foreground"
-              >
-                <Copy className="h-3.5 w-3.5" />
-                Duplicate
-              </button>
-              <button
-                type="button"
-                onClick={() => removeNode(selectedNode.id)}
-                className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-danger"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Remove
-              </button>
-            </div>
-
-            <div className="grid gap-3">
-              {selectedDefinition.fields.map((field) => (
-                <div key={field.key}>
-                  {field.type !== "toggle" && (
-                    <label className="mb-2 block text-xs font-medium text-muted">{field.label}</label>
-                  )}
-                  <FieldControl
-                    field={field}
-                    value={selectedNode.props[field.key]}
-                    onChange={(next) => updateNodeField(selectedNode.id, field.key, next)}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="mt-3 rounded-[22px] border border-dashed border-border bg-white/70 p-4 text-sm leading-6 text-muted">
-            Select a node on the canvas to edit its props. When nothing is selected, this panel stays focused on page and
-            theme settings.
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-[24px] border border-border bg-white/72 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Theme</p>
-        <div className="mt-4 grid gap-3">
-          {themeFields.map((field) => (
-            <div key={field.key}>
-              {field.type !== "toggle" && (
-                <label className="mb-2 block text-xs font-medium text-muted">{field.label}</label>
-              )}
-              <FieldControl
-                field={field}
-                value={project.theme[field.key as keyof typeof project.theme]}
-                onChange={(next) => updateThemeField(field.key as keyof typeof project.theme, next)}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
+      <div className="builder-scrollbar mt-4 flex-1 space-y-4 overflow-y-auto pr-1">
+        {activeTab === "selection" ? <SelectionTab active onShowPage={() => setActiveTab("page")} /> : null}
+        {activeTab === "page" ? <PageTab /> : null}
+        {activeTab === "theme" ? <ThemeTab /> : null}
+      </div>
     </div>
   );
 }

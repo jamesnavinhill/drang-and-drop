@@ -1,23 +1,76 @@
 "use client";
 
-import { Download, Laptop, Redo2, RotateCcw, Smartphone, Sparkles, Tablet, Undo2 } from "lucide-react";
-import { useEffect, useEffectEvent } from "react";
+import {
+  Blocks,
+  Download,
+  Files,
+  MessageSquare,
+  Laptop,
+  Redo2,
+  RotateCcw,
+  Settings2,
+  Smartphone,
+  Tablet,
+  Undo2,
+} from "lucide-react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 import { exportProjectZip } from "@/lib/builder/export";
-import { getPageSummary, getThemeStyles } from "@/lib/builder/registry";
+import { getPageSummary } from "@/lib/builder/registry";
 import { useBuilderStore } from "@/lib/builder/store";
 import { cn } from "@/lib/utils";
 
+import { AssistantPanel, type AssistantMode } from "./assistant-panel";
 import { BuilderCanvas } from "./canvas";
 import { InspectorPanel } from "./inspector-panel";
 import { LibraryPanel } from "./library-panel";
 import { PagePanel } from "./page-panel";
+import { SettingsPanel } from "./settings-panel";
+
+type SidebarTab = "pages" | "library" | "assistant" | "settings";
 
 const previewModes = [
   { value: "desktop", label: "Desktop", icon: Laptop },
   { value: "tablet", label: "Tablet", icon: Tablet },
   { value: "mobile", label: "Mobile", icon: Smartphone },
 ] as const;
+
+const sidebarTabs = [
+  { value: "pages", label: "Pages", icon: Files },
+  { value: "library", label: "Library", icon: Blocks },
+  { value: "assistant", label: "Assistant", icon: MessageSquare },
+  { value: "settings", label: "Settings", icon: Settings2 },
+] as const satisfies ReadonlyArray<{
+  value: SidebarTab;
+  label: string;
+  icon: typeof Files;
+}>;
+
+function SidebarTabButton({
+  active,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: typeof Files;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+        active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
+  );
+}
 
 export function BuilderStudio() {
   const project = useBuilderStore((state) => state.project);
@@ -31,6 +84,8 @@ export function BuilderStudio() {
   const undo = useBuilderStore((state) => state.undo);
   const redo = useBuilderStore((state) => state.redo);
   const resetProject = useBuilderStore((state) => state.resetProject);
+  const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>("pages");
+  const [assistantMode, setAssistantMode] = useState<AssistantMode>("proposal");
   const activePage = project.pages.find((page) => page.id === selectedPageId) ?? project.pages[0];
 
   useEffect(() => {
@@ -95,22 +150,18 @@ export function BuilderStudio() {
   return (
     <main className="app-shell min-h-screen px-4 py-4 text-foreground md:px-6">
       <div className="panel-surface flex min-h-[calc(100vh-2rem)] flex-col rounded-[34px] p-3 md:p-4">
-        <header className="flex flex-col gap-4 rounded-[28px] border border-border/70 bg-white/72 px-4 py-4 md:px-5">
+        <header className="rounded-[28px] border border-border/70 bg-white/74 px-4 py-4 md:px-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-muted">
-                <Sparkles className="h-3.5 w-3.5" />
-                Visual Builder Alpha
-              </div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted">Visual Builder Alpha</p>
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{project.name}</h1>
-                <p className="max-w-3xl text-sm leading-6 text-muted md:text-base">
-                  {project.description}
-                </p>
+                <p className="max-w-3xl text-sm leading-6 text-muted md:text-base">{project.description}</p>
               </div>
             </div>
+
             <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <div className="flex items-center gap-2 rounded-full border border-border bg-white/70 p-1">
+              <div className="flex items-center gap-2 rounded-full border border-border bg-white/80 p-1">
                 {previewModes.map((mode) => {
                   const Icon = mode.icon;
                   const active = previewMode === mode.value;
@@ -122,9 +173,7 @@ export function BuilderStudio() {
                       onClick={() => setPreviewMode(mode.value)}
                       className={cn(
                         "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
-                        active
-                          ? "bg-accent text-accent-contrast"
-                          : "text-muted hover:bg-black/[0.04] hover:text-foreground",
+                        active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
                       )}
                     >
                       <Icon className="h-4 w-4" />
@@ -133,7 +182,8 @@ export function BuilderStudio() {
                   );
                 })}
               </div>
-              <div className="flex items-center gap-2 rounded-full border border-border bg-white/70 p-1">
+
+              <div className="flex items-center gap-2 rounded-full border border-border bg-white/80 p-1">
                 <button
                   type="button"
                   onClick={() => undo()}
@@ -141,9 +191,7 @@ export function BuilderStudio() {
                   data-builder-action="undo"
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
-                    canUndo
-                      ? "text-foreground hover:bg-black/[0.04]"
-                      : "cursor-not-allowed text-muted/60",
+                    canUndo ? "text-foreground hover:bg-black/[0.04]" : "cursor-not-allowed text-muted/60",
                   )}
                   aria-label="Undo last change"
                 >
@@ -157,9 +205,7 @@ export function BuilderStudio() {
                   data-builder-action="redo"
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
-                    canRedo
-                      ? "text-foreground hover:bg-black/[0.04]"
-                      : "cursor-not-allowed text-muted/60",
+                    canRedo ? "text-foreground hover:bg-black/[0.04]" : "cursor-not-allowed text-muted/60",
                   )}
                   aria-label="Redo last undone change"
                 >
@@ -167,6 +213,7 @@ export function BuilderStudio() {
                   Redo
                 </button>
               </div>
+
               <button
                 type="button"
                 onClick={() => exportProjectZip(project)}
@@ -180,50 +227,64 @@ export function BuilderStudio() {
                 type="button"
                 onClick={() => resetProject()}
                 data-builder-action="reset"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white/70 px-4 py-3 text-sm font-semibold text-foreground"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white/80 px-4 py-3 text-sm font-semibold text-foreground"
               >
                 <RotateCcw className="h-4 w-4" />
                 Reset demo
               </button>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
-            <span className="rounded-full border border-border bg-white/60 px-3 py-1">{getPageSummary(project)}</span>
-            <span className="rounded-full border border-border bg-white/60 px-3 py-1">
+
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
+            <span className="rounded-full border border-border bg-white/72 px-3 py-1">{getPageSummary(project)}</span>
+            <span className="rounded-full border border-border bg-white/72 px-3 py-1">
               Active route: {activePage?.path ?? "/"}
             </span>
-            <span className="rounded-full border border-border bg-white/60 px-3 py-1">
+            <span className="rounded-full border border-border bg-white/72 px-3 py-1">
+              Assistant: {assistantMode === "proposal" ? "Proposal first" : "Auto-apply preference"}
+            </span>
+            <span className="rounded-full border border-border bg-white/72 px-3 py-1">
               Updated {new Date(project.updatedAt).toLocaleString()}
             </span>
           </div>
         </header>
 
-        <div className="mt-4 grid flex-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)_320px]">
-          <aside className="builder-scrollbar panel-surface flex max-h-[calc(100vh-13.25rem)] flex-col gap-4 overflow-y-auto rounded-[28px] p-4">
-            <PagePanel />
-            <LibraryPanel />
+        <div className="mt-4 grid min-h-0 flex-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+          <aside className="panel-surface flex min-h-0 flex-col rounded-[28px] p-3">
+            <div className="rounded-[24px] border border-border bg-white/76 p-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {sidebarTabs.map((tab) => (
+                  <SidebarTabButton
+                    key={tab.value}
+                    active={activeSidebarTab === tab.value}
+                    icon={tab.icon}
+                    label={tab.label}
+                    onClick={() => setActiveSidebarTab(tab.value)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="builder-scrollbar mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+              {activeSidebarTab === "pages" ? <PagePanel /> : null}
+              {activeSidebarTab === "library" ? <LibraryPanel /> : null}
+              {activeSidebarTab === "assistant" ? <AssistantPanel assistantMode={assistantMode} /> : null}
+              {activeSidebarTab === "settings" ? (
+                <SettingsPanel assistantMode={assistantMode} onAssistantModeChange={setAssistantMode} />
+              ) : null}
+            </div>
           </aside>
 
-          <section className="panel-surface rounded-[28px] p-4">
-            <div className="flex h-full flex-col rounded-[24px] border border-border/80 bg-[#ece6d7]/75 p-3">
+          <section className="panel-surface min-h-0 rounded-[28px] p-4">
+            <div className="flex h-full min-h-0 flex-col rounded-[24px] border border-border/80 bg-[#ece6d7]/75 p-3">
               <BuilderCanvas />
             </div>
           </section>
 
-          <aside className="builder-scrollbar panel-surface max-h-[calc(100vh-13.25rem)] overflow-y-auto rounded-[28px] p-4">
+          <aside className="panel-surface min-h-0 rounded-[28px] p-4">
             <InspectorPanel />
           </aside>
         </div>
-
-        <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-border/70 bg-white/68 px-4 py-3 text-sm text-muted">
-          <p>
-            Foundation slice: schema-driven pages, constrained drag and drop, theme controls, multi-page management,
-            persistence, and starter export.
-          </p>
-          <div className="builder-theme rounded-full px-4 py-2 text-xs" style={getThemeStyles(project.theme)}>
-            Preview theme synced to project tokens
-          </div>
-        </footer>
       </div>
     </main>
   );
