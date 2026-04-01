@@ -1,5 +1,5 @@
-import { componentDefinitions, getComponentDefinition } from "@/lib/builder/component-definitions";
-import { componentCanHaveChildren } from "@/lib/builder/component-placement";
+import { blockDefinitions, getBlockDefinition } from "@/lib/builder/block-definitions";
+import { blockCanHaveChildren } from "@/lib/builder/block-placement";
 import type { BuilderProject, PreviewMode } from "@/lib/builder/types";
 
 import type { AssistantMode, BuilderAssistantContext } from "./types";
@@ -19,7 +19,7 @@ export function buildBuilderAssistantContext({
 }): BuilderAssistantContext {
   const activePage = project.pages.find((page) => page.id === selectedPageId) ?? project.pages[0] ?? null;
   const selectedNode = selectedNodeId ? project.nodes[selectedNodeId] ?? null : null;
-  const selectedDefinition = selectedNode ? getComponentDefinition(selectedNode.type) : null;
+  const selectedDefinition = selectedNode ? getBlockDefinition(selectedNode.type) : null;
 
   return {
     assistantMode,
@@ -48,12 +48,12 @@ export function buildBuilderAssistantContext({
             props: selectedNode.props,
           }
         : null,
-    availableComponents: componentDefinitions.map((component) => ({
-      type: component.type,
-      title: component.title,
-      category: component.category,
-      description: component.description,
-      canHaveChildren: componentCanHaveChildren(component.type),
+    availableBlocks: blockDefinitions.map((block) => ({
+      type: block.type,
+      title: block.title,
+      category: block.category,
+      description: block.description,
+      canHaveChildren: blockCanHaveChildren(block.type),
     })),
   };
 }

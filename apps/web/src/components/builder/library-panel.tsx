@@ -4,9 +4,9 @@ import { useDraggable } from "@dnd-kit/core";
 import { Compass, Filter, Layers3 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { componentDefinitions } from "@/lib/builder/component-definitions";
-import { componentCanHaveChildren, isRootOnlyComponent } from "@/lib/builder/component-placement";
-import { describeInsertionTarget, validateComponentPlacement } from "@/lib/builder/structure";
+import { blockDefinitions } from "@/lib/builder/block-definitions";
+import { blockCanHaveChildren, isRootOnlyBlock } from "@/lib/builder/block-placement";
+import { describeInsertionTarget, validateBlockPlacement } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +33,7 @@ function PaletteItem({
     id: `palette:${type}`,
     data: {
       kind: "palette",
-      componentType: type,
+      blockType: type,
       title,
       description,
     },
@@ -115,11 +115,11 @@ export function LibraryPanel() {
 
   const visibleItems = useMemo(() => {
     if (libraryView === "all") {
-      return componentDefinitions;
+      return blockDefinitions;
     }
 
-    return componentDefinitions.filter((item) =>
-      validateComponentPlacement({
+    return blockDefinitions.filter((item) =>
+      validateBlockPlacement({
         childType: item.type,
         parent: insertion.target,
         project,
@@ -198,7 +198,7 @@ export function LibraryPanel() {
                 </div>
                 <div className="mt-3 grid gap-2">
                   {items.map((item) => {
-                    const placement = validateComponentPlacement({
+                    const placement = validateBlockPlacement({
                       childType: item.type,
                       parent: insertion.target,
                       project,
@@ -215,9 +215,9 @@ export function LibraryPanel() {
                         helperLabel={
                           libraryView === "all" && !placement.ok
                             ? "Not allowed in the current insertion target"
-                            : isRootOnlyComponent(item.type)
+                            : isRootOnlyBlock(item.type)
                               ? "Root-level only"
-                              : componentCanHaveChildren(item.type)
+                              : blockCanHaveChildren(item.type)
                                 ? "Accepts nested blocks"
                                 : "Leaf content block"
                         }

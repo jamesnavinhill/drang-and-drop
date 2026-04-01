@@ -1,9 +1,9 @@
-import type { BuilderProject, ComponentType, PreviewMode } from "./types";
+import type { BlockType, BuilderProject, PreviewMode } from "./types";
 
 export interface BuilderVerificationNodeSnapshot {
   childIds: string[];
   id: string;
-  type: ComponentType;
+  type: BlockType;
 }
 
 export interface BuilderVerificationPageSnapshot {
@@ -19,7 +19,7 @@ export interface BuilderVerificationSnapshot {
   pages: BuilderVerificationPageSnapshot[];
   previewMode: PreviewMode;
   selectedNodeId: string | null;
-  selectedNodeType: ComponentType | null;
+  selectedNodeType: BlockType | null;
   selectedPageId: string;
 }
 

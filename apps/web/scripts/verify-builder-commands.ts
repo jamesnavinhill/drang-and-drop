@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import { validateProject } from "../src/lib/builder/schema";
 import { executeStructureCommand } from "../src/lib/builder/structure";
-import type { BuilderNode, BuilderProject, ComponentType } from "../src/lib/builder/types";
+import type { BlockType, BuilderNode, BuilderProject } from "../src/lib/builder/types";
 
 function createProject(): BuilderProject {
   return {
@@ -34,7 +34,7 @@ function createProject(): BuilderProject {
   };
 }
 
-function createNode(id: string, type: ComponentType, children: string[] = []): BuilderNode {
+function createNode(id: string, type: BlockType, children: string[] = []): BuilderNode {
   return {
     children,
     id,

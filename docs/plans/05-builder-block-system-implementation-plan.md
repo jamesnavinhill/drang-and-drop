@@ -102,9 +102,10 @@ Goal:
 Target areas:
 
 - `apps/web/src/lib/builder/types.ts`
-- `apps/web/src/lib/builder/component-definitions.ts`
-- `apps/web/src/lib/builder/component-placement.ts`
-- `apps/web/src/lib/builder/component-preview.tsx`
+- `apps/web/src/lib/builder/block-contracts.ts`
+- `apps/web/src/lib/builder/block-definitions.ts`
+- `apps/web/src/lib/builder/block-placement.ts`
+- `apps/web/src/lib/builder/block-preview.tsx`
 - `apps/web/src/lib/builder/registry.tsx`
 - `apps/web/src/components/builder/*`
 - docs that still mix `component` and `block` casually
@@ -200,7 +201,7 @@ Goal:
 
 Target areas:
 
-- `apps/web/src/lib/builder/component-preview.tsx`
+- `apps/web/src/lib/builder/block-preview.tsx`
 - `apps/web/src/lib/builder/starter-artifacts.ts`
 - `apps/web/src/lib/builder/starter-render-support.ts`
 - any new shared block-render contract modules introduced in this phase
@@ -311,9 +312,10 @@ Scope:
 Suggested file focus:
 
 - `apps/web/src/lib/builder/types.ts`
-- `apps/web/src/lib/builder/component-definitions.ts`
-- `apps/web/src/lib/builder/component-placement.ts`
-- `apps/web/src/lib/builder/component-preview.tsx`
+- `apps/web/src/lib/builder/block-contracts.ts`
+- `apps/web/src/lib/builder/block-definitions.ts`
+- `apps/web/src/lib/builder/block-placement.ts`
+- `apps/web/src/lib/builder/block-preview.tsx`
 - `apps/web/src/lib/builder/registry.tsx`
 - `apps/web/src/lib/builder/starter-artifacts.ts`
 - `docs/operations/architecture.md`

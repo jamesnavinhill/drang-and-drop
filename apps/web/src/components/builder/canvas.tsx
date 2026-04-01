@@ -17,9 +17,9 @@ import { CSS } from "@dnd-kit/utilities";
 import { AlertCircle, GripVertical, MousePointer2, MoveDown } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { getComponentDefinition } from "@/lib/builder/component-definitions";
-import { componentCanHaveChildren } from "@/lib/builder/component-placement";
-import { getThemeStyles, renderNodePreview } from "@/lib/builder/component-preview";
+import { getBlockDefinition } from "@/lib/builder/block-definitions";
+import { blockCanHaveChildren } from "@/lib/builder/block-placement";
+import { getThemeStyles, renderNodePreview } from "@/lib/builder/block-preview";
 import {
   applyBuilderDragOperation,
   evaluateBuilderDragOperation,
@@ -55,7 +55,7 @@ function describeParentReference(project: BuilderProject, parent: ParentReferenc
     return "selected container";
   }
 
-  return `${getComponentDefinition(node.type).title}: ${getNodeDisplayLabel(node)}`;
+  return `${getBlockDefinition(node.type).title}: ${getNodeDisplayLabel(node)}`;
 }
 
 function describeDropMessage(
@@ -89,7 +89,7 @@ function describeDropMessage(
   if (over.kind === "node") {
     const targetNode = project.nodes[over.nodeId];
     const targetLabel = targetNode
-      ? `${getComponentDefinition(targetNode.type).title}: ${getNodeDisplayLabel(targetNode)}`
+      ? `${getBlockDefinition(targetNode.type).title}: ${getNodeDisplayLabel(targetNode)}`
       : "this block";
 
     return {
@@ -130,8 +130,8 @@ function CanvasNode({
   overDragData: BuilderOverDragData | null;
 }) {
   const selectNode = useBuilderStore((state) => state.selectNode);
-  const definition = getComponentDefinition(node.type);
-  const canHaveChildren = componentCanHaveChildren(node.type);
+  const definition = getBlockDefinition(node.type);
+  const canHaveChildren = blockCanHaveChildren(node.type);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: node.id,
     data: {
@@ -330,7 +330,7 @@ export function BuilderCanvas() {
 
     if (data.kind === "palette") {
       setActiveDragData({
-        componentType: data.componentType,
+        blockType: data.blockType,
         kind: "palette",
       });
       setActiveDrag({

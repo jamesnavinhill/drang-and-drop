@@ -3,7 +3,7 @@
 import { Paintbrush, ScrollText, Sparkles } from "lucide-react";
 import { useState } from "react";
 
-import { getComponentDefinition } from "@/lib/builder/component-definitions";
+import { getBlockDefinition } from "@/lib/builder/block-definitions";
 import {
   findParentReference,
   getNodeDisplayLabel,
@@ -172,7 +172,7 @@ function SelectionTab({
   const project = useBuilderStore((state) => state.project);
   const selectedNode = useBuilderStore(getSelectedNode);
   const updateNodeField = useBuilderStore((state) => state.updateNodeField);
-  const selectedDefinition = selectedNode ? getComponentDefinition(selectedNode.type) : null;
+  const selectedDefinition = selectedNode ? getBlockDefinition(selectedNode.type) : null;
   const selectedParent = selectedNode ? findParentReference(project, selectedNode.id) : null;
   const siblingPosition = selectedNode ? getNodeSiblingPosition(project, selectedNode.id) : null;
   const parentLabel =

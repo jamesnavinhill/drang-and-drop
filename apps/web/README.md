@@ -92,10 +92,11 @@ If both provider credentials are present, also set:
 - Assistant config: `src/lib/ai`
 - Builder store: `src/lib/builder/store.ts`
 - Structure commands and validation: `src/lib/builder/structure.ts`
+- Canonical block contracts: `src/lib/builder/block-contracts.ts`
 - Shared content parsing: `src/lib/builder/component-content.ts`
-- Block definitions: `src/lib/builder/component-definitions.ts`
-- Placement rules: `src/lib/builder/component-placement.ts`
-- Preview rendering: `src/lib/builder/component-preview.tsx`
+- Block definitions: `src/lib/builder/block-definitions.ts`
+- Placement rules: `src/lib/builder/block-placement.ts`
+- Preview rendering: `src/lib/builder/block-preview.tsx`
 - Generated render support source: `src/lib/builder/starter-render-support.ts`
 - Registry compatibility barrel: `src/lib/builder/registry.tsx`
 - Export generation: `src/lib/builder/export.ts`

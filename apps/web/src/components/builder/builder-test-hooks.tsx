@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 import { applyBuilderDragOperation, getNodeDropData, type BuilderActiveDragData, type BuilderOverDragData } from "@/lib/builder/dnd";
-import { componentTypes, type ComponentType, type ParentReference } from "@/lib/builder/types";
+import { blockTypes, type BlockType, type ParentReference } from "@/lib/builder/types";
 import { useBuilderStore } from "@/lib/builder/store";
 import { createBuilderVerificationSnapshot, type BuilderVerificationSnapshot } from "@/lib/builder/verification";
 
@@ -26,19 +26,19 @@ declare global {
   }
 }
 
-function isComponentType(value: string): value is ComponentType {
-  return componentTypes.includes(value as ComponentType);
+function isBlockType(value: string): value is BlockType {
+  return blockTypes.includes(value as BlockType);
 }
 
 function getActiveDragData(element: Element, project: ReturnType<typeof useBuilderStore.getState>["project"]): BuilderActiveDragData {
   const paletteType = element.getAttribute("data-builder-palette");
   if (paletteType) {
-    if (!isComponentType(paletteType)) {
-      throw new Error(`Unknown palette component type "${paletteType}".`);
+    if (!isBlockType(paletteType)) {
+      throw new Error(`Unknown palette block type "${paletteType}".`);
     }
 
     return {
-      componentType: paletteType,
+      blockType: paletteType,
       kind: "palette",
     };
   }

@@ -15,6 +15,7 @@
 - Failed structure-sensitive actions now surface a shared shell-level editor notice, and the outline now shows the current insertion target so it reads more like the library/canvas model.
 - Outline and inspector now share the same node-structure action surface for reorder, duplicate, and remove controls.
 - Builder block definitions, placement rules, and preview rendering are now split into focused modules, and `src/lib/builder/registry.tsx` is reduced to a compatibility barrel instead of the implementation catch-all.
+- The canonical builder boundary now resolves through `block-contracts.ts`, `block-definitions.ts`, `block-placement.ts`, and `block-preview.tsx`, with the older `component-*` files reduced to compatibility shims.
 - Placement validation now resolves against explicit `page-root` and `layout-container` target kinds instead of only raw parent-type allowlists, and command verification now covers those target boundaries directly.
 - Shared block-content parsing and fallback semantics now live in one builder module, and generated starters receive a dedicated `render-support` file instead of keeping those helpers inline in the main page renderer.
 - The roadmap and operations docs have been updated to reflect the current implementation baseline and next slices.
@@ -25,11 +26,11 @@ The next session should transition from the end of the `04` editor-foundation sl
 
 Immediate focus:
 
-- normalize the builder boundary around canonical `block` terminology
-- turn the current split modules into an explicit block-contract system
-- map the current shipped catalog into clear block families and capabilities
-- fold the remaining preview/export parity follow-up into that new contract model
-- keep verification and operating docs aligned while the system is reorganized
+- continue consolidating the canonical `block` terminology pass
+- deepen the explicit block-contract system now that the first block-named boundaries are in place
+- use the shipped family and capability map to guide the next registry and parity work
+- fold the remaining preview/export parity follow-up into that contract model
+- keep verification and operating docs aligned while the system evolves
 
 ## Suggested Starting Prompt
 

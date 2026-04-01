@@ -28,7 +28,7 @@ export interface BuilderAssistantContext {
     description: string;
     props: Record<string, string | number | boolean>;
   } | null;
-  availableComponents: Array<{
+  availableBlocks: Array<{
     type: string;
     title: string;
     category: string;
@@ -63,7 +63,7 @@ export const builderAssistantContextSchema = z.object({
       props: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])),
     })
     .nullable(),
-  availableComponents: z.array(
+  availableBlocks: z.array(
     z.object({
       type: z.string(),
       title: z.string(),

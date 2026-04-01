@@ -90,10 +90,11 @@ pnpm verify:playwright:install
 - Assistant route: `apps/web/src/app/api/chat/route.ts`
 - Assistant config and prompting: `apps/web/src/lib/ai`
 - Project store: `apps/web/src/lib/builder/store.ts`
+- Canonical block contracts: `apps/web/src/lib/builder/block-contracts.ts`
 - Shared content parsing: `apps/web/src/lib/builder/component-content.ts`
-- Block definitions: `apps/web/src/lib/builder/component-definitions.ts`
-- Placement rules: `apps/web/src/lib/builder/component-placement.ts`
-- Preview rendering: `apps/web/src/lib/builder/component-preview.tsx`
+- Block definitions: `apps/web/src/lib/builder/block-definitions.ts`
+- Placement rules: `apps/web/src/lib/builder/block-placement.ts`
+- Preview rendering: `apps/web/src/lib/builder/block-preview.tsx`
 - Generated render support source: `apps/web/src/lib/builder/starter-render-support.ts`
 - Registry compatibility barrel: `apps/web/src/lib/builder/registry.tsx`
 - Export generation: `apps/web/src/lib/builder/export.ts`

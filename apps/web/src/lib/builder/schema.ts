@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-import { componentTypes } from "./types";
+import { blockTypes } from "./types";
 import { collectProjectStructureIssues } from "./structure";
 
 const primitiveValueSchema = z.union([z.string(), z.number(), z.boolean()]);
 
 const nodeSchema = z.object({
   id: z.string(),
-  type: z.enum(componentTypes),
+  type: z.enum(blockTypes),
   props: z.record(z.string(), primitiveValueSchema),
   children: z.array(z.string()),
 });

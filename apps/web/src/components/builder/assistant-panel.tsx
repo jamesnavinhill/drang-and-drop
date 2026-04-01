@@ -85,7 +85,7 @@ export function AssistantPanel({
 
         <div className="mt-3 rounded-[20px] border border-border/80 bg-white/76 px-3 py-3 text-sm leading-6 text-muted">
           {assistantEnabled
-            ? "The assistant receives the active page, selection, preview mode, and available component catalog on each send."
+            ? "The assistant receives the active page, selection, preview mode, and available block catalog on each send."
             : "The assistant is wired but dormant. Keep the shell polished now, then enable live model requests when the team is ready."}
         </div>
 

@@ -1,4 +1,4 @@
-export const componentTypes = [
+export const blockTypes = [
   "navbar",
   "section",
   "stack",
@@ -19,7 +19,7 @@ export const componentTypes = [
   "sidebarShell",
 ] as const;
 
-export type ComponentType = (typeof componentTypes)[number];
+export type BlockType = (typeof blockTypes)[number];
 
 export type PrimitiveValue = string | number | boolean;
 export type NodeProps = Record<string, PrimitiveValue>;
@@ -53,7 +53,7 @@ export type ControlField =
 
 export interface BuilderNode {
   id: string;
-  type: ComponentType;
+  type: BlockType;
   props: NodeProps;
   children: string[];
 }
@@ -88,12 +88,21 @@ export interface BuilderProject {
   updatedAt: string;
 }
 
-export interface ComponentDefinition {
-  type: ComponentType;
+export type BlockCategory = "Layout" | "Content" | "Marketing" | "Application";
+export type BlockFamily = "root-composite" | "layout" | "content" | "application";
+export type BlockCapability =
+  | "future-region-pressure"
+  | "layout-owner"
+  | "leaf"
+  | "parity-critical"
+  | "root-only";
+
+export interface BlockDefinition {
+  type: BlockType;
   title: string;
   description: string;
   icon: string;
-  category: "Layout" | "Content" | "Marketing" | "Application";
+  category: BlockCategory;
   defaults: NodeProps;
   fields: ControlField[];
 }
@@ -102,12 +111,32 @@ export const placementTargetKinds = ["page-root", "layout-container"] as const;
 
 export type PlacementTargetKind = (typeof placementTargetKinds)[number];
 
-export interface ComponentPlacementDefinition {
+export interface BlockPlacementDefinition {
   allowedParents: PlacementTargetKind[];
   childTargetKind?: PlacementTargetKind;
 }
 
-export type ComponentRegistryEntry = ComponentDefinition & ComponentPlacementDefinition;
+export interface BlockVerificationDefinition {
+  previewExportParity: "required";
+  structure: "required";
+}
+
+export interface BlockContract {
+  type: BlockType;
+  family: BlockFamily;
+  definition: BlockDefinition;
+  placement: BlockPlacementDefinition;
+  capabilities: BlockCapability[];
+  verification: BlockVerificationDefinition;
+}
+
+export type BlockRegistryEntry = BlockDefinition &
+  BlockPlacementDefinition & {
+    capabilities: BlockCapability[];
+    family: BlockFamily;
+    rootOnly: boolean;
+    verification: BlockVerificationDefinition;
+  };
 
 export interface ParentReference {
   kind: "page" | "node";
@@ -115,3 +144,10 @@ export interface ParentReference {
 }
 
 export type PreviewMode = "desktop" | "tablet" | "mobile";
+
+// Compatibility aliases while the rest of the codebase finishes moving to the canonical block boundary.
+export const componentTypes = blockTypes;
+export type ComponentType = BlockType;
+export type ComponentDefinition = BlockDefinition;
+export type ComponentPlacementDefinition = BlockPlacementDefinition;
+export type ComponentRegistryEntry = BlockRegistryEntry;

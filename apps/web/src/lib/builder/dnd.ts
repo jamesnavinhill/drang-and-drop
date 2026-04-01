@@ -1,15 +1,15 @@
-import type { BuilderProject, ComponentType, ParentReference } from "./types";
+import type { BlockType, BuilderProject, ParentReference } from "./types";
 import {
   findParentReference,
   getParentChildren,
-  validateComponentPlacement,
+  validateBlockPlacement,
   validateNodePlacement,
   type BuilderPlacementResult,
 } from "./structure";
 
 export type BuilderActiveDragData =
   | {
-      componentType: ComponentType;
+      blockType: BlockType;
       kind: "palette";
     }
   | {
@@ -80,8 +80,8 @@ export function evaluateBuilderDragOperation({
   if (active.kind === "palette") {
     return {
       target,
-      validation: validateComponentPlacement({
-        childType: active.componentType,
+      validation: validateBlockPlacement({
+        childType: active.blockType,
         index: target.index,
         parent: target.parent,
         project,
@@ -108,7 +108,7 @@ export function applyBuilderDragOperation({
   project,
 }: {
   active: BuilderActiveDragData | undefined;
-  addNode: (type: ComponentType, parent: ParentReference, index: number) => boolean;
+  addNode: (type: BlockType, parent: ParentReference, index: number) => boolean;
   moveNode: (nodeId: string, parent: ParentReference, index: number) => boolean;
   over: BuilderOverDragData | undefined;
   project: BuilderProject;
@@ -120,7 +120,7 @@ export function applyBuilderDragOperation({
   }
 
   if (active.kind === "palette") {
-    return addNode(active.componentType, target.parent, target.index);
+    return addNode(active.blockType, target.parent, target.index);
   }
 
   return moveNode(active.nodeId, target.parent, target.index);

@@ -1,12 +1,26 @@
-import { componentDefinitions, getComponentDefinition } from "./component-definitions";
-import { componentCanHaveChildren, getComponentPlacement, isRootOnlyComponent } from "./component-placement";
+import { blockContracts, getBlockContract } from "./block-contracts";
+import { getBlockDefinition } from "./block-definitions";
+import { blockCanHaveChildren, getBlockPlacement, isRootOnlyBlock } from "./block-placement";
 
-export const componentRegistry = componentDefinitions.map((component) => ({
-  ...component,
-  ...getComponentPlacement(component.type),
-  canHaveChildren: componentCanHaveChildren(component.type),
-  rootOnly: isRootOnlyComponent(component.type),
+export const blockRegistry = blockContracts.map((contract) => ({
+  ...contract.definition,
+  ...contract.placement,
+  capabilities: contract.capabilities,
+  canHaveChildren: blockCanHaveChildren(contract.type),
+  family: contract.family,
+  rootOnly: isRootOnlyBlock(contract.type),
+  verification: contract.verification,
 }));
 
-export { getComponentDefinition, componentCanHaveChildren, getComponentPlacement, isRootOnlyComponent };
-export { getPageSummary, getThemeStyles, renderNodePreview } from "./component-preview";
+export const componentRegistry = blockRegistry;
+
+export { getBlockContract, getBlockDefinition, blockCanHaveChildren, getBlockPlacement, isRootOnlyBlock };
+export {
+  getBlockDefinition as getComponentDefinition,
+} from "./block-definitions";
+export {
+  blockCanHaveChildren as componentCanHaveChildren,
+  getBlockPlacement as getComponentPlacement,
+  isRootOnlyBlock as isRootOnlyComponent,
+} from "./block-placement";
+export { getPageSummary, getThemeStyles, renderNodePreview } from "./block-preview";

@@ -1,11 +1,11 @@
 import type { BuilderAssistantContext } from "./types";
 
 function formatContext(context: BuilderAssistantContext) {
-  const componentList = context.availableComponents
-    .map((component) =>
-      `${component.title} (${component.type}) - category: ${component.category}; children: ${
-        component.canHaveChildren ? "yes" : "no"
-      }; ${component.description}`,
+  const blockList = context.availableBlocks
+    .map((block) =>
+      `${block.title} (${block.type}) - category: ${block.category}; children: ${
+        block.canHaveChildren ? "yes" : "no"
+      }; ${block.description}`,
     )
     .join("\n");
 
@@ -36,7 +36,7 @@ function formatContext(context: BuilderAssistantContext) {
     `Project updated at: ${context.project.updatedAt}`,
     pageSummary,
     selectionSummary,
-    `Available components:\n${componentList}`,
+    `Available blocks:\n${blockList}`,
   ].join("\n\n");
 }
 
@@ -47,7 +47,7 @@ export function buildAssistantSystemPrompt(context: BuilderAssistantContext) {
     "The builder is visual-first. Help with copy, layout direction, theme polish, and product decisions grounded in the current builder context.",
     "Treat suggestions as proposals first. Do not claim that changes were applied, edited, saved, or executed.",
     "When the user asks for edits, describe the safest next steps in the current UI and call out the most relevant sidebar tab or inspector tab.",
-    "Only suggest components that exist in the available component list.",
+    "Only suggest blocks that exist in the available block list.",
     "Prefer incremental, reviewable changes over broad redesign advice.",
     "If the user asks for something the current builder cannot do, say so clearly and offer the nearest supported path.",
     "Use the following current builder context to ground your response.",

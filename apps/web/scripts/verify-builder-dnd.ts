@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Page } from "playwright";
 
-import type { ComponentType } from "../src/lib/builder/types";
+import type { BlockType } from "../src/lib/builder/types";
 import type { BuilderVerificationSnapshot } from "../src/lib/builder/verification";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -172,7 +172,7 @@ function getNodeTypes(snapshot: BuilderVerificationSnapshot, nodeIds: string[]) 
 function assertNodeTypeSequence(
   snapshot: BuilderVerificationSnapshot,
   nodeIds: string[],
-  expectedTypes: ComponentType[],
+  expectedTypes: BlockType[],
   label: string,
 ) {
   const actualTypes = getNodeTypes(snapshot, nodeIds);

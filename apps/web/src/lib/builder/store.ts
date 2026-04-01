@@ -3,15 +3,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import { getBlockDefinition } from "./block-definitions";
 import { createDefaultProject, createId, createProjectFromTemplate } from "./default-project";
-import { getComponentDefinition } from "./component-definitions";
 import { validateProject } from "./schema";
 import { executeStructureCommand, findParentReference } from "./structure";
 import type {
+  BlockType,
   BuilderNode,
   BuilderPage,
   BuilderProject,
-  ComponentType,
   ParentReference,
   PreviewMode,
   PrimitiveValue,
@@ -49,7 +49,7 @@ interface BuilderState {
   addPage: () => void;
   duplicatePage: (pageId: string) => void;
   removePage: (pageId: string) => void;
-  addNode: (type: ComponentType, parent: ParentReference, index?: number) => boolean;
+  addNode: (type: BlockType, parent: ParentReference, index?: number) => boolean;
   moveNode: (nodeId: string, parent: ParentReference, index: number) => boolean;
   duplicateNode: (nodeId: string) => boolean;
   removeNode: (nodeId: string) => boolean;
@@ -114,8 +114,8 @@ function getNode(project: BuilderProject, nodeId: string) {
   return project.nodes[nodeId];
 }
 
-function createNode(type: ComponentType): BuilderNode {
-  const definition = getComponentDefinition(type);
+function createNode(type: BlockType): BuilderNode {
+  const definition = getBlockDefinition(type);
 
   return {
     id: createId(),

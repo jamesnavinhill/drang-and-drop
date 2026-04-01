@@ -1,13 +1,13 @@
-import { getComponentDefinition } from "./component-definitions";
+import { getBlockDefinition } from "./block-definitions";
 import {
   canAcceptChild,
-  componentCanHaveChildren,
+  blockCanHaveChildren,
   describeAllowedParentKinds,
   describePlacementTargetKind,
-  getComponentPlacement,
+  getBlockPlacement,
   getPlacementTargetKind,
-} from "./component-placement";
-import type { BuilderNode, BuilderProject, ComponentType, ParentReference, PlacementTargetKind } from "./types";
+} from "./block-placement";
+import type { BlockType, BuilderNode, BuilderProject, ParentReference, PlacementTargetKind } from "./types";
 
 export type BuilderPlacementFailureReason =
   | "duplicate-node-id"
@@ -126,7 +126,7 @@ export function getParentChildren(project: BuilderProject, parent: ParentReferen
   return project.nodes[parent.id]?.children ?? [];
 }
 
-export function getParentType(project: BuilderProject, parent: ParentReference): ComponentType | "page" | null {
+export function getParentType(project: BuilderProject, parent: ParentReference): BlockType | "page" | null {
   if (parent.kind === "page") {
     return project.pages.some((page) => page.id === parent.id) ? "page" : null;
   }
@@ -146,8 +146,8 @@ export function getPlacementTarget(project: BuilderProject, parent: ParentRefere
   };
 }
 
-function getPlacementFailureMessage(childType: ComponentType, targetKind: PlacementTargetKind) {
-  const placement = getComponentPlacement(childType);
+function getPlacementFailureMessage(childType: BlockType, targetKind: PlacementTargetKind) {
+  const placement = getBlockPlacement(childType);
   const allowedTargets = describeAllowedParentKinds(placement.allowedParents);
   const attemptedTarget = describePlacementTargetKind(targetKind);
 
@@ -286,13 +286,13 @@ export function isDescendantNode(project: BuilderProject, ancestorId: string, po
   return visit(ancestorId);
 }
 
-export function validateComponentPlacement({
+export function validateBlockPlacement({
   childType,
   index,
   parent,
   project,
 }: {
-  childType: ComponentType;
+  childType: BlockType;
   index?: number;
   parent: ParentReference;
   project: BuilderProject;
@@ -357,7 +357,7 @@ export function validateNodePlacement({
     };
   }
 
-  return validateComponentPlacement({
+  return validateBlockPlacement({
     childType: node.type,
     index,
     parent,
@@ -379,7 +379,7 @@ export function executeStructureCommand(
         };
       }
 
-      const placement = validateComponentPlacement({
+      const placement = validateBlockPlacement({
         childType: command.node.type,
         index: command.index,
         parent: command.parent,
@@ -471,7 +471,7 @@ export function executeStructureCommand(
         };
       }
 
-      const placement = validateComponentPlacement({
+      const placement = validateBlockPlacement({
         childType: source.type,
         index: currentIndex + 1,
         parent,
@@ -573,7 +573,7 @@ export function collectProjectStructureIssues(project: BuilderProject): BuilderS
 
       trackParent(rootId, { kind: "page", id: page.id });
 
-      const placement = validateComponentPlacement({
+      const placement = validateBlockPlacement({
         childType: rootNode.type,
         index: rootIndex,
         parent: { kind: "page", id: page.id },
@@ -606,7 +606,7 @@ export function collectProjectStructureIssues(project: BuilderProject): BuilderS
 
       trackParent(childId, { kind: "node", id: node.id });
 
-      const placement = validateComponentPlacement({
+      const placement = validateBlockPlacement({
         childType: childNode.type,
         index: childIndex,
         parent: { kind: "node", id: node.id },
@@ -732,7 +732,7 @@ export function getNodeDisplayLabel(node: BuilderNode) {
     return trimSnippet(node.props.body);
   }
 
-  return getComponentDefinition(node.type).title;
+  return getBlockDefinition(node.type).title;
 }
 
 export function getNodeHierarchyDepth(project: BuilderProject, nodeId: string) {
@@ -780,7 +780,7 @@ export function getInsertionTarget(
     return { kind: "page", id: selectedPageId };
   }
 
-  if (componentCanHaveChildren(selectedNode.type)) {
+  if (blockCanHaveChildren(selectedNode.type)) {
     return { kind: "node", id: selectedNodeId };
   }
 
@@ -805,7 +805,7 @@ export function describeInsertionTarget(
   }
 
   const node = project.nodes[target.id];
-  const definition = node ? getComponentDefinition(node.type) : null;
+  const definition = node ? getBlockDefinition(node.type) : null;
 
   return {
     target,
