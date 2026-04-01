@@ -54,13 +54,26 @@ Generated starter verification:
 pnpm verify:starters
 ```
 
+Runtime-only starter verification:
+
+```powershell
+pnpm verify:starters:runtime
+```
+
+Install Playwright Chromium for browser-backed verification:
+
+```powershell
+pnpm verify:playwright:install
+```
+
 ## Notes
 
 - The build script is pinned to `next build --webpack` because local production serving was more stable than the default build path in this environment.
 - The builder persists project state locally in the browser, so refreshes and revisits will restore the last saved working state.
 - If you want a clean local reset in the browser, use the in-app `Reset demo` control or clear local storage for the app origin.
 - Project JSON import/export and template application live in the left sidebar `Settings` mode.
-- `pnpm verify:starters` generates clean starter workspaces under `apps/web/output/starter-verification`, runs install/build/start for each shipped template, checks every generated route, and verifies a live `_next/static` asset response.
+- `pnpm verify:starters` generates clean starter workspaces under `apps/web/output/starter-verification`, runs install/build/start for each shipped template, checks every generated route, verifies a live `_next/static` asset response, opens each generated route in headless Chromium, checks for browser errors, and saves screenshots.
+- `pnpm verify:starters:runtime` keeps the earlier install/build/start/route/static-asset checks without the browser layer.
 - The assistant shell and transport are wired, but live requests are intentionally disabled unless `NEXT_PUBLIC_BUILDER_ASSISTANT_ENABLED=true` is set in `apps/web/.env.local`.
 - The current assistant backend supports Vercel AI Gateway or direct OpenAI configuration through explicit environment variables in `apps/web/.env.example`.
 

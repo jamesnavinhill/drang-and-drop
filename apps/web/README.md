@@ -19,6 +19,12 @@ pnpm build
 pnpm verify:starters
 ```
 
+If Playwright browsers are not installed yet:
+
+```powershell
+pnpm verify:playwright:install
+```
+
 ## Builder Shell
 
 The current desktop shell is organized as:
@@ -46,6 +52,7 @@ The current desktop shell is organized as:
 - expanded first-party block catalog including nav, testimonial, table, and message-thread shells
 - zip export to a runnable `Next.js` starter
 - automated generated-starter verification across all shipped templates
+- browser-rendered starter verification with screenshots, console/page error checks, and route assertions
 
 ## Assistant Status
 

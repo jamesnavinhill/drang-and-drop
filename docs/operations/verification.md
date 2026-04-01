@@ -54,16 +54,20 @@ Automated generated starter validation completed via `pnpm verify:starters`:
 5. Confirmed every generated route returned `200`.
 6. Confirmed expected rendered content appeared in the HTML for each route.
 7. Confirmed a live `/_next/static/*` asset request returned `200` for each starter.
+8. Opened each generated route in headless Chromium.
+9. Confirmed `main` rendered visibly and matched expected page content.
+10. Confirmed no browser `pageerror`, no browser console error, and no failed network request for each route.
+11. Saved browser screenshots for each generated route under the template verification workspace.
 
 ## Remaining Caveat
 
 The previous local `next start` concern no longer reproduces after the hydration change, and generated starter static assets also stayed healthy in the current automated run.
 
-The remaining verification gap is now primarily specific to drag automation and browser-level generated UI checks:
+The remaining verification gap is now primarily specific to drag automation and deeper generated UI assertions:
 
 - the `dnd-kit` pointer drag gesture still did not trigger reliably through the current Playwright CLI drag/mouse helpers in this Windows environment
 - stronger insert/reorder automation will likely need either a lower-level browser harness or an app-level deterministic verification hook
-- generated starter validation is now strong at install/build/serve/route/static-asset level, but it still does not include browser-rendered screenshot or DOM assertions against the exported app
+- generated starter validation now includes browser-rendered route checks, but it still does not include visual diffing or richer semantic assertions against layout fidelity
 
 What is already in place to support that follow-up:
 
@@ -76,4 +80,4 @@ Run these next:
 
 1. Add or choose a more deterministic browser harness for `dnd-kit` pointer drag automation.
 2. Re-run explicit palette-to-canvas insert and reorder coverage using the new `data-builder-*` hooks.
-3. Expand generated starter validation from HTTP/runtime checks into browser-level visual checks against the exported app.
+3. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions against the exported app.

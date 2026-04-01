@@ -23,7 +23,7 @@ Core layers:
 - `src/components/builder/*`
   Implements the editor shell: page panel, library, canvas, and inspector.
 - `scripts/verify-generated-starters.ts`
-  Generates clean starter workspaces for each shipped template, then runs install/build/start/route/static-asset verification.
+  Generates clean starter workspaces for each shipped template, then runs install/build/start/route/static-asset verification plus browser-rendered checks and screenshots.
 
 ## Data Model
 
@@ -104,6 +104,9 @@ The generated starter file plan now has a matching automated verification loop t
 - runs `pnpm start`
 - checks every generated route
 - checks a live `/_next/static/*` asset response
+- opens every generated route in headless Chromium
+- checks for browser console/page/network failures
+- captures screenshots for the generated pages
 
 ## Known Architectural Constraints
 
