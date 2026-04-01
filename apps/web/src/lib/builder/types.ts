@@ -164,10 +164,3 @@ export interface ParentReference {
 }
 
 export type PreviewMode = "desktop" | "tablet" | "mobile";
-
-// Compatibility aliases while the rest of the codebase finishes moving to the canonical block boundary.
-export const componentTypes = blockTypes;
-export type ComponentType = BlockType;
-export type ComponentDefinition = BlockDefinition;
-export type ComponentPlacementDefinition = BlockPlacementDefinition;
-export type ComponentRegistryEntry = BlockRegistryEntry;

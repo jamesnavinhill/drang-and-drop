@@ -23,7 +23,7 @@ This phase is now landed in the current codebase.
 
 The main implementation outcomes are:
 
-- canonical `block` terminology across the active builder boundary, with older `component-*` modules reduced to compatibility shims
+- canonical `block` terminology across the active builder boundary, with the older `component-*` modules and compatibility barrel retired
 - one explicit block contract per shipped block type, now including metadata, placement, render-parity metadata, capability tags, and verification expectations
 - a real family and capability map in code for the shipped catalog
 - a documented preview/export parity matrix for shipped block types
@@ -135,7 +135,7 @@ Target areas:
 - `apps/web/src/lib/builder/block-definitions.ts`
 - `apps/web/src/lib/builder/block-placement.ts`
 - `apps/web/src/lib/builder/block-preview.tsx`
-- `apps/web/src/lib/builder/registry.tsx`
+- legacy `apps/web/src/lib/builder/registry.tsx` boundary, retired at phase closeout
 - `apps/web/src/components/builder/*`
 - docs that still mix `component` and `block` casually
 
@@ -345,7 +345,7 @@ Suggested file focus:
 - `apps/web/src/lib/builder/block-definitions.ts`
 - `apps/web/src/lib/builder/block-placement.ts`
 - `apps/web/src/lib/builder/block-preview.tsx`
-- `apps/web/src/lib/builder/registry.tsx`
+- legacy `apps/web/src/lib/builder/registry.tsx` boundary, retired at phase closeout
 - `apps/web/src/lib/builder/starter-artifacts.ts`
 - `docs/operations/architecture.md`
 

@@ -14,10 +14,10 @@
 - The canvas now surfaces live invalid-drop reasoning from the shared validator, and the full library catalog now flags blocks that are not valid for the current insertion target.
 - Failed structure-sensitive actions now surface a shared shell-level editor notice, and the outline now shows the current insertion target so it reads more like the library/canvas model.
 - Outline and inspector now share the same node-structure action surface for reorder, duplicate, and remove controls.
-- Builder block definitions, placement rules, and preview rendering are now split into focused modules, and `src/lib/builder/registry.tsx` is reduced to a compatibility barrel instead of the implementation catch-all.
-- The canonical builder boundary now resolves through `block-contracts.ts`, `block-definitions.ts`, `block-placement.ts`, and `block-preview.tsx`, with the older `component-*` files reduced to compatibility shims.
+- Builder block definitions, placement rules, and preview rendering are now split into focused modules, and the old registry compatibility barrel has been retired.
+- The canonical builder boundary now resolves directly through `block-contracts.ts`, `block-definitions.ts`, `block-placement.ts`, and `block-preview.tsx`, with the older `component-*` files retired.
 - A derived `block-catalog.ts` layer now exposes family and capability metadata for the builder UI, assistant context, and contract-driven verification work.
-- Shared block-content parsing now lives at the canonical `block-content.ts` boundary, with `component-content.ts` reduced to a compatibility shim.
+- Shared block-content parsing now lives at the canonical `block-content.ts` boundary.
 - Placement validation now resolves against explicit `page-root` and `layout-container` target kinds instead of only raw parent-type allowlists, and command verification now covers those target boundaries directly.
 - Shared block-content parsing and fallback semantics now live in one builder module, and generated starters receive a dedicated `render-support` file instead of keeping those helpers inline in the main page renderer.
 - Starter verification now includes an internal block-contract coverage project so exported rendering stays exercised across every parity-critical shipped block type even when the public starter templates change.

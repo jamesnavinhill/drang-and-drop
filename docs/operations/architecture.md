@@ -24,20 +24,10 @@ Core layers:
   Owns shared block-content parsing and fallback semantics used by both the builder preview and generated starter support layers.
 - `src/lib/builder/block-preview.tsx`
   Owns builder-side theme style mapping and preview rendering for the current block set.
-- `src/lib/builder/component-content.ts`
-  Compatibility shim that re-exports the canonical block-content boundary.
-- `src/lib/builder/component-definitions.ts`
-  Compatibility shim that re-exports the canonical block-definition boundary.
-- `src/lib/builder/component-placement.ts`
-  Compatibility shim that re-exports the canonical block-placement boundary.
-- `src/lib/builder/component-preview.tsx`
-  Compatibility shim that re-exports the canonical block-preview boundary.
 - `src/lib/builder/starter-render-support.ts`
   Owns the generated starter render-support file source so export helper behavior can stay aligned with the builder-side content contract.
 - `src/lib/builder/verification-project.ts`
   Owns the internal block-contract coverage project used to keep starter verification exercising every parity-critical shipped block type.
-- `src/lib/builder/registry.tsx`
-  Assembles the block registry from canonical block contracts and remains the compatibility barrel for older imports.
 - `src/lib/builder/dnd.ts`
   Owns shared drag/drop resolution helpers used by both the live canvas and deterministic browser verification.
 - `src/lib/builder/structure.ts`
@@ -162,7 +152,7 @@ The generated starter file plan now has a matching automated verification loop t
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
-- Registry implementation coupling is lower now that canonical block contracts, derived block-definition/placement modules, block-content helpers, and block preview rendering are split into separate modules. Preview/export parity is now documented in the contract layer, but the two surfaces still keep separate JSX trees and still stop short of a shared slot or region system.
+- Registry implementation coupling is lower now that canonical block contracts, derived block-definition/placement modules, block-content helpers, and block preview rendering are split into separate modules. The old compatibility barrel and legacy `component-*` shims are now retired. Preview/export parity is documented in the contract layer, but the two surfaces still keep separate JSX trees and still stop short of a shared slot or region system.
 - The family and capability map is now a real derived builder module instead of only being implicit inside planning docs, which makes both catalog UI and verification easier to align with the current system.
 - The block authoring workflow and preview/export parity matrix now exist as durable artifacts, which makes future block additions easier to review before broader catalog growth resumes.
 - Export is clearer now that generated render support is split away from the main starter-artifact file, but it is not yet decomposed into highly granular generated components.

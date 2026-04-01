@@ -106,7 +106,6 @@ pnpm verify:playwright:install
 - Preview rendering: `apps/web/src/lib/builder/block-preview.tsx`
 - Internal parity coverage project: `apps/web/src/lib/builder/verification-project.ts`
 - Generated render support source: `apps/web/src/lib/builder/starter-render-support.ts`
-- Registry compatibility barrel: `apps/web/src/lib/builder/registry.tsx`
 - Export generation: `apps/web/src/lib/builder/export.ts`
 - Shared drag verification helpers: `apps/web/src/lib/builder/dnd.ts`
 - Shared starter artifacts: `apps/web/src/lib/builder/starter-artifacts.ts`

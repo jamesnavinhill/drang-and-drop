@@ -126,7 +126,7 @@ What is already in place to support that follow-up:
 - canonical block contracts now live in `src/lib/builder/block-contracts.ts`, with derived definition, placement, and preview modules built on top of that boundary
 - `src/lib/builder/block-catalog.ts` now exposes family/capability metadata used by both the builder UI and verification loops
 - `src/lib/builder/block-authoring.ts` and `docs/operations/block-authoring.md` now record the block authoring workflow and preview/export parity matrix as first-class artifacts
-- compatibility shims still exist for the older `component-*` module names, but the active builder codepaths now resolve through the canonical `block-*` modules
+- the older `component-*` compatibility shims and the old registry compatibility barrel are now retired, so the active codepaths resolve directly through the canonical `block-*` modules
 - `scripts/verify-builder-contracts.ts` now gives the block system a fast contract-level verification loop before the heavier drag and starter checks run
 - starter verification now includes an internal block-contract coverage project so preview/export parity checks do not depend only on the shape of the shipped user-facing templates
 - placement rules now resolve through explicit `page-root` and `layout-container` target kinds, which gives validation and verification a clearer shared vocabulary
