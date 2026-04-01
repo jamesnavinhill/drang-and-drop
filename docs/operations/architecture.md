@@ -94,6 +94,7 @@ The current structural model is now explicitly region-based:
 - layout-owner blocks own named block regions
 - insertion targeting resolves against regions, not generic parent containers
 - preview, export, structure commands, persistence normalization, and verification all traverse the same region graph
+- the first shipped multi-region proof block is now `sidebarShell`, which owns explicit `sidebar` and `content` regions
 
 Supported layout primitives:
 
@@ -157,7 +158,7 @@ The generated starter file plan now has a matching automated verification loop t
 ## Known Architectural Constraints
 
 - Drag/drop is constrained, runs through shared insert/move command paths, and now surfaces invalid-drop reasoning in the canvas while failed structure commands surface through a shared shell notice.
-- Placement constraints are centralized for the current editor model and now resolve through explicit page-region and block-region target kinds. The region contract is now canonical, but richer multi-region block families and more granular layout semantics are still future work.
+- Placement constraints are centralized for the current editor model and now resolve through explicit page-region plus block-region target kinds such as `layout-content` and `layout-sidebar`. The region contract is now canonical, and the first multi-region block proof is in place, but broader multi-region block families and more granular layout semantics are still future work.
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.

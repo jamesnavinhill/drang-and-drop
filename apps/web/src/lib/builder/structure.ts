@@ -4,6 +4,7 @@ import {
   canAcceptChild,
   describeAllowedRegionKinds,
   describePlacementTargetKind,
+  getBlockRegionLabel,
   getBlockPlacement,
   getPlacementTargetKind,
 } from "./block-placement";
@@ -883,10 +884,11 @@ export function describeInsertionTarget(
 
   const node = project.nodes[target.nodeId ?? ""];
   const definition = node ? getBlockDefinition(node.type) : null;
+  const regionLabel = node ? getBlockRegionLabel(node.type, target.regionId) : target.regionId;
 
   return {
     target,
-    label: node && definition ? `${definition.title}: ${getNodeDisplayLabel(node)} / ${target.regionId}` : "Selected region",
+    label: node && definition ? `${definition.title}: ${getNodeDisplayLabel(node)} / ${regionLabel}` : "Selected region",
     kind: "node-region" as const,
   };
 }

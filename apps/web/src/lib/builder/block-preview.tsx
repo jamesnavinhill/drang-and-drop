@@ -476,28 +476,51 @@ export function renderNodePreview(
     }
     case "sidebarShell": {
       const items = toLines(`${node.props.items}`);
-
       return (
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/86 p-4">
-          <p className="mb-4 text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
-          <div className="grid gap-2">
-            {items.map((item) => {
-              const active = item === `${node.props.highlight}`;
+          <div className="grid gap-4 md:grid-cols-[260px_minmax(0,1fr)]">
+            <aside className="rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
+                Workspace rail
+              </p>
+              <p className="mt-2 text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
+              <div className="mt-4 grid gap-2">
+                {items.map((item) => {
+                  const active = item === `${node.props.highlight}`;
 
-              return (
-                <div
-                  key={item}
-                  className={cn(
-                    "rounded-2xl px-3 py-2 text-sm",
-                    active
-                      ? "bg-[color:var(--builder-accent)] text-[color:var(--builder-accent-contrast)]"
-                      : "border border-transparent text-[color:var(--builder-muted)]",
-                  )}
-                >
-                  {item}
+                  return (
+                    <div
+                      key={item}
+                      className={cn(
+                        "rounded-2xl px-3 py-2 text-sm",
+                        active
+                          ? "bg-[color:var(--builder-accent)] text-[color:var(--builder-accent-contrast)]"
+                          : "border border-transparent text-[color:var(--builder-muted)]",
+                      )}
+                    >
+                      {item}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-4">{renderedRegions.sidebar ?? null}</div>
+            </aside>
+            <div className="rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-white/72 p-4">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
+                    Main content
+                  </p>
+                  <p className="mt-1 text-sm text-[color:var(--builder-muted)]">
+                    Compose the primary application surface here.
+                  </p>
                 </div>
-              );
-            })}
+                <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-[11px] text-[color:var(--builder-muted)]">
+                  Multi-region shell
+                </span>
+              </div>
+              {renderedRegions.content ?? null}
+            </div>
           </div>
         </div>
       );

@@ -462,6 +462,63 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
       "Stack content after moving text into nested stack",
     );
 
+    await page.click('[data-builder-action="clear-selection"]');
+    await page.waitForTimeout(100);
+
+    await dragBetween({
+      page,
+      sourceSelector: '[data-builder-palette="sidebarShell"]',
+      targetSelector: pageMainDropTargetSelector,
+    });
+
+    snapshot = await getBuilderSnapshot(page);
+    assertNodeTypeSequence(
+      snapshot,
+      getPageRegionNodeIds(snapshot, "main"),
+      ["hero", "section", "sidebarShell"],
+      "Main region after inserting sidebar shell",
+    );
+
+    const sidebarShellId = getPageRegionNodeIds(snapshot, "main")[2];
+    assert(sidebarShellId, "Expected the inserted sidebar shell node to exist.");
+
+    const sidebarShellSidebarSelector = `[data-builder-drop-target="node-region:${sidebarShellId}:sidebar"]`;
+    const sidebarShellContentSelector = `[data-builder-drop-target="node-region:${sidebarShellId}:content"]`;
+
+    await page.click(sidebarShellSidebarSelector);
+    await page.waitForTimeout(100);
+
+    await dragBetween({
+      page,
+      sourceSelector: '[data-builder-palette="statCard"]',
+      targetSelector: sidebarShellSidebarSelector,
+    });
+
+    snapshot = await getBuilderSnapshot(page);
+    assertNodeTypeSequence(
+      snapshot,
+      getNodeRegionNodeIds(snapshot, sidebarShellId, "sidebar"),
+      ["statCard"],
+      "Sidebar shell sidebar after inserting stat card",
+    );
+
+    await page.click(sidebarShellContentSelector);
+    await page.waitForTimeout(100);
+
+    await dragBetween({
+      page,
+      sourceSelector: '[data-builder-palette="messageThread"]',
+      targetSelector: sidebarShellContentSelector,
+    });
+
+    snapshot = await getBuilderSnapshot(page);
+    assertNodeTypeSequence(
+      snapshot,
+      getNodeRegionNodeIds(snapshot, sidebarShellId, "content"),
+      ["messageThread"],
+      "Sidebar shell content after inserting message thread",
+    );
+
     await page.click(`[data-builder-node="${buttonId}"]`);
     await page.waitForTimeout(100);
     await page.click('[data-builder-inspector-tab="selection"]');
@@ -508,7 +565,12 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
 
     snapshot = await getBuilderSnapshot(page);
     assertNodeTypeSequence(snapshot, getPageRegionNodeIds(snapshot, "header"), ["navbar"], "Header region after invalid hero nesting");
-    assertNodeTypeSequence(snapshot, getPageRegionNodeIds(snapshot, "main"), ["hero", "section"], "Main region after invalid hero nesting");
+    assertNodeTypeSequence(
+      snapshot,
+      getPageRegionNodeIds(snapshot, "main"),
+      ["hero", "section", "sidebarShell"],
+      "Main region after invalid hero nesting",
+    );
     assertNodeTypeSequence(
       snapshot,
       getNodeRegionNodeIds(snapshot, sectionId),
@@ -550,6 +612,44 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
 
     await expectEditorNotice(page, "A hero block can only be placed in the page main region");
 
+    const sidebarChildrenBeforeInvalidSectionDrop = [...getNodeRegionNodeIds(snapshot, sidebarShellId, "sidebar")];
+    const contentChildrenBeforeInvalidSectionDrop = [...getNodeRegionNodeIds(snapshot, sidebarShellId, "content")];
+
+    await dragBetween({
+      page,
+      sourceSelector: '[data-builder-palette="section"]',
+      targetSelector: sidebarShellSidebarSelector,
+    });
+
+    snapshot = await getBuilderSnapshot(page);
+    assertNodeTypeSequence(
+      snapshot,
+      getNodeRegionNodeIds(snapshot, sidebarShellId, "sidebar"),
+      ["statCard"],
+      "Sidebar shell sidebar after invalid section drop",
+    );
+    assertNodeTypeSequence(
+      snapshot,
+      getNodeRegionNodeIds(snapshot, sidebarShellId, "content"),
+      ["messageThread"],
+      "Sidebar shell content after invalid section drop",
+    );
+
+    const sidebarChildrenChangedAfterInvalidSectionDrop = sequenceChanged(
+      getNodeRegionNodeIds(snapshot, sidebarShellId, "sidebar"),
+      sidebarChildrenBeforeInvalidSectionDrop,
+    );
+    const contentChildrenChangedAfterInvalidSectionDrop = sequenceChanged(
+      getNodeRegionNodeIds(snapshot, sidebarShellId, "content"),
+      contentChildrenBeforeInvalidSectionDrop,
+    );
+
+    if (sidebarChildrenChangedAfterInvalidSectionDrop || contentChildrenChangedAfterInvalidSectionDrop) {
+      throw new Error("Invalid sidebar-shell section drop unexpectedly changed the builder structure.");
+    }
+
+    await expectEditorNotice(page, "A section block can only be placed in the page footer, the page main region, or a layout content region");
+
     await dragBetween({
       page,
       sourceSelector: `[data-builder-drag-handle="${sectionId}"]`,
@@ -557,7 +657,12 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     });
 
     snapshot = await getBuilderSnapshot(page);
-    assertNodeTypeSequence(snapshot, getPageRegionNodeIds(snapshot, "main"), ["hero", "section"], "Main region after invalid descendant move");
+    assertNodeTypeSequence(
+      snapshot,
+      getPageRegionNodeIds(snapshot, "main"),
+      ["hero", "section", "sidebarShell"],
+      "Main region after invalid descendant move",
+    );
     assertNodeTypeSequence(
       snapshot,
       getNodeRegionNodeIds(snapshot, sectionId),
@@ -586,7 +691,12 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
 
     snapshot = await getBuilderSnapshot(page);
     assertNodeTypeSequence(snapshot, getPageRegionNodeIds(snapshot, "header"), ["navbar"], "Header region after invalid navbar drop");
-    assertNodeTypeSequence(snapshot, getPageRegionNodeIds(snapshot, "main"), ["hero", "section"], "Main region after invalid navbar drop");
+    assertNodeTypeSequence(
+      snapshot,
+      getPageRegionNodeIds(snapshot, "main"),
+      ["hero", "section", "sidebarShell"],
+      "Main region after invalid navbar drop",
+    );
     assertNodeTypeSequence(
       snapshot,
       getNodeRegionNodeIds(snapshot, sectionId),

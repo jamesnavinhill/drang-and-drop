@@ -111,7 +111,13 @@ export interface BlockDefinition {
   fields: ControlField[];
 }
 
-export const placementTargetKinds = ["page-header", "page-main", "page-footer", "layout-content"] as const;
+export const placementTargetKinds = [
+  "page-header",
+  "page-main",
+  "page-footer",
+  "layout-content",
+  "layout-sidebar",
+] as const;
 
 export type PlacementTargetKind = (typeof placementTargetKinds)[number];
 

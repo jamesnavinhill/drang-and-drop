@@ -76,6 +76,7 @@ function renderNode(nodeId: string): ReactNode {
     Object.entries(node.regions).map(([regionId, childIds]) => [regionId, childIds.map((childId) => renderNode(childId))]),
   ) as Record<string, ReactNode[]>;
   const contentChildren = renderedRegions.content ?? [];
+  const sidebarChildren = renderedRegions.sidebar ?? [];
 
   switch (node.type) {
     case "navbar": {
@@ -397,24 +398,56 @@ function renderNode(nodeId: string): ReactNode {
       );
     }
     case "sidebarShell": {
-      const items = \`\${node.props.items}\`
-        .split("\\n")
-        .map((item) => item.trim())
-        .filter(Boolean);
-
+      const items = toLines(\`\${node.props.items}\`);
       return (
         <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.88)", padding: 18 }}>
-          <p style={{ margin: "0 0 16px", fontWeight: 600 }}>{\`\${node.props.title}\`}</p>
-          <div style={{ display: "grid", gap: 8 }}>
-            {items.map((item) => {
-              const active = item === \`\${node.props.highlight}\`;
+          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))" }}>
+            <aside style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: 18 }}>
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>
+                Workspace rail
+              </p>
+              <p style={{ margin: "10px 0 0", fontWeight: 600 }}>{\`\${node.props.title}\`}</p>
+              <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
+                {items.map((item) => {
+                  const active = item === \`\${node.props.highlight}\`;
 
-              return (
-                <div key={item} style={{ borderRadius: 16, padding: "10px 12px", color: active ? "var(--builder-accent-contrast)" : "var(--builder-muted)", background: active ? "var(--builder-accent)" : "transparent" }}>
-                  {item}
+                  return (
+                    <div key={item} style={{ borderRadius: 16, padding: "10px 12px", color: active ? "var(--builder-accent-contrast)" : "var(--builder-muted)", background: active ? "var(--builder-accent)" : "transparent" }}>
+                      {item}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+                {sidebarChildren.length > 0 ? sidebarChildren : (
+                  <div style={{ borderRadius: 16, border: "1px dashed var(--builder-border)", padding: "14px 16px", color: "var(--builder-muted)", background: "rgba(255,255,255,0.72)", fontSize: 14, lineHeight: 1.7 }}>
+                    Add compact cards, text, or actions here for the supporting rail.
+                  </div>
+                )}
+              </div>
+            </aside>
+            <section style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.72)", padding: 18 }}>
+              <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+                <div>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>
+                    Main content
+                  </p>
+                  <p style={{ margin: "8px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>
+                    This region renders the primary application surface exported from the builder.
+                  </p>
                 </div>
-              );
-            })}
+                <span style={{ borderRadius: 999, border: "1px solid var(--builder-border)", padding: "6px 12px", fontSize: 11, color: "var(--builder-muted)" }}>
+                  Multi-region shell
+                </span>
+              </div>
+              <div style={{ display: "grid", gap: 16 }}>
+                {contentChildren.length > 0 ? contentChildren : (
+                  <div style={{ borderRadius: 16, border: "1px dashed var(--builder-border)", padding: "18px 16px", color: "var(--builder-muted)", background: "rgba(255,255,255,0.8)", fontSize: 14, lineHeight: 1.7 }}>
+                    Add layout or content blocks to the sidebar shell in the builder to populate this workspace.
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
         </div>
       );

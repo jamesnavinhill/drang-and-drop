@@ -3,6 +3,7 @@
 import { Copy, FilePlus2, FolderTree, Route, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { getBlockRegionLabel } from "@/lib/builder/block-placement";
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
 import { getPageRegionLabel } from "@/lib/builder/regions";
 import {
@@ -157,7 +158,9 @@ function OutlineNodeRow({
                       : "border-border bg-white/70 hover:border-border-strong hover:bg-white",
                   )}
                 >
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{regionId}</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                    {getBlockRegionLabel(node.type, regionId)}
+                  </span>
                   <span className="text-[11px] text-muted">
                     {childIds.length} item{childIds.length === 1 ? "" : "s"}
                   </span>

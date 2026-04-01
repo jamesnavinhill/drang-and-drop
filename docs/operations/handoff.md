@@ -18,7 +18,8 @@
 - The canonical builder boundary now resolves directly through `block-contracts.ts`, `block-definitions.ts`, `block-placement.ts`, and `block-preview.tsx`, with the older `component-*` files retired.
 - A derived `block-catalog.ts` layer now exposes family and capability metadata for the builder UI, assistant context, and contract-driven verification work.
 - Shared block-content parsing now lives at the canonical `block-content.ts` boundary.
-- Placement validation now resolves against explicit `page-root` and `layout-container` target kinds instead of only raw parent-type allowlists, and command verification now covers those target boundaries directly.
+- Placement validation now resolves against explicit page-region and block-region target kinds instead of only raw parent-type allowlists, and command verification now covers those target boundaries directly.
+- `sidebarShell` now acts as the first shipped multi-region proof block, with explicit `sidebar` and `content` regions plus matching preview/export and verification coverage.
 - Shared block-content parsing and fallback semantics now live in one builder module, and generated starters receive a dedicated `render-support` file instead of keeping those helpers inline in the main page renderer.
 - Starter verification now includes an internal block-contract coverage project so exported rendering stays exercised across every parity-critical shipped block type even when the public starter templates change.
 - Block contracts now carry explicit preview/export render metadata, and a derived parity matrix now exists alongside a dedicated block authoring checklist.

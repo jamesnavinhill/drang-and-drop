@@ -18,7 +18,7 @@ import { AlertCircle, GripVertical, LayoutTemplate, MousePointer2 } from "lucide
 import { useMemo, useState } from "react";
 
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
-import { blockCanHaveChildren, getBlockRegions } from "@/lib/builder/block-placement";
+import { blockCanHaveChildren, getBlockRegionLabel, getBlockRegions } from "@/lib/builder/block-placement";
 import { getThemeStyles, renderNodePreview } from "@/lib/builder/block-preview";
 import {
   applyBuilderDragOperation,
@@ -60,10 +60,6 @@ function toDropTargetValue(parent: ParentReference) {
   return parent.kind === "page-region"
     ? `page-region:${parent.pageId}:${parent.regionId}`
     : `node-region:${parent.nodeId}:${parent.regionId}`;
-}
-
-function getNodeRegionLabel(node: BuilderNode, regionId: string) {
-  return getBlockRegions(node.type).find((region) => region.id === regionId)?.label ?? regionId;
 }
 
 function getPageRegionDescription(regionId: PageRegionId) {
@@ -297,7 +293,7 @@ function CanvasNode({
         parent={{ kind: "node-region", nodeId: node.id, regionId: region.id }}
         project={project}
         selectedNodeId={selectedNodeId}
-        title={getNodeRegionLabel(node, region.id)}
+        title={getBlockRegionLabel(node.type, region.id)}
       />,
     ]),
   );

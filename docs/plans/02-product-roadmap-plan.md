@@ -28,7 +28,8 @@ Implemented in the current greenfield slice:
 - shared shell-level editor notices plus outline insertion-context cues for clearer editor parity
 - shared outline/inspector node action controls for reorder, duplicate, and remove parity
 - split builder block definitions, placement rules, and preview rendering modules so the registry boundary is starting to harden
-- placement validation now resolves through explicit `page-root` and `layout-container` targets, giving command and drag verification a clearer shared model
+- placement validation now resolves through explicit page and block region targets, giving command and drag verification a clearer shared model
+- the first shipped multi-region block proof now exists through `sidebarShell`, which owns explicit `sidebar` and `content` regions backed by the same region graph as the rest of the builder
 - shared block-content parsing/fallback helpers and generated render support are now separated so preview/export parity depends on fewer duplicated helper paths
 - block contracts now carry explicit preview/export render metadata, and the shipped family/capability map is now a first-class implementation artifact
 - a block authoring checklist and fast contract-level verification loop now exist to keep future catalog growth disciplined

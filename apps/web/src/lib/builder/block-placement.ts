@@ -23,6 +23,14 @@ export function getBlockRegions(type: BlockType): BlockRegionDefinition[] {
   return getBlockPlacement(type).regions;
 }
 
+export function getBlockRegion(type: BlockType, regionId: string) {
+  return getBlockRegions(type).find((region) => region.id === regionId) ?? null;
+}
+
+export function getBlockRegionLabel(type: BlockType, regionId: string) {
+  return getBlockRegion(type, regionId)?.label ?? regionId;
+}
+
 export function getPrimaryBlockRegion(type: BlockType) {
   return getBlockRegions(type)[0] ?? null;
 }
@@ -45,6 +53,8 @@ export function describePlacementTargetKind(kind: PlacementTargetKind) {
       return "the page footer";
     case "layout-content":
       return "a layout content region";
+    case "layout-sidebar":
+      return "a layout sidebar region";
   }
 }
 
@@ -77,7 +87,7 @@ export function getPlacementTargetKind(project: BuilderProject, parent: ParentRe
     return null;
   }
 
-  return getBlockRegions(parentNode.type).find((region) => region.id === parent.regionId)?.kind ?? null;
+  return getBlockRegion(parentNode.type, parent.regionId)?.kind ?? null;
 }
 
 export function canAcceptChild(parentTargetKind: PlacementTargetKind, childType: BlockType) {

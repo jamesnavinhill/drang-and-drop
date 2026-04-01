@@ -12,7 +12,7 @@ export const blockAuthoringChecklist = [
   {
     id: "placement-contract",
     title: "Placement contract",
-    description: "Declare the allowed parent targets and whether the block owns a layout-container child target.",
+    description: "Declare the allowed destination region kinds and any explicit owned regions the block exposes for nested authoring.",
   },
   {
     id: "render-contract",

@@ -20,6 +20,8 @@ The goal is to replace the remaining `page-root` / `layout-container` simplifica
 
 The first big slice in this phase is now complete.
 
+The first follow-up slice on top of that canonical region graph is also now landed.
+
 Landed in this slice:
 
 - pages now own canonical `header`, `main`, and `footer` regions
@@ -53,6 +55,13 @@ Verification completed for this slice:
 - `pnpm verify:commands`
 - `pnpm verify:dnd`
 - `pnpm verify:starters`
+
+Landed in the follow-up slice:
+
+- `sidebarShell` now acts as the first shipped multi-region proof block, with explicit `sidebar` and `content` regions
+- the placement model now includes a canonical `layout-sidebar` region kind
+- builder preview, starter export, template data, and the internal coverage project now all exercise the same canonical sidebar-shell region shape
+- command-level and browser drag verification now cover valid and invalid sidebar-region interactions directly
 
 ## Why This Phase Exists
 
@@ -122,6 +131,7 @@ These are not decorative wrappers. They are canonical authoring destinations.
 The initial block-owned region model should be narrow:
 
 - current layout-owner blocks own a `content` region
+- `sidebarShell` now proves the first shipped multi-region block with explicit `sidebar` plus `content` regions
 - future multi-region blocks can add more named regions later without a schema rewrite
 
 ### Region kinds
@@ -132,6 +142,7 @@ The first real region kinds should be:
 - `page-main`
 - `page-footer`
 - `layout-content`
+- `layout-sidebar`
 
 Future phases can add more region kinds such as sidebar, aside, actions, media, or supporting-content without replacing the model.
 

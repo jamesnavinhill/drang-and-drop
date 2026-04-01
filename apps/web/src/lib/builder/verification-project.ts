@@ -22,6 +22,8 @@ export function createBlockContractVerificationProject(): BuilderProject {
   const messageThreadId = createId();
   const dataTableId = createId();
   const sidebarShellId = createId();
+  const sidebarTextId = createId();
+  const sidebarButtonId = createId();
 
   const legacyProject: LegacyBuilderProject = {
     id: createId(),
@@ -129,8 +131,6 @@ export function createBlockContractVerificationProject(): BuilderProject {
           formCardId,
           pricingCardId,
           chatInputId,
-          messageThreadId,
-          dataTableId,
           sidebarShellId,
         ],
         id: gridId,
@@ -198,12 +198,15 @@ export function createBlockContractVerificationProject(): BuilderProject {
         type: "section",
       },
       [sidebarShellId]: {
-        children: [],
         id: sidebarShellId,
         props: {
           highlight: "Parity",
           items: "Overview\nCoverage\nParity\nExport\nDocs",
           title: "Coverage nav",
+        },
+        regions: {
+          content: [messageThreadId, dataTableId],
+          sidebar: [sidebarTextId, sidebarButtonId],
         },
         type: "sidebarShell",
       },
@@ -246,6 +249,26 @@ export function createBlockContractVerificationProject(): BuilderProject {
           title: "Coverage text",
         },
         type: "text",
+      },
+      [sidebarTextId]: {
+        children: [],
+        id: sidebarTextId,
+        props: {
+          body: "Use the sidebar rail to surface compact context, navigation helpers, or supporting status signals.",
+          size: "sm",
+          title: "Sidebar coverage",
+        },
+        type: "text",
+      },
+      [sidebarButtonId]: {
+        children: [],
+        id: sidebarButtonId,
+        props: {
+          fullWidth: true,
+          label: "Sidebar action",
+          variant: "primary",
+        },
+        type: "button",
       },
     },
     updatedAt: new Date().toISOString(),

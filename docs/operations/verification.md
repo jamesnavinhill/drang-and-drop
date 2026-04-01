@@ -40,13 +40,14 @@ Verified behaviors:
 Direct command verification completed via `pnpm verify:commands`:
 
 1. Verified shared insert command behavior for valid page-header, page-main, and nested block-region placements.
-2. Verified region-placement rejection for a `button` block that requires a layout-content region.
-3. Verified shared move command behavior for nested block-region moves.
-4. Verified descendant-target rejection for invalid moves.
-5. Verified page-region-only placement rejection for invalid nested inserts.
-6. Verified shared duplicate command behavior for subtree cloning with fresh ids.
-7. Verified shared remove command behavior for subtree deletion.
-8. Verified structural validation rejects invalid page-region placement and orphan nodes.
+2. Verified first multi-region `sidebarShell` behavior for valid `content` and `sidebar` region inserts.
+3. Verified region-placement rejection for a `button` block that requires a layout region and for a `section` block rejected from the sidebar region.
+4. Verified shared move command behavior for nested block-region moves, including moving supporting content into the sidebar region.
+5. Verified descendant-target rejection for invalid moves.
+6. Verified page-region-only placement rejection for invalid nested inserts.
+7. Verified shared duplicate command behavior for subtree cloning with fresh ids.
+8. Verified shared remove command behavior for subtree deletion.
+9. Verified structural validation rejects invalid page-region placement and orphan nodes.
 
 Contract verification completed via `pnpm verify:contracts`:
 
@@ -101,14 +102,18 @@ Automated builder drag validation completed via `pnpm verify:dnd`:
 7. Verified another page-main insertion for `hero`.
 8. Verified page-main reordering by moving `hero` ahead of `section`.
 9. Verified nested insertion for `stack`, then moved `text` into that nested block region.
-10. Verified an invalid nested `hero` move does not mutate the builder structure.
-11. Verified an invalid descendant move does not mutate the builder structure.
-12. Verified an invalid nested `navbar` drop does not mutate the builder structure.
-13. Verified invalid hero, descendant, and navbar interactions surface a visible editor notice.
-14. Verified the shared editor notice can be dismissed.
-15. Verified inspector-driven reorder can move a selected node down and restore it back up.
-16. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
-17. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
+10. Verified page-main insertion for the first multi-region `sidebarShell`.
+11. Verified insertion into `sidebarShell.sidebar` for a compact supporting block.
+12. Verified insertion into `sidebarShell.content` for a primary workspace block.
+13. Verified an invalid nested `hero` move does not mutate the builder structure.
+14. Verified an invalid sidebar-region `section` drop does not mutate the builder structure.
+15. Verified an invalid descendant move does not mutate the builder structure.
+16. Verified an invalid nested `navbar` drop does not mutate the builder structure.
+17. Verified invalid hero, sidebar, descendant, and navbar interactions surface a visible editor notice.
+18. Verified the shared editor notice can be dismissed.
+19. Verified inspector-driven reorder can move a selected node down and restore it back up.
+20. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
+21. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
 
 ## Remaining Caveat
 
@@ -130,7 +135,7 @@ What is already in place to support that follow-up:
 - the older `component-*` compatibility shims and the old registry compatibility barrel are now retired, so the active codepaths resolve directly through the canonical `block-*` modules
 - `scripts/verify-builder-contracts.ts` now gives the block system a fast contract-level verification loop before the heavier drag and starter checks run
 - starter verification now includes an internal block-contract coverage project so preview/export parity checks do not depend only on the shape of the shipped user-facing templates
-- placement rules now resolve through explicit page-region and block-region target kinds, which gives validation and verification a clearer shared vocabulary
+- placement rules now resolve through explicit page-region and block-region target kinds, including `layout-sidebar`, which gives validation and verification a clearer shared vocabulary
 - shared block-content parsing and fallback semantics now back both builder preview and generated starter render support, which reduces one more source of preview/export drift
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 - the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized

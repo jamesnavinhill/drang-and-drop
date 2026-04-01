@@ -58,15 +58,15 @@ export function getPrimaryNodeRegionId(type: BlockType) {
 }
 
 export function createNodeRegions(type: BlockType, childIds: string[] = []) {
-  const primaryRegionId = getPrimaryNodeRegionId(type);
+  const placement = getBlockPlacement(type);
 
-  if (!primaryRegionId) {
+  if (placement.regions.length === 0) {
     return {};
   }
 
-  return {
-    [primaryRegionId]: [...childIds],
-  };
+  return Object.fromEntries(
+    placement.regions.map((region, index) => [region.id, index === 0 ? [...childIds] : [] as string[]]),
+  );
 }
 
 function normalizePage(page: LegacyBuilderPage, project: LegacyBuilderProject): BuilderPage {
@@ -107,11 +107,16 @@ function normalizePage(page: LegacyBuilderPage, project: LegacyBuilderProject): 
 
 function normalizeNode(node: LegacyBuilderNode): BuilderNode {
   if (node.regions) {
+    const defaultRegions = createNodeRegions(node.type);
+
     return {
       ...node,
-      regions: Object.fromEntries(
-        Object.entries(node.regions).map(([regionId, childIds]) => [regionId, [...childIds]]),
-      ),
+      regions: {
+        ...defaultRegions,
+        ...Object.fromEntries(
+          Object.entries(node.regions).map(([regionId, childIds]) => [regionId, [...childIds]]),
+        ),
+      },
     };
   }
 

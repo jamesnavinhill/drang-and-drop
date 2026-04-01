@@ -90,8 +90,18 @@ function defineRegion(
 }
 
 const pageFooterMainAndLayoutContent = ["page-footer", "page-main", "layout-content"] as const;
-const layoutContentOnly = ["layout-content"] as const;
+const pageFooterMainAndNestedLayoutRegions = [
+  "page-footer",
+  "page-main",
+  "layout-content",
+  "layout-sidebar",
+] as const;
+const layoutContentAndSidebar = ["layout-content", "layout-sidebar"] as const;
 const contentRegion = [defineRegion("content", "layout-content", "Content")] as const;
+const sidebarShellRegions = [
+  defineRegion("content", "layout-content", "Content"),
+  defineRegion("sidebar", "layout-sidebar", "Sidebar rail"),
+] as const;
 
 const blockContractsByType: Record<BlockType, BlockContract> = {
   navbar: defineBlockContract("navbar", {
@@ -206,7 +216,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "layout",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [...contentRegion],
     },
     render: defineLayoutRender(
@@ -322,7 +332,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "content",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -362,7 +372,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "content",
     placement: {
-      allowedRegions: [...layoutContentOnly],
+      allowedRegions: [...layoutContentAndSidebar],
       regions: [],
     },
     render: defineLeafRender(
@@ -393,7 +403,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "content",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -430,7 +440,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "content",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -461,7 +471,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "content",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -492,7 +502,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "application",
     placement: {
-      allowedRegions: [...layoutContentOnly],
+      allowedRegions: [...layoutContentAndSidebar],
       regions: [],
     },
     render: defineLeafRender(
@@ -529,7 +539,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "application",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -560,7 +570,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "application",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -593,7 +603,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "content",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -624,7 +634,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "application",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -659,7 +669,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "application",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -695,7 +705,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     family: "application",
     placement: {
-      allowedRegions: [...pageFooterMainAndLayoutContent],
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
       regions: [],
     },
     render: defineLeafRender(
@@ -707,10 +717,10 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
   }),
   sidebarShell: defineBlockContract("sidebarShell", {
-    capabilities: ["leaf", "parity-critical"],
+    capabilities: ["future-region-pressure", "layout-owner", "parity-critical"],
     definition: {
       title: "Sidebar Shell",
-      description: "Navigation preview block for internal tools and dashboards.",
+      description: "Two-column application shell with a configured navigation rail and explicit sidebar plus content regions.",
       icon: "R",
       category: "Application",
       defaults: {
@@ -727,10 +737,10 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     family: "application",
     placement: {
       allowedRegions: [...pageFooterMainAndLayoutContent],
-      regions: [],
+      regions: [...sidebarShellRegions],
     },
-    render: defineLeafRender(
-      "Sidebar shell parity keeps the same navigation items and highlighted state while preview and starter choose the most appropriate surrounding shell.",
+    render: defineLayoutRender(
+      "Sidebar shell parity keeps the same configured navigation rail plus sidebar and content layout semantics while preview and starter render each region through their own surface-specific shell treatment.",
     ),
     verification: {
       previewExportParity: "required",

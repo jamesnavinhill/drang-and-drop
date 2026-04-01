@@ -15,7 +15,7 @@ Every shipped block should satisfy this checklist:
 2. Defaults and inspector fields
    Define meaningful defaults in the block contract and keep every editable prop represented by an inspector field with a matching default value.
 3. Placement contract
-   Declare the allowed placement targets and whether the block owns a `layout-container` child target for nested authoring.
+   Declare the allowed destination region kinds and any explicit owned regions the block exposes for nested authoring.
 4. Preview and export render contract
    Add or update the block render metadata so the parity strategy and any intentional preview-versus-starter differences are visible in the contract itself.
 5. Verification impact
@@ -65,7 +65,7 @@ Current matrix:
 | `chatInput` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `messageThread` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `dataTable` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
-| `sidebarShell` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `sidebarShell` | `application` | `shared-layout` | `renders-children` | `builder-canvas` | `generated-route` |
 
 ## Verification Expectations
 

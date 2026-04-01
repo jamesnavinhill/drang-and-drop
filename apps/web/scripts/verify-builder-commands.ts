@@ -128,6 +128,47 @@ function main() {
   );
   assert.deepEqual(project.nodes["section-1"]?.regions.content, ["text-1", "stack-1"]);
 
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("sidebar-shell-1", "sidebarShell"),
+      parent: pageMainParent,
+    }),
+    "Expected sidebar shell insertion in the page main region to succeed.",
+  );
+  assert.deepEqual(project.pages[0]?.regions.main, ["section-1", "sidebar-shell-1"]);
+
+  const sidebarShellContentParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "sidebar-shell-1",
+    regionId: "content",
+  };
+  const sidebarShellSidebarParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "sidebar-shell-1",
+    regionId: "sidebar",
+  };
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("thread-1", "messageThread"),
+      parent: sidebarShellContentParent,
+    }),
+    "Expected message thread insertion inside sidebar shell content to succeed.",
+  );
+  assert.deepEqual(project.nodes["sidebar-shell-1"]?.regions.content, ["thread-1"]);
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("sidebar-button-1", "button"),
+      parent: sidebarShellSidebarParent,
+    }),
+    "Expected button insertion inside sidebar shell sidebar to succeed.",
+  );
+  assert.deepEqual(project.nodes["sidebar-shell-1"]?.regions.sidebar, ["sidebar-button-1"]);
+
   const stackContentParent: ParentReference = {
     kind: "node-region",
     nodeId: "stack-1",
@@ -156,7 +197,7 @@ function main() {
     "descendant-target",
     "Moving a node into one of its descendants should fail.",
   );
-  assert.deepEqual(project.pages[0]?.regions.main, ["section-1"]);
+  assert.deepEqual(project.pages[0]?.regions.main, ["section-1", "sidebar-shell-1"]);
   assert.deepEqual(project.nodes["section-1"]?.regions.content, ["stack-1"]);
 
   expectFailure(
@@ -180,6 +221,17 @@ function main() {
     "Inserting a navbar into section content should fail.",
   );
   assert.equal(project.nodes["navbar-nested-attempt"], undefined);
+
+  expectFailure(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("section-sidebar-attempt", "section"),
+      parent: sidebarShellSidebarParent,
+    }),
+    "invalid-child",
+    "Inserting a section into the sidebar shell sidebar should fail because sections require page or layout content regions.",
+  );
+  assert.equal(project.nodes["section-sidebar-attempt"], undefined);
 
   expectSuccess(
     executeStructureCommand(project, {
@@ -223,6 +275,18 @@ function main() {
   assert.equal(project.nodes["stack-1"], undefined);
   assert.equal(project.nodes["text-1"], undefined);
   assert.equal(project.nodes["stat-1"], undefined);
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      index: 1,
+      kind: "move",
+      nodeId: "stat-copy",
+      parent: sidebarShellSidebarParent,
+    }),
+    "Expected moving stat card into sidebar shell sidebar to succeed.",
+  );
+  assert.deepEqual(project.nodes["stack-copy"]?.regions.content, ["text-copy"]);
+  assert.deepEqual(project.nodes["sidebar-shell-1"]?.regions.sidebar, ["sidebar-button-1", "stat-copy"]);
 
   expectFailure(
     executeStructureCommand(project, {

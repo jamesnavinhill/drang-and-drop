@@ -74,6 +74,9 @@ function createLaunchStudioProject(): BuilderProject {
   const pricingGridId = createId();
   const pricingCardId = createId();
   const sidebarId = createId();
+  const pricingSidebarTextId = createId();
+  const pricingSidebarButtonId = createId();
+  const pricingSidebarTableId = createId();
 
   const homeId = createId();
   const pricingPageId = createId();
@@ -308,6 +311,39 @@ function createLaunchStudioProject(): BuilderProject {
           title: "Product navigation",
           items: "Overview\nPages\nThemes\nExport\nSettings",
           highlight: "Export",
+        },
+        regions: {
+          sidebar: [pricingSidebarTextId, pricingSidebarButtonId],
+          content: [pricingSidebarTableId],
+        },
+      },
+      [pricingSidebarTextId]: {
+        id: pricingSidebarTextId,
+        type: "text",
+        props: {
+          title: "Need a handoff?",
+          body: "Keep the route map, theme controls, and export summary close to the workspace shell.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [pricingSidebarButtonId]: {
+        id: pricingSidebarButtonId,
+        type: "button",
+        props: {
+          label: "Talk sales",
+          variant: "primary",
+          fullWidth: true,
+        },
+        children: [],
+      },
+      [pricingSidebarTableId]: {
+        id: pricingSidebarTableId,
+        type: "dataTable",
+        props: {
+          title: "Workspace modules",
+          columns: "Area|Focus",
+          rows: "Pages|Route setup\nTheme|Visual tokens\nExport|Starter handoff",
         },
         children: [],
       },
@@ -623,6 +659,9 @@ function createOpsHubProject(): BuilderProject {
   const opsFeatureId = createId();
   const formId = createId();
   const workspaceTableId = createId();
+  const workspaceSidebarTextId = createId();
+  const workspaceSidebarButtonId = createId();
+  const workspaceSidebarFeedId = createId();
 
   const overviewId = createId();
   const workspaceId = createId();
@@ -699,6 +738,40 @@ function createOpsHubProject(): BuilderProject {
           title: "Ops navigation",
           items: "Overview\nRequests\nApprovals\nIncidents\nReports",
           highlight: "Approvals",
+        },
+        regions: {
+          sidebar: [workspaceSidebarTextId, workspaceSidebarButtonId],
+          content: [workspaceSidebarFeedId],
+        },
+      },
+      [workspaceSidebarTextId]: {
+        id: workspaceSidebarTextId,
+        type: "text",
+        props: {
+          title: "Queue guidance",
+          body: "Put the highest-signal context in the rail so operators can orient before diving into the main panel.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [workspaceSidebarButtonId]: {
+        id: workspaceSidebarButtonId,
+        type: "button",
+        props: {
+          label: "Open queue",
+          variant: "primary",
+          fullWidth: true,
+        },
+        children: [],
+      },
+      [workspaceSidebarFeedId]: {
+        id: workspaceSidebarFeedId,
+        type: "activityFeed",
+        props: {
+          title: "Approvals queue",
+          body: "A compact embedded feed keeps the shell useful even before deeper workflow-specific blocks land.",
+          entries:
+            "SLA review queued|Today at 9:05 AM|Review\nOwner reassignment|Today at 10:40 AM|Ready\nCoverage summary posted|Today at 1:20 PM|Queued",
         },
         children: [],
       },
