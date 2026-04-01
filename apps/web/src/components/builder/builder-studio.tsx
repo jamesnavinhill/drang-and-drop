@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 
 import { AssistantPanel } from "./assistant-panel";
 import { BuilderCanvas } from "./canvas";
+import { BuilderTestHooks } from "./builder-test-hooks";
 import { InspectorPanel } from "./inspector-panel";
 import { LibraryPanel } from "./library-panel";
 import { PagePanel } from "./page-panel";
@@ -53,16 +54,19 @@ function SidebarTabButton({
   icon: Icon,
   label,
   onClick,
+  value,
 }: {
   active: boolean;
   icon: typeof Files;
   label: string;
   onClick: () => void;
+  value: SidebarTab;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      data-builder-sidebar-tab={value}
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
         active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
@@ -173,6 +177,7 @@ export function BuilderStudio() {
                       key={mode.value}
                       type="button"
                       onClick={() => setPreviewMode(mode.value)}
+                      data-builder-preview-mode={mode.value}
                       className={cn(
                         "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
                         active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
@@ -265,6 +270,7 @@ export function BuilderStudio() {
                     icon={tab.icon}
                     label={tab.label}
                     onClick={() => setActiveSidebarTab(tab.value)}
+                    value={tab.value}
                   />
                 ))}
               </div>
@@ -293,6 +299,7 @@ export function BuilderStudio() {
           </aside>
         </div>
       </div>
+      <BuilderTestHooks />
     </main>
   );
 }

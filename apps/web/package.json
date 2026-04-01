@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "verify:dnd": "pnpm exec tsx scripts/verify-builder-dnd.ts",
     "verify:starters": "pnpm exec tsx scripts/verify-generated-starters.ts --browser",
     "verify:starters:runtime": "pnpm exec tsx scripts/verify-generated-starters.ts",
     "verify:playwright:install": "pnpm exec playwright install chromium"

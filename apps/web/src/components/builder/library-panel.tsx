@@ -77,16 +77,19 @@ function LibraryModeButton({
   icon: Icon,
   label,
   onClick,
+  value,
 }: {
   active: boolean;
   icon: typeof Compass;
   label: string;
   onClick: () => void;
+  value: LibraryView;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      data-builder-library-view={value}
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
         active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
@@ -131,8 +134,15 @@ export function LibraryPanel() {
             icon={Compass}
             label="Contextual"
             onClick={() => setLibraryView("context")}
+            value="context"
           />
-          <LibraryModeButton active={libraryView === "all"} icon={Layers3} label="All blocks" onClick={() => setLibraryView("all")} />
+          <LibraryModeButton
+            active={libraryView === "all"}
+            icon={Layers3}
+            label="All blocks"
+            onClick={() => setLibraryView("all")}
+            value="all"
+          />
           <span className="ml-auto rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
             {visibleItems.length} option{visibleItems.length === 1 ? "" : "s"}
           </span>

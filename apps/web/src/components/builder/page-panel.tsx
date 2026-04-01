@@ -21,16 +21,19 @@ function PanelTabButton({
   icon: Icon,
   label,
   onClick,
+  value,
 }: {
   active: boolean;
   icon: typeof Route;
   label: string;
   onClick: () => void;
+  value: PagePanelTab;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      data-builder-page-tab={value}
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
         active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
@@ -191,6 +194,7 @@ function RoutesTab() {
         <button
           type="button"
           onClick={() => addPage()}
+          data-builder-page-action="new"
           className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-foreground"
         >
           <FilePlus2 className="h-3.5 w-3.5" />
@@ -339,12 +343,19 @@ export function PagePanel() {
     <div className="space-y-4">
       <div className="rounded-[24px] border border-border bg-white/76 p-2">
         <div className="flex flex-wrap items-center gap-2">
-          <PanelTabButton active={activeTab === "routes"} icon={Route} label="Routes" onClick={() => setActiveTab("routes")} />
+          <PanelTabButton
+            active={activeTab === "routes"}
+            icon={Route}
+            label="Routes"
+            onClick={() => setActiveTab("routes")}
+            value="routes"
+          />
           <PanelTabButton
             active={activeTab === "outline"}
             icon={FolderTree}
             label="Outline"
             onClick={() => setActiveTab("outline")}
+            value="outline"
           />
           <span className="ml-auto rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
             {totalPageNodes} block{totalPageNodes === 1 ? "" : "s"} on page

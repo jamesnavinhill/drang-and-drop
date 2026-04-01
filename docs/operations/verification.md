@@ -7,6 +7,7 @@ Code quality checks completed from `apps/web`:
 ```powershell
 pnpm lint
 pnpm build
+pnpm verify:dnd
 pnpm verify:starters
 ```
 
@@ -59,25 +60,37 @@ Automated generated starter validation completed via `pnpm verify:starters`:
 10. Confirmed no browser `pageerror`, no browser console error, and no failed network request for each route.
 11. Saved browser screenshots for each generated route under the template verification workspace.
 
+Automated builder drag validation completed via `pnpm verify:dnd`:
+
+1. Rebuilt the builder app and served it under `next start`.
+2. Reset the demo state and created a clean verification page in-browser.
+3. Verified palette-to-canvas insertion for a root `section`.
+4. Verified nested insertion into that section for `text` and `button` blocks.
+5. Verified nested reordering by moving `button` ahead of `text`.
+6. Verified another root insertion for `hero`.
+7. Verified root-level reordering by moving `hero` ahead of `section`.
+8. Verified an invalid nested `navbar` drop does not mutate the builder structure.
+9. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
+10. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
+
 ## Remaining Caveat
 
-The previous local `next start` concern no longer reproduces after the hydration change, and generated starter static assets also stayed healthy in the current automated run.
+The previous local `next start` concern no longer reproduces after the hydration change, and builder drag coverage is now in place through a deterministic browser-backed harness.
 
-The remaining verification gap is now primarily specific to drag automation and deeper generated UI assertions:
+The primary remaining verification gap is now deeper generated-app fidelity coverage:
 
-- the `dnd-kit` pointer drag gesture still did not trigger reliably through the current Playwright CLI drag/mouse helpers in this Windows environment
-- stronger insert/reorder automation will likely need either a lower-level browser harness or an app-level deterministic verification hook
 - generated starter validation now includes browser-rendered route checks, but it still does not include visual diffing or richer semantic assertions against layout fidelity
+- builder drag verification currently covers the core insertion/reorder loop, but not yet the full block catalog or every placement constraint edge case
 
 What is already in place to support that follow-up:
 
-- stable `data-builder-*` hooks were added around palette items, canvas nodes, drop targets, pages, and history actions
+- stable `data-builder-*` hooks now back both browser automation selectors and the deterministic builder drag verification hook
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 
 ## Recommended Follow-Up Verification
 
 Run these next:
 
-1. Add or choose a more deterministic browser harness for `dnd-kit` pointer drag automation.
-2. Re-run explicit palette-to-canvas insert and reorder coverage using the new `data-builder-*` hooks.
-3. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions against the exported app.
+1. Expand builder drag verification across more block combinations and invalid placement edges.
+2. Expand generated starter validation from browser smoke checks into richer visual or DOM-level fidelity assertions against the exported app.
+3. Add comparison baselines or DOM-semantic assertions for layout fidelity across the generated routes.

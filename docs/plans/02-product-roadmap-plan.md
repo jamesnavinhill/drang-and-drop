@@ -20,12 +20,12 @@ Implemented in the current greenfield slice:
 - project JSON import/export and starter template application
 - starter zip export with generated `Next.js` project files
 - verification coverage for build, lint, live browser rendering, page switching, node selection, preview mode changes, and export download
+- deterministic builder drag verification for explicit palette insertion, nested insertion, reorder, and invalid-drop coverage
 - automated generated-starter verification across all shipped templates with install/build/serve/route/static-asset and browser-rendered checks
 
 Open follow-up work after this slice:
 
-- tighten drag/drop verification coverage for explicit palette-to-canvas insertions and reordering flows
-- investigate the remaining local `next start` static asset serving issue observed during automated browser verification
+- expand builder drag verification across more block combinations and placement edge cases
 - continue expanding the component catalog beyond the current marketing and internal-tool starter set
 - strengthen export parity tests and generated-project runtime verification
 - deepen generated-app assertions beyond the current browser smoke checks and runtime harness

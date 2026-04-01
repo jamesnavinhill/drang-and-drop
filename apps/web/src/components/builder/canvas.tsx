@@ -17,6 +17,7 @@ import { GripVertical, MousePointer2, MoveDown } from "lucide-react";
 import { useState } from "react";
 
 import { getComponentDefinition, getThemeStyles, renderNodePreview } from "@/lib/builder/registry";
+import { applyBuilderDragOperation, type BuilderActiveDragData, type BuilderOverDragData } from "@/lib/builder/dnd";
 import { useBuilderStore } from "@/lib/builder/store";
 import type { BuilderProject, BuilderNode, ParentReference } from "@/lib/builder/types";
 import { cn } from "@/lib/utils";
@@ -32,14 +33,6 @@ type DragDescriptor =
       title: string;
       description: string;
     };
-
-function getChildren(project: BuilderProject, parent: ParentReference) {
-  if (parent.kind === "page") {
-    return project.pages.find((page) => page.id === parent.id)?.rootIds ?? [];
-  }
-
-  return project.nodes[parent.id]?.children ?? [];
-}
 
 function CanvasNode({
   node,
@@ -140,6 +133,7 @@ function CanvasNode({
         </div>
         <button
           type="button"
+          data-builder-drag-handle={node.id}
           className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-muted"
           {...listeners}
           {...attributes}
@@ -202,31 +196,6 @@ export function BuilderCanvas() {
         ? "max-w-3xl"
         : "max-w-6xl";
 
-  function resolveDropTarget(
-    overData: Record<string, unknown> | undefined,
-  ): { parent: ParentReference; index: number } | null {
-    if (!overData) {
-      return null;
-    }
-
-    if (overData.kind === "container") {
-      const parent = overData.parent as ParentReference;
-      return {
-        parent,
-        index: getChildren(project, parent).length,
-      };
-    }
-
-    if (overData.kind === "node") {
-      return {
-        parent: overData.parent as ParentReference,
-        index: overData.index as number,
-      };
-    }
-
-    return null;
-  }
-
   function handleDragStart(event: DragStartEvent) {
     const data = event.active.data.current;
     if (!data) {
@@ -253,24 +222,15 @@ export function BuilderCanvas() {
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    const active = event.active.data.current;
-    const over = event.over?.data.current;
-    const target = resolveDropTarget(over as Record<string, unknown> | undefined);
-
     setActiveDrag(null);
 
-    if (!active || !target) {
-      return;
-    }
-
-    if (active.kind === "palette") {
-      addNode(active.componentType, target.parent, target.index);
-      return;
-    }
-
-    if (active.kind === "node") {
-      moveNode(active.nodeId, target.parent, target.index);
-    }
+    applyBuilderDragOperation({
+      active: event.active.data.current as BuilderActiveDragData | undefined,
+      addNode: (type, parent, index) => addNode(type, parent, index),
+      moveNode: (nodeId, parent, index) => moveNode(nodeId, parent, index),
+      over: event.over?.data.current as BuilderOverDragData | undefined,
+      project,
+    });
   }
 
   return (
@@ -286,6 +246,7 @@ export function BuilderCanvas() {
           <button
             type="button"
             onClick={() => selectNode(null)}
+            data-builder-action="clear-selection"
             className="builder-pill rounded-full px-3 py-2 text-xs font-semibold text-muted"
           >
             Clear selection

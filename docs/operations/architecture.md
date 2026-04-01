@@ -12,6 +12,8 @@ Core layers:
   Seeds the starter templates, demo project, and template factories.
 - `src/lib/builder/registry.tsx`
   Owns the component catalog, prop controls, placement constraints, theme style mapping, and preview rendering.
+- `src/lib/builder/dnd.ts`
+  Owns shared drag/drop resolution helpers used by both the live canvas and deterministic browser verification.
 - `src/lib/builder/store.ts`
   Owns Zustand state, persistence, history, node/page mutations, duplication, deletion, and selection.
 - `src/lib/builder/export.ts`
@@ -21,7 +23,9 @@ Core layers:
 - `src/lib/builder/io.ts`
   Handles schema-safe builder project JSON import/export.
 - `src/components/builder/*`
-  Implements the editor shell: page panel, library, canvas, and inspector.
+  Implements the editor shell: page panel, library, canvas, inspector, and browser verification hook.
+- `scripts/verify-builder-dnd.ts`
+  Rebuilds and serves the builder app, then validates palette insertion, nested insertion, reorder, and invalid-drop behavior through the browser harness.
 - `scripts/verify-generated-starters.ts`
   Generates clean starter workspaces for each shipped template, then runs install/build/start/route/static-asset verification plus browser-rendered checks and screenshots.
 
