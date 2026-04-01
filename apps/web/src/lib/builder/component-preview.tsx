@@ -2,67 +2,14 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+import {
+  parseActivityEntries,
+  parseFaqItems,
+  parseTable,
+  parseTranscript,
+  toLines,
+} from "./component-content";
 import type { BuilderNode, BuilderProject, BuilderTheme } from "./types";
-
-function toLines(value: string) {
-  return value
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function parseTable(columnsValue: string, rowsValue: string) {
-  const columns = columnsValue
-    .split("|")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  const rows = toLines(rowsValue).map((row) =>
-    row
-      .split("|")
-      .map((cell) => cell.trim())
-      .slice(0, columns.length || undefined),
-  );
-
-  return { columns, rows };
-}
-
-function parseTranscript(value: string) {
-  return toLines(value).map((entry) => {
-    const [sender, ...rest] = entry.split("|");
-    const message = rest.join("|").trim();
-    const normalizedSender = sender.trim() || "user";
-
-    return {
-      sender: normalizedSender,
-      message: message || "Message",
-      isAssistant: /assistant|copilot|system/i.test(normalizedSender),
-    };
-  });
-}
-
-function parseFaqItems(value: string) {
-  return toLines(value).map((entry) => {
-    const [question, ...rest] = entry.split("|");
-    const answer = rest.join("|").trim();
-
-    return {
-      answer: answer || "Add an answer in the inspector.",
-      question: question.trim() || "Question",
-    };
-  });
-}
-
-function parseActivityEntries(value: string) {
-  return toLines(value).map((entry) => {
-    const [title, meta, status] = entry.split("|").map((item) => item.trim());
-
-    return {
-      meta: meta || "No timestamp yet",
-      status: status || "Queued",
-      title: title || "Activity",
-    };
-  });
-}
 
 export function getThemeStyles(theme: BuilderTheme): CSSProperties {
   const shadowDepth = 18 + theme.shadow * 8;

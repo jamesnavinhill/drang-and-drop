@@ -55,6 +55,7 @@ The current desktop shell is organized as:
 - outline insertion context cues that match the library and canvas targeting model
 - shared node structure actions across outline and inspector so reorder/duplicate/remove stay aligned
 - split builder block definitions, placement rules, and preview rendering modules so the registry layer is no longer the implementation catch-all
+- shared content parsing/fallback helpers now back builder preview and generated-starter render support so export parity relies on fewer duplicated block contracts
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
 - expanded first-party block catalog including nav, FAQ, activity feed, testimonial, table, and message-thread shells
@@ -91,9 +92,11 @@ If both provider credentials are present, also set:
 - Assistant config: `src/lib/ai`
 - Builder store: `src/lib/builder/store.ts`
 - Structure commands and validation: `src/lib/builder/structure.ts`
+- Shared content parsing: `src/lib/builder/component-content.ts`
 - Block definitions: `src/lib/builder/component-definitions.ts`
 - Placement rules: `src/lib/builder/component-placement.ts`
 - Preview rendering: `src/lib/builder/component-preview.tsx`
+- Generated render support source: `src/lib/builder/starter-render-support.ts`
 - Registry compatibility barrel: `src/lib/builder/registry.tsx`
 - Export generation: `src/lib/builder/export.ts`
 - Command verification: `scripts/verify-builder-commands.ts`

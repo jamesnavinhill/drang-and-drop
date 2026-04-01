@@ -29,6 +29,7 @@ Implemented in the current greenfield slice:
 - shared outline/inspector node action controls for reorder, duplicate, and remove parity
 - split builder block definitions, placement rules, and preview rendering modules so the registry boundary is starting to harden
 - placement validation now resolves through explicit `page-root` and `layout-container` targets, giving command and drag verification a clearer shared model
+- shared content parsing/fallback helpers and generated render support are now separated so preview/export parity depends on fewer duplicated helper paths
 - automated generated-starter verification across all shipped templates with install/build/serve/route/static-asset and browser-rendered checks
 
 Open follow-up work after this slice:

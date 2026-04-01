@@ -115,6 +115,7 @@ What is already in place to support that follow-up:
 - `scripts/verify-builder-commands.ts` now gives the structure-command layer a direct fast verification loop outside the browser
 - block definitions, placement rules, and builder preview rendering now live in separate builder modules, which lowers registry coupling before deeper placement/export hardening
 - placement rules now resolve through explicit `page-root` and `layout-container` target kinds, which gives validation and verification a clearer shared vocabulary
+- shared content parsing and fallback semantics now back both builder preview and generated starter render support, which reduces one more source of preview/export drift
 - `output/` is now excluded from app lint/build scope so Playwright artifacts and exported starter workspaces can live under `apps/web/output` without breaking checks
 - the current builder state model is already deterministic enough to support stronger structural and command-level verification once those layers are formalized
 

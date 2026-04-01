@@ -27,6 +27,7 @@ Progress landed so far in the current codebase:
 - outline and inspector now share the same structure-action controls for reorder, duplicate, and remove
 - block definitions, placement rules, and builder preview rendering are now split into focused modules, with `registry.tsx` reduced to a compatibility barrel
 - placement validation now resolves through explicit `page-root` and `layout-container` target kinds instead of only raw parent-type allowlists
+- shared content parsing and generated render support are now split out so builder preview and generated starters rely on fewer duplicated helper contracts
 
 This means the constraint-and-command foundation is partially landed. The next work inside this plan should lean harder into editor interaction clarity, validation surfacing, and registry separation instead of reopening already-centralized mutation paths.
 
@@ -107,7 +108,7 @@ The main constraints in the current codebase are:
 2. The canvas flow in `src/components/builder/canvas.tsx` is deterministic, but it does not yet provide strong insertion semantics or guard every edge case.
 3. The store in `src/lib/builder/store.ts` owns mutations directly without a more explicit command layer.
 4. Schema validation in `src/lib/builder/schema.ts` checks shape, but not enough semantic or structural validity.
-5. Export still depends on a parallel renderer contract in `src/lib/builder/starter-artifacts.ts`, so parity risks grow as the block system gets richer.
+5. Builder preview and generated starter output now share more helper semantics, but they still duplicate most JSX layout/rendering per block.
 6. The old registry boundary has been reduced, but the compatibility barrel should not become a new home for cross-cutting builder logic.
 
 ## Foundation Workstreams
@@ -242,6 +243,7 @@ Acceptance signals:
 
 - adding a block no longer implies touching one oversized, multipurpose registry definition
 - export and preview parity rules become easier to see and review
+- generated starter helper contracts live outside the main starter-artifact catch-all
 
 ### 6. Export Parity And Fidelity Foundation
 

@@ -1,4 +1,5 @@
 import type { BuilderProject } from "./types";
+import { createStarterRenderSupportFile } from "./starter-render-support";
 
 export interface StarterProjectFile {
   path: string;
@@ -58,114 +59,16 @@ function createRendererFile() {
   return `import type { CSSProperties, ReactNode } from "react";
 
 import { project } from "@/lib/project-data";
-
-function buttonVariant(label: string, variant: string, fullWidth?: boolean) {
-  const style: CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 999,
-    padding: "10px 16px",
-    fontSize: 14,
-    fontWeight: 600,
-    width: fullWidth ? "100%" : undefined,
-  };
-
-  if (variant === "secondary") {
-    return (
-      <button type="button" style={{ ...style, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", color: "var(--builder-foreground)" }}>
-        {label}
-      </button>
-    );
-  }
-
-  if (variant === "ghost") {
-    return (
-      <button type="button" style={{ ...style, color: "var(--builder-muted)", background: "transparent" }}>
-        {label}
-      </button>
-    );
-  }
-
-  return (
-    <button type="button" style={{ ...style, background: "var(--builder-accent)", color: "var(--builder-accent-contrast)" }}>
-      {label}
-    </button>
-  );
-}
-
-function featureLines(value: string) {
-  return (
-    <ul style={{ display: "grid", gap: 12, listStyle: "none", margin: 0, padding: 0, color: "var(--builder-muted)" }}>
-      {toLines(value).map((item) => (
-          <li key={item} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 999, background: "var(--builder-accent)", display: "inline-block" }} />
-            <span>{item}</span>
-          </li>
-        ))}
-    </ul>
-  );
-}
-
-function toLines(value: string) {
-  return value
-    .split("\\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function parseTranscript(value: string) {
-  return toLines(value).map((entry) => {
-    const [sender, ...rest] = entry.split("|");
-    const message = rest.join("|").trim();
-    const normalizedSender = sender.trim() || "user";
-
-    return {
-      sender: normalizedSender,
-      message: message || "Message",
-      isAssistant: /assistant|copilot|system/i.test(normalizedSender),
-    };
-  });
-}
-
-function parseFaqItems(value: string) {
-  return toLines(value).map((entry) => {
-    const [question, ...rest] = entry.split("|");
-    const answer = rest.join("|").trim();
-
-    return {
-      answer: answer || "Add an answer in the builder.",
-      question: question.trim() || "Question",
-    };
-  });
-}
-
-function parseActivityEntries(value: string) {
-  return toLines(value).map((entry) => {
-    const [title, meta, status] = entry.split("|").map((item) => item.trim());
-
-    return {
-      meta: meta || "No timestamp yet",
-      status: status || "Queued",
-      title: title || "Activity",
-    };
-  });
-}
-
-function parseTable(columnsValue: string, rowsValue: string) {
-  const columns = columnsValue
-    .split("|")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  const rows = toLines(rowsValue).map((row) =>
-    row
-      .split("|")
-      .map((cell) => cell.trim())
-      .slice(0, columns.length || undefined),
-  );
-
-  return { columns, rows };
-}
+import {
+  buttonVariant,
+  featureLines,
+  parseActivityEntries,
+  parseFaqItems,
+  parseTable,
+  parseTranscript,
+  toBuilderThemeStyleVariables,
+  toLines,
+} from "@/lib/render-support";
 
 function renderNode(nodeId: string): ReactNode {
   const node = project.nodes[nodeId];
@@ -525,15 +428,7 @@ export function ProjectPage({ pageId }: { pageId: string }) {
     return null;
   }
 
-  const style = {
-    ["--builder-background" as string]: project.theme.background,
-    ["--builder-foreground" as string]: project.theme.foreground,
-    ["--builder-muted" as string]: project.theme.muted,
-    ["--builder-surface" as string]: project.theme.surface,
-    ["--builder-border" as string]: "rgba(16, 24, 40, 0.12)",
-    ["--builder-accent" as string]: project.theme.accent,
-    ["--builder-accent-contrast" as string]: project.theme.accentContrast,
-  } as CSSProperties;
+  const style = toBuilderThemeStyleVariables(project.theme);
 
   return (
     <main
@@ -740,6 +635,7 @@ export function getStarterProjectFiles(project: BuilderProject): StarterProjectF
     { path: "app/layout.tsx", contents: createAppLayout() },
     { path: "app/globals.css", contents: createGlobalStyles() },
     { path: "lib/project-data.ts", contents: createProjectData(project) },
+    { path: "lib/render-support.tsx", contents: createStarterRenderSupportFile() },
     { path: "lib/render-page.tsx", contents: createRendererFile() },
   ];
 

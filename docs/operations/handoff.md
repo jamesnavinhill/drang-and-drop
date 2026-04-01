@@ -16,6 +16,7 @@
 - Outline and inspector now share the same node-structure action surface for reorder, duplicate, and remove controls.
 - Builder block definitions, placement rules, and preview rendering are now split into focused modules, and `src/lib/builder/registry.tsx` is reduced to a compatibility barrel instead of the implementation catch-all.
 - Placement validation now resolves against explicit `page-root` and `layout-container` target kinds instead of only raw parent-type allowlists, and command verification now covers those target boundaries directly.
+- Shared block-content parsing and fallback semantics now live in one builder module, and generated starters receive a dedicated `render-support` file instead of keeping those helpers inline in the main page renderer.
 - The roadmap and operations docs have been updated to reflect the current implementation baseline and next slices.
 
 ## Next Best Slice
@@ -24,9 +25,9 @@ The next session should focus on one cohesive editor-foundation slice:
 
 - continue from the new split builder modules instead of re-growing the compatibility barrel
 - build on the new `page-root` / `layout-container` placement model toward clearer slot or region contracts
-- tighten builder/export parity now that preview rendering and block definitions have clearer seams
+- tighten builder/export parity now that preview rendering, shared content parsing, and generated render support have clearer seams
 - keep verification green while the placement/export contracts are tightened
 
 ## Suggested Starting Prompt
 
-Continue from `apps/web` and follow `docs/plans/04-editor-foundation-hardening-plan.md`. The structure-command foundation is in place, the outline/inspector action surface is shared, the old builder registry has been split into block-definition, placement, and preview modules, and placement validation now resolves through explicit `page-root` and `layout-container` target kinds. Next, keep hardening the placement model and export parity on top of those seams without re-centralizing logic into the compatibility barrel.
+Continue from `apps/web` and follow `docs/plans/04-editor-foundation-hardening-plan.md`. The structure-command foundation is in place, the outline/inspector action surface is shared, the old builder registry has been split into block-definition, placement, and preview modules, placement validation now resolves through explicit `page-root` and `layout-container` target kinds, and shared content parsing plus generated render support have been extracted from the old export catch-all. Next, keep hardening export parity on top of those seams without re-centralizing logic into the compatibility barrel.

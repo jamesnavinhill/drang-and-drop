@@ -14,8 +14,12 @@ Core layers:
   Owns the current block catalog, default props, and inspector field definitions.
 - `src/lib/builder/component-placement.ts`
   Owns the current explicit placement-target model, including `page-root` and `layout-container` rules plus child-acceptance helpers.
+- `src/lib/builder/component-content.ts`
+  Owns shared block-content parsing and fallback semantics used by the builder preview layer.
 - `src/lib/builder/component-preview.tsx`
   Owns builder-side theme style mapping and preview rendering for the current block set.
+- `src/lib/builder/starter-render-support.ts`
+  Owns the generated starter render-support file source so export helper behavior can stay aligned with the builder-side content contract.
 - `src/lib/builder/registry.tsx`
   Now acts as a compatibility barrel while the rest of the codebase migrates away from the old catch-all entry point.
 - `src/lib/builder/dnd.ts`
@@ -131,8 +135,8 @@ The generated starter file plan now has a matching automated verification loop t
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
-- Registry implementation coupling is lower now that block definitions, placement rules, and preview rendering are split into separate modules, but the placement model is still allowlist-based and preview/export contracts still duplicate block behavior.
-- Export is readable, but not yet decomposed into highly granular generated components.
+- Registry implementation coupling is lower now that block definitions, placement rules, and preview rendering are split into separate modules, but the placement model still stops short of slot or region contracts and preview/export still duplicate most JSX block layouts.
+- Export is clearer now that generated render support is split away from the main starter-artifact file, but it is not yet decomposed into highly granular generated components.
 - JSON import/export currently targets schema-safe builder state, not arbitrary roundtrip from generated code.
 - Backend integrations, auth, and data bindings are intentionally deferred.
 
