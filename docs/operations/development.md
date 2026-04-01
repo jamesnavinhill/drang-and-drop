@@ -53,10 +53,14 @@ pnpm build
 - The build script is pinned to `next build --webpack` because local production serving was more stable than the default build path in this environment.
 - The builder persists project state locally in the browser, so refreshes and revisits will restore the last saved working state.
 - If you want a clean local reset in the browser, use the in-app `Reset demo` control or clear local storage for the app origin.
+- The assistant shell and transport are wired, but live requests are intentionally disabled unless `NEXT_PUBLIC_BUILDER_ASSISTANT_ENABLED=true` is set in `apps/web/.env.local`.
+- The current assistant backend supports Vercel AI Gateway or direct OpenAI configuration through explicit environment variables in `apps/web/.env.example`.
 
 ## Important Paths
 
 - Builder shell: `apps/web/src/components/builder`
+- Assistant route: `apps/web/src/app/api/chat/route.ts`
+- Assistant config and prompting: `apps/web/src/lib/ai`
 - Project store: `apps/web/src/lib/builder/store.ts`
 - Registry and rendering: `apps/web/src/lib/builder/registry.tsx`
 - Export generation: `apps/web/src/lib/builder/export.ts`

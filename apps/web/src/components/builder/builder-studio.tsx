@@ -16,6 +16,7 @@ import {
 import { useEffect, useEffectEvent, useState } from "react";
 
 import { exportProjectZip } from "@/lib/builder/export";
+import { getAssistantFeatureLabel } from "@/lib/ai/config";
 import type { AssistantMode } from "@/lib/ai/types";
 import { getPageSummary } from "@/lib/builder/registry";
 import { useBuilderStore } from "@/lib/builder/store";
@@ -242,7 +243,10 @@ export function BuilderStudio() {
               Active route: {activePage?.path ?? "/"}
             </span>
             <span className="rounded-full border border-border bg-white/72 px-3 py-1">
-              Assistant: {assistantMode === "proposal" ? "Proposal first" : "Auto-apply preference"}
+              Assistant: {getAssistantFeatureLabel()}
+            </span>
+            <span className="rounded-full border border-border bg-white/72 px-3 py-1">
+              Mode: {assistantMode === "proposal" ? "Proposal first" : "Auto-apply preference"}
             </span>
             <span className="rounded-full border border-border bg-white/72 px-3 py-1">
               Updated {new Date(project.updatedAt).toLocaleString()}
@@ -269,7 +273,9 @@ export function BuilderStudio() {
             <div className="builder-scrollbar mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
               {activeSidebarTab === "pages" ? <PagePanel /> : null}
               {activeSidebarTab === "library" ? <LibraryPanel /> : null}
-              {activeSidebarTab === "assistant" ? <AssistantPanel assistantMode={assistantMode} /> : null}
+              {activeSidebarTab === "assistant" ? (
+                <AssistantPanel assistantMode={assistantMode} />
+              ) : null}
               {activeSidebarTab === "settings" ? (
                 <SettingsPanel assistantMode={assistantMode} onAssistantModeChange={setAssistantMode} />
               ) : null}

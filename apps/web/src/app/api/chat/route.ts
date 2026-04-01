@@ -1,5 +1,6 @@
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 
+import { isAssistantFeatureEnabled } from "@/lib/ai/config";
 import { buildAssistantSystemPrompt } from "@/lib/ai/prompt";
 import { resolveAssistantModel } from "@/lib/ai/model";
 import { builderAssistantContextSchema } from "@/lib/ai/types";
@@ -8,6 +9,16 @@ export const maxDuration = 30;
 
 export async function POST(request: Request) {
   try {
+    if (!isAssistantFeatureEnabled()) {
+      return Response.json(
+        {
+          error:
+            "The builder assistant is currently disabled. Set NEXT_PUBLIC_BUILDER_ASSISTANT_ENABLED=true when you are ready to turn on live model requests.",
+        },
+        { status: 503 },
+      );
+    }
+
     const body = (await request.json()) as {
       messages?: UIMessage[];
       context?: unknown;

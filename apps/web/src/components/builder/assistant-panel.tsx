@@ -5,6 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
 
+import { isAssistantFeatureEnabled } from "@/lib/ai/config";
 import { buildBuilderAssistantContext } from "@/lib/ai/context";
 import type { AssistantMode } from "@/lib/ai/types";
 import { getSelectedNode, useBuilderStore } from "@/lib/builder/store";
@@ -31,6 +32,7 @@ export function AssistantPanel({
 }: {
   assistantMode: AssistantMode;
 }) {
+  const assistantEnabled = isAssistantFeatureEnabled();
   const [input, setInput] = useState("");
   const project = useBuilderStore((state) => state.project);
   const selectedPageId = useBuilderStore((state) => state.selectedPageId);
@@ -53,7 +55,7 @@ export function AssistantPanel({
 
   function submitPrompt(rawValue: string) {
     const value = rawValue.trim();
-    if (!value || status !== "ready") {
+    if (!assistantEnabled || !value || status !== "ready") {
       return;
     }
 
@@ -82,7 +84,9 @@ export function AssistantPanel({
         </div>
 
         <div className="mt-3 rounded-[20px] border border-border/80 bg-white/76 px-3 py-3 text-sm leading-6 text-muted">
-          The assistant receives the active page, selection, preview mode, and available component catalog on each send.
+          {assistantEnabled
+            ? "The assistant receives the active page, selection, preview mode, and available component catalog on each send."
+            : "The assistant is wired but dormant. Keep the shell polished now, then enable live model requests when the team is ready."}
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -91,10 +95,10 @@ export function AssistantPanel({
               key={prompt}
               type="button"
               onClick={() => submitPrompt(prompt)}
-              disabled={status !== "ready"}
+              disabled={!assistantEnabled || status !== "ready"}
               className={cn(
                 "builder-pill rounded-full px-3 py-2 text-xs font-semibold text-foreground",
-                status !== "ready" && "cursor-not-allowed opacity-60",
+                (!assistantEnabled || status !== "ready") && "cursor-not-allowed opacity-60",
               )}
             >
               {prompt}
@@ -111,8 +115,9 @@ export function AssistantPanel({
               <span>Assistant</span>
             </div>
             <p className="mt-3 text-sm leading-6 text-foreground">
-              Live assistant transport is wired. Ask for help with copy, theme polish, or safe layout direction once your
-              provider env vars are configured.
+              {assistantEnabled
+                ? "Live assistant transport is wired. Ask for help with copy, theme polish, or safe layout direction once your provider env vars are configured."
+                : "Assistant transport is wired, but live calls are intentionally off. Enable the feature flag and provider env vars later when you want to start using it."}
             </p>
           </article>
         ) : null}
@@ -157,10 +162,23 @@ export function AssistantPanel({
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="Ask for help with copy, layout, or theme direction..."
+            placeholder={
+              assistantEnabled
+                ? "Ask for help with copy, layout, or theme direction..."
+                : "Assistant is dormant until NEXT_PUBLIC_BUILDER_ASSISTANT_ENABLED=true"
+            }
             rows={3}
             className="min-h-24 flex-1 rounded-[20px] border border-border bg-white px-4 py-3 text-sm text-foreground outline-none"
           />
+          {!assistantEnabled ? (
+            <button
+              type="button"
+              disabled
+              className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-muted"
+            >
+              Disabled
+            </button>
+          ) : null}
           {status === "streaming" ? (
             <button
               type="button"
@@ -169,7 +187,7 @@ export function AssistantPanel({
             >
               Stop
             </button>
-          ) : (
+          ) : assistantEnabled ? (
             <button
               type="button"
               onClick={() => submitPrompt(input)}
@@ -181,7 +199,7 @@ export function AssistantPanel({
             >
               Send
             </button>
-          )}
+          ) : null}
         </div>
       </section>
     </div>
