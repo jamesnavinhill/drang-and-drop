@@ -347,7 +347,47 @@ This export keeps the schema and renderer explicit so a developer can continue r
 }
 
 function createProjectData(project: BuilderProject) {
-  return `export const project = ${JSON.stringify(project, null, 2)} as const;
+  return `type PrimitiveValue = string | number | boolean;
+type NodeProps = Record<string, PrimitiveValue>;
+
+interface BuilderNode {
+  id: string;
+  type: string;
+  props: NodeProps;
+  children: string[];
+}
+
+interface BuilderPage {
+  id: string;
+  name: string;
+  path: string;
+  description: string;
+  rootIds: string[];
+}
+
+interface BuilderTheme {
+  accent: string;
+  accentContrast: string;
+  background: string;
+  surface: string;
+  foreground: string;
+  muted: string;
+  radius: number;
+  shadow: number;
+  fontFamily: string;
+}
+
+interface BuilderProject {
+  id: string;
+  name: string;
+  description: string;
+  theme: BuilderTheme;
+  pages: BuilderPage[];
+  nodes: Record<string, BuilderNode>;
+  updatedAt: string;
+}
+
+export const project: BuilderProject = ${JSON.stringify(project, null, 2)};
 `;
 }
 

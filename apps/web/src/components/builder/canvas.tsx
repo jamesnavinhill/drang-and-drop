@@ -93,6 +93,8 @@ function CanvasNode({
   const renderedChildren = definition.canHaveChildren ? (
     <div
       ref={setDropRef}
+      data-builder-drop-target={`node:${node.id}`}
+      data-builder-child-list={node.id}
       className={cn(
         "grid min-h-14 gap-4",
         node.children.length === 0 && "rounded-[18px] border border-dashed border-border/90 bg-white/45 p-4",
@@ -115,6 +117,8 @@ function CanvasNode({
   return (
     <div
       ref={setNodeRef}
+      data-builder-node={node.id}
+      data-builder-node-type={node.type}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
@@ -297,12 +301,13 @@ export function BuilderCanvas() {
 
             <div
               ref={setPageDropRef}
+              data-builder-drop-target={`page:${page.id}`}
               className={cn("builder-theme min-h-[68vh] rounded-[34px] p-5 md:p-7", isOver && "ring-2 ring-accent/25")}
               style={getThemeStyles(project.theme)}
               onClick={() => selectNode(null)}
             >
               <SortableContext items={page.rootIds} strategy={verticalListSortingStrategy}>
-                <div className="grid gap-5">
+                <div className="grid gap-5" data-builder-root-list={page.id}>
                   {page.rootIds.length === 0 ? (
                     <EmptyCanvasDrop isOver={isOver} />
                   ) : (

@@ -30,6 +30,8 @@ function PaletteItem({
     <button
       ref={setNodeRef}
       type="button"
+      data-builder-palette={type}
+      aria-label={`Add ${title}`}
       className={cn(
         "builder-pill rounded-[22px] p-4 text-left",
         isDragging && "opacity-60",

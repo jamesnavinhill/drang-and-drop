@@ -22,9 +22,14 @@ interface BuilderState {
   selectedNodeId: string | null;
   previewMode: PreviewMode;
   hasHydrated: boolean;
+  historyPast: BuilderSnapshot[];
+  historyFuture: BuilderSnapshot[];
+  canUndo: boolean;
+  canRedo: boolean;
   selectPage: (pageId: string) => void;
   selectNode: (nodeId: string | null) => void;
   setPreviewMode: (mode: PreviewMode) => void;
+  setHasHydrated: (hasHydrated: boolean) => void;
   updateProjectField: (key: "name" | "description", value: string) => void;
   updateThemeField: (key: keyof BuilderProject["theme"], value: PrimitiveValue) => void;
   updatePageField: (
@@ -40,11 +45,49 @@ interface BuilderState {
   duplicateNode: (nodeId: string) => void;
   removeNode: (nodeId: string) => void;
   updateNodeField: (nodeId: string, key: string, value: PrimitiveValue) => void;
+  undo: () => void;
+  redo: () => void;
   resetProject: () => void;
 }
 
+interface BuilderSnapshot {
+  project: BuilderProject;
+  selectedPageId: string;
+  selectedNodeId: string | null;
+}
+
+const HISTORY_LIMIT = 50;
+
 function cloneProject(project: BuilderProject) {
   return structuredClone(project);
+}
+
+function createSnapshot(state: Pick<BuilderState, "project" | "selectedPageId" | "selectedNodeId">): BuilderSnapshot {
+  return {
+    project: state.project,
+    selectedPageId: state.selectedPageId,
+    selectedNodeId: state.selectedNodeId,
+  };
+}
+
+function applySnapshot(snapshot: BuilderSnapshot) {
+  return {
+    project: snapshot.project,
+    selectedPageId: snapshot.selectedPageId,
+    selectedNodeId: snapshot.selectedNodeId,
+  };
+}
+
+function withHistory(state: BuilderState, next: Partial<BuilderState>) {
+  const historyPast = [...state.historyPast, createSnapshot(state)].slice(-HISTORY_LIMIT);
+
+  return {
+    ...next,
+    historyPast,
+    historyFuture: [],
+    canUndo: historyPast.length > 0,
+    canRedo: false,
+  };
 }
 
 function touch(project: BuilderProject) {
@@ -181,6 +224,22 @@ function deleteSubtree(project: BuilderProject, nodeId: string) {
   delete project.nodes[nodeId];
 }
 
+function selectionStillExists(project: BuilderProject, nodeId: string | null) {
+  if (!nodeId) {
+    return null;
+  }
+
+  return project.nodes[nodeId] ? nodeId : null;
+}
+
+function resolveSelectedPageId(project: BuilderProject, pageId: string | undefined) {
+  if (pageId && project.pages.some((page) => page.id === pageId)) {
+    return pageId;
+  }
+
+  return project.pages[0]?.id ?? "";
+}
+
 function normalizePath(input: string) {
   const trimmed = input.trim();
   if (!trimmed) {
@@ -202,6 +261,10 @@ export const useBuilderStore = create<BuilderState>()(
       selectedNodeId: null,
       previewMode: "desktop",
       hasHydrated: false,
+      historyPast: [],
+      historyFuture: [],
+      canUndo: false,
+      canRedo: false,
       selectPage: (pageId) =>
         set({
           selectedPageId: pageId,
@@ -209,17 +272,18 @@ export const useBuilderStore = create<BuilderState>()(
         }),
       selectNode: (nodeId) => set({ selectedNodeId: nodeId }),
       setPreviewMode: (mode) => set({ previewMode: mode }),
+      setHasHydrated: (hasHydrated) => set({ hasHydrated }),
       updateProjectField: (key, value) =>
         set((state) => {
           const project = cloneProject(state.project);
           project[key] = value;
-          return { project: touch(project) };
+          return withHistory(state, { project: touch(project) });
         }),
       updateThemeField: (key, value) =>
         set((state) => {
           const project = cloneProject(state.project);
           project.theme[key] = value as never;
-          return { project: touch(project) };
+          return withHistory(state, { project: touch(project) });
         }),
       updatePageField: (pageId, key, value) =>
         set((state) => {
@@ -229,7 +293,7 @@ export const useBuilderStore = create<BuilderState>()(
             return state;
           }
           page[key] = key === "path" ? normalizePath(value) : value;
-          return { project: touch(project) };
+          return withHistory(state, { project: touch(project) });
         }),
       addPage: () =>
         set((state) => {
@@ -242,11 +306,11 @@ export const useBuilderStore = create<BuilderState>()(
             rootIds: [],
           };
           project.pages.push(nextPage);
-          return {
+          return withHistory(state, {
             project: touch(project),
             selectedPageId: nextPage.id,
             selectedNodeId: null,
-          };
+          });
         }),
       duplicatePage: (pageId) =>
         set((state) => {
@@ -266,11 +330,11 @@ export const useBuilderStore = create<BuilderState>()(
             rootIds: nextRootIds,
           };
           project.pages.push(nextPage);
-          return {
+          return withHistory(state, {
             project: touch(project),
             selectedPageId: nextPage.id,
             selectedNodeId: null,
-          };
+          });
         }),
       removePage: (pageId) =>
         set((state) => {
@@ -291,11 +355,11 @@ export const useBuilderStore = create<BuilderState>()(
 
           const fallbackPage = project.pages[Math.max(0, pageIndex - 1)] ?? project.pages[0];
 
-          return {
+          return withHistory(state, {
             project: touch(project),
             selectedPageId: fallbackPage.id,
             selectedNodeId: null,
-          };
+          });
         }),
       addNode: (type, parent, index) =>
         set((state) => {
@@ -309,11 +373,11 @@ export const useBuilderStore = create<BuilderState>()(
           project.nodes[node.id] = node;
           insertIntoParent(project, parent, node.id, index);
 
-          return {
+          return withHistory(state, {
             project: touch(project),
             selectedNodeId: node.id,
             selectedPageId: parent.kind === "page" ? parent.id : state.selectedPageId,
-          };
+          });
         }),
       moveNode: (nodeId, parent, index) =>
         set((state) => {
@@ -347,7 +411,11 @@ export const useBuilderStore = create<BuilderState>()(
           }
 
           insertIntoParent(project, parent, nodeId, targetIndex);
-          return { project: touch(project) };
+          return withHistory(state, {
+            project: touch(project),
+            selectedNodeId: nodeId,
+            selectedPageId: parent.kind === "page" ? parent.id : state.selectedPageId,
+          });
         }),
       duplicateNode: (nodeId) =>
         set((state) => {
@@ -360,10 +428,10 @@ export const useBuilderStore = create<BuilderState>()(
           const currentIndex = children.indexOf(nodeId);
           const clonedId = cloneSubtree(project, nodeId);
           insertIntoParent(project, parent, clonedId, currentIndex + 1);
-          return {
+          return withHistory(state, {
             project: touch(project),
             selectedNodeId: clonedId,
-          };
+          });
         }),
       removeNode: (nodeId) =>
         set((state) => {
@@ -373,10 +441,10 @@ export const useBuilderStore = create<BuilderState>()(
             return state;
           }
           deleteSubtree(project, nodeId);
-          return {
+          return withHistory(state, {
             project: touch(project),
-            selectedNodeId: state.selectedNodeId === nodeId ? null : state.selectedNodeId,
-          };
+            selectedNodeId: selectionStillExists(project, state.selectedNodeId === nodeId ? null : state.selectedNodeId),
+          });
         }),
       updateNodeField: (nodeId, key, value) =>
         set((state) => {
@@ -386,21 +454,60 @@ export const useBuilderStore = create<BuilderState>()(
             return state;
           }
           node.props[key] = value;
-          return { project: touch(project) };
+          return withHistory(state, { project: touch(project) });
         }),
-      resetProject: () => {
-        const nextProject = createDefaultProject();
-        return {
-          project: nextProject,
-          selectedPageId: nextProject.pages[0]?.id ?? "",
-          selectedNodeId: null,
-          previewMode: "desktop" as PreviewMode,
-        };
-      },
+      undo: () =>
+        set((state) => {
+          const snapshot = state.historyPast.at(-1);
+          if (!snapshot) {
+            return state;
+          }
+
+          const historyPast = state.historyPast.slice(0, -1);
+          const historyFuture = [createSnapshot(state), ...state.historyFuture].slice(0, HISTORY_LIMIT);
+
+          return {
+            ...applySnapshot(snapshot),
+            historyPast,
+            historyFuture,
+            canUndo: historyPast.length > 0,
+            canRedo: historyFuture.length > 0,
+          };
+        }),
+      redo: () =>
+        set((state) => {
+          const snapshot = state.historyFuture[0];
+          if (!snapshot) {
+            return state;
+          }
+
+          const historyFuture = state.historyFuture.slice(1);
+          const historyPast = [...state.historyPast, createSnapshot(state)].slice(-HISTORY_LIMIT);
+
+          return {
+            ...applySnapshot(snapshot),
+            historyPast,
+            historyFuture,
+            canUndo: historyPast.length > 0,
+            canRedo: historyFuture.length > 0,
+          };
+        }),
+      resetProject: () =>
+        set((state) => {
+          const nextProject = createDefaultProject();
+
+          return withHistory(state, {
+            project: nextProject,
+            selectedPageId: nextProject.pages[0]?.id ?? "",
+            selectedNodeId: null,
+            previewMode: "desktop" as PreviewMode,
+          });
+        }),
     }),
     {
       name: "drag-and-drop-builder",
       version: 1,
+      skipHydration: true,
       partialize: (state) => ({
         project: state.project,
         selectedPageId: state.selectedPageId,
@@ -422,14 +529,13 @@ export const useBuilderStore = create<BuilderState>()(
         return {
           ...currentState,
           project: parsedProject.data,
-          selectedPageId: candidate.selectedPageId ?? currentState.selectedPageId,
-          selectedNodeId: candidate.selectedNodeId ?? currentState.selectedNodeId,
+          selectedPageId: resolveSelectedPageId(parsedProject.data, candidate.selectedPageId ?? currentState.selectedPageId),
+          selectedNodeId: selectionStillExists(
+            parsedProject.data,
+            candidate.selectedNodeId ?? currentState.selectedNodeId,
+          ),
           previewMode: candidate.previewMode ?? currentState.previewMode,
-          hasHydrated: true,
         };
-      },
-      onRehydrateStorage: () => () => {
-        useBuilderStore.setState({ hasHydrated: true });
       },
     },
   ),

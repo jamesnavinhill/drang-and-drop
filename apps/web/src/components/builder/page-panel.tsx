@@ -37,6 +37,7 @@ export function PagePanel() {
           return (
             <div
               key={page.id}
+              data-builder-page={page.id}
               className={cn(
                 "rounded-[22px] border px-4 py-3 transition-colors",
                 active

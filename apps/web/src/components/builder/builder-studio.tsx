@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, Laptop, RotateCcw, Smartphone, Tablet, Sparkles } from "lucide-react";
+import { Download, Laptop, Redo2, RotateCcw, Smartphone, Sparkles, Tablet, Undo2 } from "lucide-react";
+import { useEffect, useEffectEvent } from "react";
 
 import { exportProjectZip } from "@/lib/builder/export";
 import { getPageSummary, getThemeStyles } from "@/lib/builder/registry";
@@ -23,9 +24,62 @@ export function BuilderStudio() {
   const previewMode = useBuilderStore((state) => state.previewMode);
   const selectedPageId = useBuilderStore((state) => state.selectedPageId);
   const hasHydrated = useBuilderStore((state) => state.hasHydrated);
+  const canUndo = useBuilderStore((state) => state.canUndo);
+  const canRedo = useBuilderStore((state) => state.canRedo);
   const setPreviewMode = useBuilderStore((state) => state.setPreviewMode);
+  const setHasHydrated = useBuilderStore((state) => state.setHasHydrated);
+  const undo = useBuilderStore((state) => state.undo);
+  const redo = useBuilderStore((state) => state.redo);
   const resetProject = useBuilderStore((state) => state.resetProject);
   const activePage = project.pages.find((page) => page.id === selectedPageId) ?? project.pages[0];
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.resolve(useBuilderStore.persist.rehydrate()).finally(() => {
+      if (active) {
+        setHasHydrated(true);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [setHasHydrated]);
+
+  const handleHistoryKeydown = useEffectEvent((event: KeyboardEvent) => {
+    const target = event.target;
+    const isEditableTarget =
+      target instanceof HTMLElement &&
+      (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+
+    if (isEditableTarget) {
+      return;
+    }
+
+    const isModifierPressed = event.metaKey || event.ctrlKey;
+    const key = event.key.toLowerCase();
+    const wantsUndo = isModifierPressed && key === "z" && !event.shiftKey;
+    const wantsRedo = isModifierPressed && (key === "y" || (key === "z" && event.shiftKey));
+
+    if (wantsUndo && canUndo) {
+      event.preventDefault();
+      undo();
+    }
+
+    if (wantsRedo && canRedo) {
+      event.preventDefault();
+      redo();
+    }
+  });
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleHistoryKeydown);
+
+    return () => {
+      window.removeEventListener("keydown", handleHistoryKeydown);
+    };
+  }, []);
 
   if (!hasHydrated) {
     return (
@@ -79,9 +133,44 @@ export function BuilderStudio() {
                   );
                 })}
               </div>
+              <div className="flex items-center gap-2 rounded-full border border-border bg-white/70 p-1">
+                <button
+                  type="button"
+                  onClick={() => undo()}
+                  disabled={!canUndo}
+                  data-builder-action="undo"
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                    canUndo
+                      ? "text-foreground hover:bg-black/[0.04]"
+                      : "cursor-not-allowed text-muted/60",
+                  )}
+                  aria-label="Undo last change"
+                >
+                  <Undo2 className="h-4 w-4" />
+                  Undo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => redo()}
+                  disabled={!canRedo}
+                  data-builder-action="redo"
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                    canRedo
+                      ? "text-foreground hover:bg-black/[0.04]"
+                      : "cursor-not-allowed text-muted/60",
+                  )}
+                  aria-label="Redo last undone change"
+                >
+                  <Redo2 className="h-4 w-4" />
+                  Redo
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => exportProjectZip(project)}
+                data-builder-action="export"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background transition-transform hover:-translate-y-0.5"
               >
                 <Download className="h-4 w-4" />
@@ -90,6 +179,7 @@ export function BuilderStudio() {
               <button
                 type="button"
                 onClick={() => resetProject()}
+                data-builder-action="reset"
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white/70 px-4 py-3 text-sm font-semibold text-foreground"
               >
                 <RotateCcw className="h-4 w-4" />
