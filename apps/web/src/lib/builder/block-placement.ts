@@ -1,5 +1,7 @@
 import { getBlockContract } from "./block-contracts";
 import type {
+  BlockFamily,
+  BlockRegionChildAcceptance,
   BlockPlacementDefinition,
   BlockRegionDefinition,
   BlockType,
@@ -55,6 +57,43 @@ export function isRootOnlyBlock(type: BlockType) {
   return getBlockPlacement(type).allowedRegions.every((kind) => kind.startsWith("page-"));
 }
 
+function humanizeBlockFamily(family: BlockFamily) {
+  switch (family) {
+    case "root-composite":
+      return "root blocks";
+    case "layout":
+      return "layout blocks";
+    case "content":
+      return "content blocks";
+    case "application":
+      return "application blocks";
+  }
+}
+
+function joinWithOr(labels: string[]) {
+  if (labels.length === 1) {
+    return labels[0] ?? "";
+  }
+
+  if (labels.length === 2) {
+    return `${labels[0]} or ${labels[1]}`;
+  }
+
+  return `${labels.slice(0, -1).join(", ")}, or ${labels[labels.length - 1]}`;
+}
+
+export function describeAcceptedChildren(acceptedChildren: BlockRegionChildAcceptance) {
+  const labels = [
+    ...(acceptedChildren.allowedTypes?.map((type) => {
+      const title = getBlockContract(type).definition.title;
+      return `${title} blocks`;
+    }) ?? []),
+    ...(acceptedChildren.allowedFamilies?.map((family) => humanizeBlockFamily(family)) ?? []),
+  ];
+
+  return labels.length > 0 ? joinWithOr(labels) : "compatible blocks";
+}
+
 export function describePlacementTargetKind(kind: PlacementTargetKind) {
   switch (kind) {
     case "page-header":
@@ -102,6 +141,32 @@ export function getPlacementTargetKind(project: BuilderProject, parent: ParentRe
   return getBlockRegion(parentNode.type, parent.regionId)?.kind ?? null;
 }
 
-export function canAcceptChild(parentTargetKind: PlacementTargetKind, childType: BlockType) {
-  return getBlockPlacement(childType).allowedRegions.includes(parentTargetKind);
+export function canAcceptChild(
+  parentTargetKind: PlacementTargetKind,
+  childType: BlockType,
+  parentType?: BlockType,
+  parentRegionId?: string,
+) {
+  if (!getBlockPlacement(childType).allowedRegions.includes(parentTargetKind)) {
+    return false;
+  }
+
+  if (!parentType || !parentRegionId) {
+    return true;
+  }
+
+  const region = getBlockRegion(parentType, parentRegionId);
+  if (!region?.acceptedChildren) {
+    return true;
+  }
+
+  const childContract = getBlockContract(childType);
+  const familyAllowed =
+    !region.acceptedChildren.allowedFamilies ||
+    region.acceptedChildren.allowedFamilies.includes(childContract.family);
+  const typeAllowed =
+    !region.acceptedChildren.allowedTypes ||
+    region.acceptedChildren.allowedTypes.includes(childType);
+
+  return familyAllowed && typeAllowed;
 }

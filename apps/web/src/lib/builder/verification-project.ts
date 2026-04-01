@@ -19,9 +19,14 @@ export function createBlockContractVerificationProject(): BuilderProject {
   const activityFeedId = createId();
   const formCardId = createId();
   const pricingCardId = createId();
+  const pricingDetailTextId = createId();
+  const pricingActionButtonId = createId();
   const logoGridId = createId();
   const calloutCardId = createId();
   const ctaBannerId = createId();
+  const ctaSupportTextId = createId();
+  const ctaPrimaryButtonId = createId();
+  const ctaSecondaryButtonId = createId();
   const stepListId = createId();
   const comparisonTableId = createId();
   const infoListId = createId();
@@ -29,6 +34,8 @@ export function createBlockContractVerificationProject(): BuilderProject {
   const chatInputId = createId();
   const emptyStateId = createId();
   const workspaceHeaderId = createId();
+  const workspaceHeaderTextId = createId();
+  const workspaceHeaderActionButtonId = createId();
   const sidebarShellId = createId();
   const sidebarTextId = createId();
   const sidebarButtonId = createId();
@@ -114,7 +121,6 @@ export function createBlockContractVerificationProject(): BuilderProject {
         type: "comparisonTable",
       },
       [ctaBannerId]: {
-        children: [],
         id: ctaBannerId,
         props: {
           align: "left",
@@ -124,7 +130,41 @@ export function createBlockContractVerificationProject(): BuilderProject {
           secondaryLabel: "Inspect export",
           title: "Ship catalog growth with verification in the same slice.",
         },
+        regions: {
+          actions: [ctaPrimaryButtonId, ctaSecondaryButtonId],
+          content: [ctaSupportTextId],
+        },
         type: "ctaBanner",
+      },
+      [ctaPrimaryButtonId]: {
+        children: [],
+        id: ctaPrimaryButtonId,
+        props: {
+          fullWidth: false,
+          label: "Review contracts",
+          variant: "primary",
+        },
+        type: "button",
+      },
+      [ctaSecondaryButtonId]: {
+        children: [],
+        id: ctaSecondaryButtonId,
+        props: {
+          fullWidth: false,
+          label: "Inspect export",
+          variant: "secondary",
+        },
+        type: "button",
+      },
+      [ctaSupportTextId]: {
+        children: [],
+        id: ctaSupportTextId,
+        props: {
+          body: "Slot-owning composites now stay covered too, so richer foundational blocks can evolve without silently drifting.",
+          size: "sm",
+          title: "Composite slot coverage",
+        },
+        type: "text",
       },
       [dataTableId]: {
         children: [],
@@ -265,7 +305,6 @@ export function createBlockContractVerificationProject(): BuilderProject {
         type: "navbar",
       },
       [pricingCardId]: {
-        children: [],
         id: pricingCardId,
         props: {
           cta: "Ship verification",
@@ -273,7 +312,31 @@ export function createBlockContractVerificationProject(): BuilderProject {
           tagline: "Internal-only route used to keep parity expectations real.",
           tier: "Coverage",
         },
+        regions: {
+          actions: [pricingActionButtonId],
+          content: [pricingDetailTextId],
+        },
         type: "pricingCard",
+      },
+      [pricingActionButtonId]: {
+        children: [],
+        id: pricingActionButtonId,
+        props: {
+          fullWidth: true,
+          label: "Ship verification",
+          variant: "primary",
+        },
+        type: "button",
+      },
+      [pricingDetailTextId]: {
+        children: [],
+        id: pricingDetailTextId,
+        props: {
+          body: "Use nested details to keep plan positioning flexible without promoting pricing cards into generic layout shells.",
+          size: "sm",
+          title: "Included in coverage",
+        },
+        type: "text",
       },
       [profileCardId]: {
         children: [],
@@ -385,7 +448,6 @@ export function createBlockContractVerificationProject(): BuilderProject {
         type: "text",
       },
       [workspaceHeaderId]: {
-        children: [],
         id: workspaceHeaderId,
         props: {
           body: "The app catalog now includes a stronger route-header primitive for dashboards and workspace surfaces.",
@@ -395,7 +457,31 @@ export function createBlockContractVerificationProject(): BuilderProject {
           tags: "Ready\n2 blockers\nOwner: Avery",
           title: "Coverage header",
         },
+        regions: {
+          actions: [workspaceHeaderActionButtonId],
+          content: [workspaceHeaderTextId],
+        },
         type: "workspaceHeader",
+      },
+      [workspaceHeaderActionButtonId]: {
+        children: [],
+        id: workspaceHeaderActionButtonId,
+        props: {
+          fullWidth: false,
+          label: "Open queue",
+          variant: "primary",
+        },
+        type: "button",
+      },
+      [workspaceHeaderTextId]: {
+        children: [],
+        id: workspaceHeaderTextId,
+        props: {
+          body: "Nested header content gives app-facing routes room for richer orientation without turning every header into a bespoke page section.",
+          size: "sm",
+          title: "Header slot coverage",
+        },
+        type: "text",
       },
     },
     updatedAt: new Date().toISOString(),

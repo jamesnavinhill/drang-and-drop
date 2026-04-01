@@ -94,6 +94,7 @@ function renderNode(nodeId: string): ReactNode {
     Object.entries(node.regions).map(([regionId, childIds]) => [regionId, childIds.map((childId) => renderNode(childId))]),
   ) as Record<string, ReactNode[]>;
   const contentChildren = renderedRegions.content ?? [];
+  const actionChildren = renderedRegions.actions ?? [];
   const sidebarChildren = renderedRegions.sidebar ?? [];
   const blockDataAttributes = getBlockDataAttributes(node);
 
@@ -366,14 +367,19 @@ function renderNode(nodeId: string): ReactNode {
       );
     case "pricingCard":
       return (
-        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.88)", padding: 24 }}>
+        <div key={node.id} {...blockDataAttributes} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.88)", padding: 24 }}>
           <p style={{ margin: 0, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--builder-muted)" }}>{\`\${node.props.tier}\`}</p>
           <div style={{ display: "flex", gap: 8, alignItems: "end", marginTop: 12 }}>
             <p style={{ margin: 0, fontSize: 42, fontWeight: 700 }}>{\`\${node.props.price}\`}</p>
             <span style={{ color: "var(--builder-muted)", paddingBottom: 6 }}>/ month</span>
           </div>
           <p style={{ margin: "16px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.tagline}\`}</p>
-          <div style={{ marginTop: 20 }}>{buttonVariant(\`\${node.props.cta}\`, "primary", true)}</div>
+          <div {...getRegionDataAttributes(node, "content")} style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {contentChildren}
+          </div>
+          <div {...getRegionDataAttributes(node, "actions")} style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {actionChildren.length > 0 ? actionChildren : buttonVariant(\`\${node.props.cta}\`, "primary", true)}
+          </div>
         </div>
       );
     case "logoGrid": {
@@ -428,6 +434,7 @@ function renderNode(nodeId: string): ReactNode {
       return (
         <section
           key={node.id}
+          {...blockDataAttributes}
           style={{
             borderRadius: 24,
             padding: "28px 24px",
@@ -443,9 +450,22 @@ function renderNode(nodeId: string): ReactNode {
             <h3 style={{ margin: 0, fontSize: 30, lineHeight: 1.15 }}>{\`\${node.props.title}\`}</h3>
             <p style={{ margin: 0, color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
           </div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20, justifyContent: centered ? "center" : "flex-start" }}>
-            {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
-            {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
+          <div
+            {...getRegionDataAttributes(node, "content")}
+            style={{ display: "grid", gap: 12, marginTop: 20, maxWidth: 760, marginInline: centered ? "auto" : undefined }}
+          >
+            {contentChildren}
+          </div>
+          <div
+            {...getRegionDataAttributes(node, "actions")}
+            style={{ display: "grid", gap: 12, marginTop: 20, justifyItems: centered ? "center" : "stretch" }}
+          >
+            {actionChildren.length > 0 ? actionChildren : (
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: centered ? "center" : "flex-start" }}>
+                {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
+                {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
+              </div>
+            )}
           </div>
         </section>
       );
@@ -634,9 +654,22 @@ function renderNode(nodeId: string): ReactNode {
       );
     case "workspaceHeader": {
       const tags = toLines(\`\${node.props.tags}\`);
+      const actionsRegion = (
+        <div
+          {...getRegionDataAttributes(node, "actions")}
+          style={{ display: "grid", gap: 12, justifyItems: "start", minWidth: 220 }}
+        >
+          {actionChildren.length > 0 ? actionChildren : (
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
+              {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
+            </div>
+          )}
+        </div>
+      );
 
       return (
-        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
+        <div key={node.id} {...blockDataAttributes} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
           <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div style={{ maxWidth: 760 }}>
               <span style={{ display: "inline-flex", borderRadius: 999, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.92)", padding: "6px 12px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
@@ -645,10 +678,7 @@ function renderNode(nodeId: string): ReactNode {
               <h3 style={{ margin: "16px 0 0", fontSize: 30 }}>{\`\${node.props.title}\`}</h3>
               <p style={{ margin: "12px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
             </div>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
-              {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
-            </div>
+            {actionsRegion}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 20 }}>
             {tags.map((tag) => (
@@ -656,6 +686,9 @@ function renderNode(nodeId: string): ReactNode {
                 {tag}
               </span>
             ))}
+          </div>
+          <div {...getRegionDataAttributes(node, "content")} style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {contentChildren}
           </div>
         </div>
       );

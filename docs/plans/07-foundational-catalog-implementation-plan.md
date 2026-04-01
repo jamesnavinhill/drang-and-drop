@@ -1,7 +1,7 @@
 # Foundational Catalog Implementation Plan
 
 Date: April 1, 2026
-Status: Ready to start
+Status: Completed on April 1, 2026
 Related report: `docs/reports/03-v1-catalog-readiness-feasibility-report.md`
 Related roadmap: `docs/plans/02-product-roadmap-plan.md`
 Related foundation plan: `docs/plans/04-editor-foundation-hardening-plan.md`
@@ -27,6 +27,20 @@ The goal of `07` is to resume catalog growth without slipping back into one-off 
 This phase is about building a robust foundational catalog system for V1.
 
 It is not about assistant mutation work, V2 integrations, or maximum catalog breadth.
+
+## Completion Snapshot
+
+This phase is now landed in the current codebase.
+
+The main implementation outcomes are:
+
+- the foundational catalog pass shipped the broader reusable block set described in this plan
+- the user-facing library grouping now presents the catalog by builder intent instead of only internal family taxonomy
+- the internal verification project and shipped starter templates now exercise the full parity-critical catalog
+- the block system now supports a second-pass slot-owner path for selected foundational blocks instead of forcing every reusable block to stay leaf-only or forcing the product into generic-anything containers
+- `pricingCard`, `ctaBanner`, and `workspaceHeader` now preserve their core prop payloads while exposing explicit owned regions for nested authoring
+- region-level child constraints now exist in the canonical contract model so constrained slots can stay composable without becoming arbitrary
+- preview/export parity metadata, starter rendering, templates, and docs now describe those slot-owning composites honestly
 
 ## Confirmed Direction
 

@@ -49,6 +49,7 @@ const blockCapabilityLabels: Record<BlockCapability, string> = {
   "leaf": "Leaf",
   "parity-critical": "Parity critical",
   "root-only": "Root only",
+  "slot-owner": "Slot owner",
 };
 
 const blockLibraryGroupMeta: Record<

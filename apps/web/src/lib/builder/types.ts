@@ -117,6 +117,7 @@ export type BlockCapability =
   | "layout-owner"
   | "leaf"
   | "parity-critical"
+  | "slot-owner"
   | "root-only";
 
 export interface BlockDefinition {
@@ -151,7 +152,13 @@ export interface PageRegionDefinition extends RegionDefinition {
   kind: PlacementTargetKind;
 }
 
+export interface BlockRegionChildAcceptance {
+  allowedFamilies?: readonly BlockFamily[];
+  allowedTypes?: readonly BlockType[];
+}
+
 export interface BlockRegionDefinition {
+  acceptedChildren?: BlockRegionChildAcceptance;
   description: string;
   emptyMessage: string;
   id: string;
@@ -167,7 +174,7 @@ export interface BlockPlacementDefinition {
 }
 
 export type BlockRenderChildrenMode = "leaf" | "renders-children";
-export type BlockRenderParityStrategy = "shared-content" | "shared-layout" | "shared-shell";
+export type BlockRenderParityStrategy = "shared-composite" | "shared-content" | "shared-layout" | "shared-shell";
 
 export interface BlockRenderSurfaceDefinition {
   implementation: string;

@@ -91,7 +91,7 @@ The canvas is intentionally constrained.
 The current structural model is now explicitly region-based:
 
 - pages own named top-level regions
-- layout-owner blocks own named block regions
+- layout-owner and slot-owner blocks own named block regions
 - page and block regions now carry shared authoring metadata used across canvas, outline, library context, and starter verification
 - insertion targeting resolves against regions, not generic parent containers
 - preview, export, structure commands, persistence normalization, and verification all traverse the same region graph
@@ -102,6 +102,13 @@ Supported layout primitives:
 - section
 - stack
 - grid
+
+Current shipped slot-owning composites:
+
+- pricing card
+- CTA banner
+- workspace header
+- sidebar shell
 
 Current shipped block families:
 
@@ -176,7 +183,7 @@ The generated starter file plan now has a matching automated verification loop t
 ## Known Architectural Constraints
 
 - Drag/drop is constrained, runs through shared insert/move command paths, and now surfaces invalid-drop reasoning in the canvas while failed structure commands surface through a shared shell notice.
-- Placement constraints are centralized for the current editor model and now resolve through explicit page-region plus block-region target kinds such as `layout-content` and `layout-sidebar`. The region contract is now canonical, shared region metadata now drives more of the authoring UI, and `sidebarShell` has the first configurable multi-region layout semantics, but broader multi-region block families are still future work.
+- Placement constraints are centralized for the current editor model and now resolve through explicit page-region plus block-region target kinds such as `layout-content` and `layout-sidebar`. The region contract is now canonical, shared region metadata now drives more of the authoring UI, `sidebarShell` carries the first configurable multi-region layout semantics, and `pricingCard`, `ctaBanner`, plus `workspaceHeader` now prove the lighter slot-owner path for composable block internals without introducing another broad layout family.
 - Duplicate and remove now share the same command layer as insert and move, and shell-level notices now make failures visible across editor surfaces, but higher-level editor interactions still need clearer affordances and tighter outline/canvas parity.
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
@@ -190,7 +197,7 @@ The generated starter file plan now has a matching automated verification loop t
 ## Current Architectural Priorities
 
 - tighten canvas and outline parity on top of the shared command path
-- extend the richer region metadata contract into more layout families where it improves authoring clarity
+- extend the richer region metadata contract into more layout and slot-owner families where it improves authoring clarity
 - keep refining validation and invalid-drop feedback across editor surfaces
 - reduce the remaining interaction duplication between outline actions and canvas actions
 - preserve the new contract-driven parity model while broader catalog or customization work resumes

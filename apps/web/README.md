@@ -60,6 +60,7 @@ The current desktop shell is organized as:
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
 - expanded first-party block catalog spanning launch-page, proof, CTA, metric, empty-state, and workspace-header primitives
+- slot-owning composite blocks for `pricingCard`, `ctaBanner`, and `workspaceHeader` so the builder can grow more composable internals without turning every block into a generic container
 - zip export to a runnable `Next.js` starter
 - deterministic builder drag verification for palette insertion, nested insertion, reorder, and invalid-drop coverage
 - direct builder command verification for shared insert/move/duplicate/remove and structural validation flows

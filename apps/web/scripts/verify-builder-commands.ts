@@ -243,7 +243,59 @@ function main() {
   );
   assert.deepEqual(project.nodes["stack-1"]?.regions.content, ["text-1", "stat-1"]);
 
-  const duplicateIdSequence = ["stack-copy", "text-copy", "stat-copy"];
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("pricing-card-1", "pricingCard"),
+      parent: stackContentParent,
+    }),
+    "Expected pricing card insertion inside stack content to succeed.",
+  );
+  assert.deepEqual(project.nodes["stack-1"]?.regions.content, ["text-1", "stat-1", "pricing-card-1"]);
+
+  const pricingCardContentParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "pricing-card-1",
+    regionId: "content",
+  };
+  const pricingCardActionsParent: ParentReference = {
+    kind: "node-region",
+    nodeId: "pricing-card-1",
+    regionId: "actions",
+  };
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("pricing-text-1", "text"),
+      parent: pricingCardContentParent,
+    }),
+    "Expected text insertion inside pricing card content to succeed.",
+  );
+  assert.deepEqual(project.nodes["pricing-card-1"]?.regions.content, ["pricing-text-1"]);
+
+  expectSuccess(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("pricing-button-1", "button"),
+      parent: pricingCardActionsParent,
+    }),
+    "Expected button insertion inside pricing card actions to succeed.",
+  );
+  assert.deepEqual(project.nodes["pricing-card-1"]?.regions.actions, ["pricing-button-1"]);
+
+  expectFailure(
+    executeStructureCommand(project, {
+      kind: "insert",
+      node: createNode("pricing-actions-text-attempt", "text"),
+      parent: pricingCardActionsParent,
+    }),
+    "invalid-child",
+    "Inserting text into pricing card actions should fail because the region only accepts buttons.",
+  );
+  assert.equal(project.nodes["pricing-actions-text-attempt"], undefined);
+
+  const duplicateIdSequence = ["stack-copy", "text-copy", "stat-copy", "pricing-card-copy", "pricing-text-copy", "pricing-button-copy"];
   const duplicateResult = expectSuccess(
     executeStructureCommand(project, {
       createNodeId: () => {
@@ -257,11 +309,20 @@ function main() {
     "Expected duplicating the nested stack subtree to succeed.",
   );
   assert.equal(duplicateResult.nodeId, "stack-copy");
-  assert.deepEqual(duplicateResult.createdNodeIds, ["stack-copy", "text-copy", "stat-copy"]);
+  assert.deepEqual(duplicateResult.createdNodeIds, [
+    "stack-copy",
+    "text-copy",
+    "stat-copy",
+    "pricing-card-copy",
+    "pricing-text-copy",
+    "pricing-button-copy",
+  ]);
   assert.deepEqual(project.nodes["section-1"]?.regions.content, ["stack-1", "stack-copy"]);
-  assert.deepEqual(project.nodes["stack-copy"]?.regions.content, ["text-copy", "stat-copy"]);
+  assert.deepEqual(project.nodes["stack-copy"]?.regions.content, ["text-copy", "stat-copy", "pricing-card-copy"]);
   assert.equal(project.nodes["text-copy"]?.type, "text");
   assert.equal(project.nodes["stat-copy"]?.type, "statCard");
+  assert.deepEqual(project.nodes["pricing-card-copy"]?.regions.content, ["pricing-text-copy"]);
+  assert.deepEqual(project.nodes["pricing-card-copy"]?.regions.actions, ["pricing-button-copy"]);
 
   const removeResult = expectSuccess(
     executeStructureCommand(project, {
@@ -270,11 +331,14 @@ function main() {
     }),
     "Expected removing the original nested stack subtree to succeed.",
   );
-  assert.deepEqual(removeResult.removedNodeIds, ["text-1", "stat-1", "stack-1"]);
+  assert.deepEqual(removeResult.removedNodeIds, ["text-1", "stat-1", "pricing-text-1", "pricing-button-1", "pricing-card-1", "stack-1"]);
   assert.deepEqual(project.nodes["section-1"]?.regions.content, ["stack-copy"]);
   assert.equal(project.nodes["stack-1"], undefined);
   assert.equal(project.nodes["text-1"], undefined);
   assert.equal(project.nodes["stat-1"], undefined);
+  assert.equal(project.nodes["pricing-card-1"], undefined);
+  assert.equal(project.nodes["pricing-text-1"], undefined);
+  assert.equal(project.nodes["pricing-button-1"], undefined);
 
   expectSuccess(
     executeStructureCommand(project, {
@@ -285,7 +349,7 @@ function main() {
     }),
     "Expected moving stat card into sidebar shell sidebar to succeed.",
   );
-  assert.deepEqual(project.nodes["stack-copy"]?.regions.content, ["text-copy"]);
+  assert.deepEqual(project.nodes["stack-copy"]?.regions.content, ["text-copy", "pricing-card-copy"]);
   assert.deepEqual(project.nodes["sidebar-shell-1"]?.regions.sidebar, ["sidebar-button-1", "stat-copy"]);
 
   expectFailure(

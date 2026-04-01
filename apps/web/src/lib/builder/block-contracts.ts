@@ -67,6 +67,14 @@ function defineLayoutRender(note: string) {
   });
 }
 
+function defineCompositeRender(note: string) {
+  return defineRenderContract({
+    children: "renders-children",
+    note,
+    strategy: "shared-composite",
+  });
+}
+
 function defineRootRender(note: string) {
   return defineRenderContract({
     children: "leaf",
@@ -80,11 +88,13 @@ function defineRegion(
   kind: PlacementTargetKind,
   label: string,
   {
+    acceptedChildren,
     allowsMultiple = true,
     description,
     emptyMessage,
     role = "primary",
   }: {
+    acceptedChildren?: BlockRegionDefinition["acceptedChildren"];
     allowsMultiple?: boolean;
     description: string;
     emptyMessage: string;
@@ -92,6 +102,7 @@ function defineRegion(
   },
 ): BlockRegionDefinition {
   return {
+    acceptedChildren,
     allowsMultiple,
     description,
     emptyMessage,
@@ -115,6 +126,45 @@ const contentRegion = [
   defineRegion("content", "layout-content", "Content", {
     description: "Add nested blocks here to compose the primary layout flow.",
     emptyMessage: "Drop compatible blocks here.",
+  }),
+] as const;
+const buttonOnlyChildren = {
+  allowedTypes: ["button"],
+} as const;
+const pricingCardRegions = [
+  defineRegion("content", "layout-content", "Details", {
+    description: "Add supporting copy, proof, or structured pricing details here.",
+    emptyMessage: "Add supporting pricing details here.",
+  }),
+  defineRegion("actions", "layout-sidebar", "Actions", {
+    acceptedChildren: buttonOnlyChildren,
+    description: "Add one or more focused action buttons for this plan.",
+    emptyMessage: "Add action buttons here.",
+    role: "supporting",
+  }),
+] as const;
+const ctaBannerRegions = [
+  defineRegion("content", "layout-content", "Supporting content", {
+    description: "Add supporting proof, details, or follow-up content beneath the CTA intro.",
+    emptyMessage: "Add supporting CTA content here.",
+  }),
+  defineRegion("actions", "layout-sidebar", "Actions", {
+    acceptedChildren: buttonOnlyChildren,
+    description: "Add one or more focused action buttons for the CTA banner.",
+    emptyMessage: "Add action buttons here.",
+    role: "supporting",
+  }),
+] as const;
+const workspaceHeaderRegions = [
+  defineRegion("content", "layout-content", "Supporting content", {
+    description: "Add supporting route context, guidance, or compact summary blocks here.",
+    emptyMessage: "Add supporting header content here.",
+  }),
+  defineRegion("actions", "layout-sidebar", "Actions", {
+    acceptedChildren: buttonOnlyChildren,
+    description: "Add one or more quick action buttons for the route header.",
+    emptyMessage: "Add action buttons here.",
+    role: "supporting",
   }),
 ] as const;
 const sidebarShellRegions = [
@@ -642,7 +692,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
   }),
   pricingCard: defineBlockContract("pricingCard", {
-    capabilities: ["leaf", "parity-critical"],
+    capabilities: ["parity-critical", "slot-owner"],
     definition: {
       title: "Pricing Card",
       description: "Single plan pricing block for launches, plan pages, and conversion-focused comparisons.",
@@ -664,10 +714,10 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     family: "content",
     placement: {
       allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
-      regions: [],
+      regions: [...pricingCardRegions],
     },
-    render: defineLeafRender(
-      "Pricing card parity depends on shared tier, price, tagline, and CTA semantics while preview and starter preserve their own page-specific framing.",
+    render: defineCompositeRender(
+      "Pricing card parity depends on shared tier, price, tagline, CTA fallback behavior, and named details/actions slots staying aligned across preview and starter renderers.",
     ),
     verification: {
       previewExportParity: "required",
@@ -748,7 +798,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
   }),
   ctaBanner: defineBlockContract("ctaBanner", {
-    capabilities: ["leaf", "parity-critical"],
+    capabilities: ["parity-critical", "slot-owner"],
     definition: {
       title: "CTA Banner",
       description: "Action-focused banner with headline, supporting copy, and one or two clear CTAs.",
@@ -782,10 +832,10 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     family: "content",
     placement: {
       allowedRegions: [...pageFooterMainAndLayoutContent],
-      regions: [],
+      regions: [...ctaBannerRegions],
     },
-    render: defineLeafRender(
-      "CTA banner parity keeps the same title, supporting copy, CTA labels, and alignment semantics across builder preview and starter export.",
+    render: defineCompositeRender(
+      "CTA banner parity keeps the same intro copy, alignment behavior, CTA fallback semantics, and named supporting-content/actions slots across builder preview and starter export.",
     ),
     verification: {
       previewExportParity: "required",
@@ -1071,7 +1121,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
   }),
   workspaceHeader: defineBlockContract("workspaceHeader", {
-    capabilities: ["leaf", "parity-critical"],
+    capabilities: ["parity-critical", "slot-owner"],
     definition: {
       title: "Workspace Header",
       description: "Application-facing route header with metadata, supporting copy, and quick actions.",
@@ -1097,10 +1147,10 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     family: "application",
     placement: {
       allowedRegions: [...pageMainAndLayoutContent],
-      regions: [],
+      regions: [...workspaceHeaderRegions],
     },
-    render: defineLeafRender(
-      "Workspace header parity is driven by the shared eyebrow, title, copy, tags, and action labels so route orientation stays aligned across preview and starter surfaces.",
+    render: defineCompositeRender(
+      "Workspace header parity is driven by the shared eyebrow, title, copy, tags, action fallback behavior, and named supporting-content/actions slots staying aligned across preview and starter surfaces.",
     ),
     verification: {
       previewExportParity: "required",

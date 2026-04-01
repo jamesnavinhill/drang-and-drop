@@ -97,6 +97,22 @@ function main() {
       assert(contract.render.children === "leaf", `Leaf block "${contract.type}" must use the leaf render contract.`);
     }
 
+    if (contract.capabilities.includes("slot-owner")) {
+      assert(contract.placement.regions.length > 0, `Slot-owner block "${contract.type}" must expose at least one owned region.`);
+      assert(
+        contract.placement.regions[0]?.kind === "layout-content",
+        `Slot-owner block "${contract.type}" must expose a primary layout-content first region.`,
+      );
+      assert(
+        contract.placement.regions[0]?.role === "primary",
+        `Slot-owner block "${contract.type}" must expose a primary first region.`,
+      );
+      assert(
+        contract.render.children === "renders-children",
+        `Slot-owner block "${contract.type}" must declare that it renders children.`,
+      );
+    }
+
     if (contract.capabilities.includes("layout-owner")) {
       assert(contract.placement.regions.length > 0, `Layout owner "${contract.type}" must expose at least one owned region.`);
       assert(
@@ -125,6 +141,13 @@ function main() {
       assert(
         contract.capabilities.includes("parity-critical"),
         `Parity-critical block "${contract.type}" must carry the parity-critical capability.`,
+      );
+    }
+
+    if (contract.placement.regions.length > 0) {
+      assert(
+        contract.capabilities.some((capability) => capability === "layout-owner" || capability === "slot-owner"),
+        `Region-owning block "${contract.type}" must declare either the layout-owner or slot-owner capability.`,
       );
     }
   }

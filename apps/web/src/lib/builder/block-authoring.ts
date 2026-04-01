@@ -12,7 +12,8 @@ export const blockAuthoringChecklist = [
   {
     id: "placement-contract",
     title: "Placement contract",
-    description: "Declare the allowed destination region kinds and any explicit owned regions the block exposes for nested authoring.",
+    description:
+      "Declare the allowed destination region kinds, any explicit owned regions the block exposes for nested authoring, and any region-level child constraints.",
   },
   {
     id: "render-contract",

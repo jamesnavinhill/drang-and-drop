@@ -11,11 +11,11 @@ The goal is to keep the builder canonical around `block` terminology, make previ
 Every shipped block should satisfy this checklist:
 
 1. Family classification
-   Classify the block as `root-composite`, `layout`, `content`, or `application`, and set capability tags that explain special behavior such as `root-only`, `layout-owner`, `leaf`, `parity-critical`, or `future-region-pressure`.
+   Classify the block as `root-composite`, `layout`, `content`, or `application`, and set capability tags that explain special behavior such as `root-only`, `layout-owner`, `slot-owner`, `leaf`, `parity-critical`, or `future-region-pressure`.
 2. Defaults and inspector fields
    Define meaningful defaults in the block contract and keep every editable prop represented by an inspector field with a matching default value.
 3. Placement contract
-   Declare the allowed destination region kinds and any explicit owned regions the block exposes for nested authoring, including shared region descriptions, empty-state guidance, and primary-versus-supporting role metadata where applicable.
+   Declare the allowed destination region kinds and any explicit owned regions the block exposes for nested authoring, including shared region descriptions, empty-state guidance, primary-versus-supporting role metadata, and any region-level child constraints where applicable.
 4. Preview and export render contract
    Add or update the block render metadata so the parity strategy and any intentional preview-versus-starter differences are visible in the contract itself.
 5. Verification impact
@@ -43,6 +43,8 @@ The current shipped block set uses these parity strategies:
   Layout owners keep the same spacing, alignment, and child-flow semantics while preview and starter can differ in surrounding editor chrome.
 - `shared-content`
   Leaf blocks keep the same parsed content, variants, and structured payloads while preview and starter may differ in their framing shell.
+- `shared-composite`
+  Slot-owning content and application blocks keep the same core payload plus named slot semantics while preview and starter may differ in surrounding editor or page chrome.
 
 Current matrix:
 
@@ -58,10 +60,10 @@ Current matrix:
 | `featureGrid` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `faqList` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `testimonialCard` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
-| `pricingCard` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `pricingCard` | `content` | `shared-composite` | `renders-children` | `builder-canvas` | `generated-route` |
 | `logoGrid` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `calloutCard` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
-| `ctaBanner` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `ctaBanner` | `content` | `shared-composite` | `renders-children` | `builder-canvas` | `generated-route` |
 | `stepList` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `comparisonTable` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `infoList` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
@@ -74,12 +76,13 @@ Current matrix:
 | `messageThread` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `dataTable` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `emptyState` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
-| `workspaceHeader` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `workspaceHeader` | `application` | `shared-composite` | `renders-children` | `builder-canvas` | `generated-route` |
 | `sidebarShell` | `application` | `shared-layout` | `renders-children` | `builder-canvas` | `generated-route` |
 
-Current region-aware layout note:
+Current region-aware structure note:
 
 - `sidebarShell` is the first configurable multi-region layout owner and now carries shared sidebar position, width, and inter-region gap semantics across preview and generated starter export.
+- `pricingCard`, `ctaBanner`, and `workspaceHeader` now act as slot-owning composites: they preserve their core props while exposing named nested regions for a more composable second-pass foundation.
 
 ## Verification Expectations
 

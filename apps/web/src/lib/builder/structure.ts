@@ -2,8 +2,10 @@ import { getBlockDefinition } from "./block-definitions";
 import {
   blockCanHaveChildren,
   canAcceptChild,
+  describeAcceptedChildren,
   describeAllowedRegionKinds,
   describePlacementTargetKind,
+  getBlockRegion,
   getBlockRegionLabel,
   getBlockPlacement,
   getPlacementTargetKind,
@@ -173,6 +175,21 @@ function getPlacementFailureMessage(
   parent: ParentReference,
   attemptedTargetKind: NonNullable<ReturnType<typeof getPlacementTargetKind>>,
 ) {
+  if (parent.kind === "node-region") {
+    const parentNode = project.nodes[parent.nodeId ?? ""];
+    const parentRegion = parentNode ? getBlockRegion(parentNode.type, parent.regionId) : null;
+    const placementAllowsTarget = getBlockPlacement(childType).allowedRegions.includes(attemptedTargetKind);
+
+    if (
+      parentNode &&
+      parentRegion?.acceptedChildren &&
+      placementAllowsTarget &&
+      !canAcceptChild(attemptedTargetKind, childType, parentNode.type, parent.regionId)
+    ) {
+      return `A ${childType} block cannot be placed in ${parentNode.type} ${parentRegion.label.toLowerCase()}. This region accepts ${describeAcceptedChildren(parentRegion.acceptedChildren)}.`;
+    }
+  }
+
   const parentLabel = describeRegionReference(project, parent);
   const allowedTargets = describeAllowedRegionKinds(getBlockPlacement(childType).allowedRegions);
   const attemptedTarget = describePlacementTargetKind(attemptedTargetKind);
@@ -348,7 +365,8 @@ export function validateBlockPlacement({
     };
   }
 
-  if (!canAcceptChild(targetKind, childType)) {
+  const parentNodeType = parent.kind === "node-region" ? project.nodes[parent.nodeId ?? ""]?.type : undefined;
+  if (!canAcceptChild(targetKind, childType, parentNodeType, parent.kind === "node-region" ? parent.regionId : undefined)) {
     return {
       ok: false,
       reason: "invalid-child",

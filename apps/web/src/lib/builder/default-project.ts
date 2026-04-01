@@ -73,10 +73,15 @@ function createLaunchStudioProject(): BuilderProject {
   const logoGridId = createId();
   const proofCalloutId = createId();
   const ctaBannerId = createId();
+  const ctaSupportTextId = createId();
+  const ctaPrimaryButtonId = createId();
+  const ctaSecondaryButtonId = createId();
   const pricingNavbarId = createId();
   const pricingHeroId = createId();
   const pricingGridId = createId();
   const pricingCardId = createId();
+  const pricingCardDetailTextId = createId();
+  const pricingCardActionButtonId = createId();
   const pricingComparisonId = createId();
   const sidebarId = createId();
   const pricingSidebarTextId = createId();
@@ -307,6 +312,39 @@ function createLaunchStudioProject(): BuilderProject {
           secondaryLabel: "Review plans",
           align: "left",
         },
+        regions: {
+          actions: [ctaPrimaryButtonId, ctaSecondaryButtonId],
+          content: [ctaSupportTextId],
+        },
+      },
+      [ctaSupportTextId]: {
+        id: ctaSupportTextId,
+        type: "text",
+        props: {
+          title: "What you keep",
+          body: "Use the slot area for a little extra proof, timing context, or handoff guidance without rebuilding the entire banner.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [ctaPrimaryButtonId]: {
+        id: ctaPrimaryButtonId,
+        type: "button",
+        props: {
+          label: "Start building",
+          variant: "primary",
+          fullWidth: false,
+        },
+        children: [],
+      },
+      [ctaSecondaryButtonId]: {
+        id: ctaSecondaryButtonId,
+        type: "button",
+        props: {
+          label: "Review plans",
+          variant: "secondary",
+          fullWidth: false,
+        },
         children: [],
       },
       [pricingNavbarId]: {
@@ -351,6 +389,29 @@ function createLaunchStudioProject(): BuilderProject {
           price: "$29",
           tagline: "Per editor seat, with export and starter generation built in.",
           cta: "Start free",
+        },
+        regions: {
+          actions: [pricingCardActionButtonId],
+          content: [pricingCardDetailTextId],
+        },
+      },
+      [pricingCardDetailTextId]: {
+        id: pricingCardDetailTextId,
+        type: "text",
+        props: {
+          title: "Includes",
+          body: "Multi-page routing, theme tokens, starter export, and the stronger foundational catalog from day one.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [pricingCardActionButtonId]: {
+        id: pricingCardActionButtonId,
+        type: "button",
+        props: {
+          label: "Start free",
+          variant: "primary",
+          fullWidth: true,
         },
         children: [],
       },
@@ -732,6 +793,8 @@ function createOpsHubProject(): BuilderProject {
   const heroId = createId();
   const workspaceSectionId = createId();
   const workspaceHeaderId = createId();
+  const workspaceHeaderContentTextId = createId();
+  const workspaceHeaderActionButtonId = createId();
   const metricRowId = createId();
   const workspaceGridId = createId();
   const sidebarId = createId();
@@ -824,6 +887,29 @@ function createOpsHubProject(): BuilderProject {
           tags: "Ready for review\n6 due today\nOwner: Nina",
           primaryLabel: "Open queue",
           secondaryLabel: "Share update",
+        },
+        regions: {
+          actions: [workspaceHeaderActionButtonId],
+          content: [workspaceHeaderContentTextId],
+        },
+      },
+      [workspaceHeaderContentTextId]: {
+        id: workspaceHeaderContentTextId,
+        type: "text",
+        props: {
+          title: "Route context",
+          body: "Use the supporting slot for queue guidance, shift context, or a compact summary that should travel with the route intro.",
+          size: "sm",
+        },
+        children: [],
+      },
+      [workspaceHeaderActionButtonId]: {
+        id: workspaceHeaderActionButtonId,
+        type: "button",
+        props: {
+          label: "Open queue",
+          variant: "primary",
+          fullWidth: false,
         },
         children: [],
       },

@@ -143,6 +143,7 @@ export function renderNodePreview(
 ) {
   void project;
   const contentChildren = renderedRegions.content ?? null;
+  const actionChildren = renderedRegions.actions ?? null;
 
   switch (node.type) {
     case "navbar": {
@@ -405,8 +406,12 @@ export function renderNodePreview(
             <span className="pb-1 text-sm text-[color:var(--builder-muted)]">/ month</span>
           </div>
           <p className="mt-4 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.tagline}`}</p>
-          <div className="mt-5">
-            <ButtonPreview label={`${node.props.cta}`} variant="primary" fullWidth />
+          <div className="mt-5">{contentChildren}</div>
+          <div className="mt-5 grid gap-3">
+            {(node.regions.actions ?? []).length === 0 ? (
+              <ButtonPreview label={`${node.props.cta}`} variant="primary" fullWidth />
+            ) : null}
+            {actionChildren}
           </div>
         </div>
       );
@@ -472,9 +477,15 @@ export function renderNodePreview(
             <h3 className="max-w-3xl text-2xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
             <p className="max-w-2xl text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
           </div>
-          <div className={cn("mt-5 flex flex-wrap gap-3", centered && "justify-center")}>
-            <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
-            <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
+          <div className="mt-5">{contentChildren}</div>
+          <div className="mt-5 grid gap-3">
+            {(node.regions.actions ?? []).length === 0 ? (
+              <div className={cn("flex flex-wrap gap-3", centered && "justify-center")}>
+                <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
+                <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
+              </div>
+            ) : null}
+            {actionChildren}
           </div>
         </div>
       );
@@ -695,6 +706,7 @@ export function renderNodePreview(
       );
     case "workspaceHeader": {
       const tags = toLines(`${node.props.tags}`);
+      const hasActionChildren = (node.regions.actions ?? []).length > 0;
 
       return (
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-6">
@@ -706,10 +718,12 @@ export function renderNodePreview(
               <h3 className="mt-4 text-2xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
               <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
-              <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
-            </div>
+            {hasActionChildren ? <div className="min-w-[280px] max-w-full">{actionChildren}</div> : (
+              <div className="flex flex-wrap gap-3">
+                <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
+                <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
+              </div>
+            )}
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
             {tags.map((tag) => (
@@ -721,6 +735,8 @@ export function renderNodePreview(
               </span>
             ))}
           </div>
+          <div className="mt-5">{contentChildren}</div>
+          {!hasActionChildren ? <div className="mt-5">{actionChildren}</div> : null}
         </div>
       );
     }
