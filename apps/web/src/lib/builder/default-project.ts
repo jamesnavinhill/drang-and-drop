@@ -4,7 +4,48 @@ export function createId() {
   return crypto.randomUUID();
 }
 
-export function createDefaultProject(): BuilderProject {
+export const builderTemplateCatalog = [
+  {
+    id: "launch-studio",
+    name: "Launch Studio",
+    description: "Balanced marketing starter with proof, pricing, and a product-oriented export story.",
+    focus: "Marketing",
+  },
+  {
+    id: "signal-flow",
+    name: "Signal Flow",
+    description: "SaaS landing template with sharper messaging, onboarding CTA, and clear conversion sections.",
+    focus: "SaaS",
+  },
+  {
+    id: "ops-hub",
+    name: "Ops Hub",
+    description: "Dashboard-flavored template with KPI rails, workspace navigation, and internal-tool energy.",
+    focus: "Application",
+  },
+] as const;
+
+export type BuilderTemplateId = (typeof builderTemplateCatalog)[number]["id"];
+
+function createProjectFrame({
+  name,
+  description,
+  theme,
+  pages,
+  nodes,
+}: Omit<BuilderProject, "id" | "updatedAt">): BuilderProject {
+  return {
+    id: createId(),
+    name,
+    description,
+    updatedAt: new Date().toISOString(),
+    theme,
+    pages,
+    nodes,
+  };
+}
+
+function createLaunchStudioProject(): BuilderProject {
   const heroId = createId();
   const statsSectionId = createId();
   const statsGridId = createId();
@@ -24,11 +65,9 @@ export function createDefaultProject(): BuilderProject {
   const homeId = createId();
   const pricingPageId = createId();
 
-  return {
-    id: createId(),
+  return createProjectFrame({
     name: "Launch Studio",
     description: "A visual builder prototype aimed at exportable starter apps.",
-    updatedAt: new Date().toISOString(),
     theme: {
       accent: "#0f766e",
       accentContrast: "#f0fdfa",
@@ -217,5 +256,464 @@ export function createDefaultProject(): BuilderProject {
         children: [],
       },
     },
-  };
+  });
+}
+
+function createSignalFlowProject(): BuilderProject {
+  const heroId = createId();
+  const socialProofSectionId = createId();
+  const proofGridId = createId();
+  const featureOneId = createId();
+  const featureTwoId = createId();
+  const featureThreeId = createId();
+  const conversionSectionId = createId();
+  const conversionGridId = createId();
+  const pricingId = createId();
+  const formId = createId();
+  const pricingHeroId = createId();
+  const pricingSectionId = createId();
+  const pricingGridId = createId();
+  const starterPlanId = createId();
+  const growthPlanId = createId();
+
+  const homeId = createId();
+  const pricingPageId = createId();
+
+  return createProjectFrame({
+    name: "Signal Flow",
+    description: "A polished SaaS launch template focused on clear product messaging and onboarding conversion.",
+    theme: {
+      accent: "#1d4ed8",
+      accentContrast: "#eff6ff",
+      background: "#f6f8fc",
+      surface: "#ffffff",
+      foreground: "#0f172a",
+      muted: "#5b6780",
+      radius: 22,
+      shadow: 3,
+      fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
+    },
+    pages: [
+      {
+        id: homeId,
+        name: "Home",
+        path: "/",
+        description: "Marketing homepage for a workflow product launch.",
+        rootIds: [heroId, socialProofSectionId, conversionSectionId],
+      },
+      {
+        id: pricingPageId,
+        name: "Pricing",
+        path: "/pricing",
+        description: "Plan comparison page with conversion-ready cards.",
+        rootIds: [pricingHeroId, pricingSectionId],
+      },
+    ],
+    nodes: {
+      [heroId]: {
+        id: heroId,
+        type: "hero",
+        props: {
+          eyebrow: "B2B workflow software",
+          title: "Turn scattered team requests into clear, structured launches.",
+          body: "Signal Flow helps revenue, product, and support teams move through intake, approval, and handoff without losing momentum.",
+          primaryLabel: "Book a walkthrough",
+          secondaryLabel: "See the flow",
+          align: "left",
+        },
+        children: [],
+      },
+      [socialProofSectionId]: {
+        id: socialProofSectionId,
+        type: "section",
+        props: {
+          title: "Why teams switch",
+          backgroundStyle: "surface",
+          paddingY: 40,
+          inset: true,
+        },
+        children: [proofGridId],
+      },
+      [proofGridId]: {
+        id: proofGridId,
+        type: "grid",
+        props: {
+          title: "Value grid",
+          columns: 3,
+          gap: 18,
+        },
+        children: [featureOneId, featureTwoId, featureThreeId],
+      },
+      [featureOneId]: {
+        id: featureOneId,
+        type: "featureGrid",
+        props: {
+          title: "Clear intake signals",
+          body: "Capture requests with enough structure that teams can decide fast instead of chasing context.",
+          features: "Shared intake format\nFewer Slack dead ends\nCleaner prioritization",
+        },
+        children: [],
+      },
+      [featureTwoId]: {
+        id: featureTwoId,
+        type: "featureGrid",
+        props: {
+          title: "Handoff without churn",
+          body: "Keep delivery owners aligned as work moves from request to scope to launch.",
+          features: "Route ownership\nApproval visibility\nLaunch checklist",
+        },
+        children: [],
+      },
+      [featureThreeId]: {
+        id: featureThreeId,
+        type: "featureGrid",
+        props: {
+          title: "Sharper executive reporting",
+          body: "Show what changed, what shipped, and where momentum is blocked.",
+          features: "Weekly rollups\nLaunch health view\nRisk summaries",
+        },
+        children: [],
+      },
+      [conversionSectionId]: {
+        id: conversionSectionId,
+        type: "section",
+        props: {
+          title: "Launch your pilot",
+          backgroundStyle: "accent",
+          paddingY: 44,
+          inset: true,
+        },
+        children: [conversionGridId],
+      },
+      [conversionGridId]: {
+        id: conversionGridId,
+        type: "grid",
+        props: {
+          title: "Conversion grid",
+          columns: 2,
+          gap: 20,
+        },
+        children: [pricingId, formId],
+      },
+      [pricingId]: {
+        id: pricingId,
+        type: "pricingCard",
+        props: {
+          tier: "Growth",
+          price: "$49",
+          tagline: "Launch one shared operating system for intake, approval, and rollout.",
+          cta: "Start pilot",
+        },
+        children: [],
+      },
+      [formId]: {
+        id: formId,
+        type: "formCard",
+        props: {
+          title: "Talk to the team",
+          body: "Use this section for demo requests, waitlists, or launch readiness reviews.",
+          buttonLabel: "Request demo",
+        },
+        children: [],
+      },
+      [pricingHeroId]: {
+        id: pricingHeroId,
+        type: "hero",
+        props: {
+          eyebrow: "Pricing",
+          title: "Pick the plan that matches your team maturity.",
+          body: "Signal Flow is built for teams graduating from ad hoc launch coordination into a repeatable workflow.",
+          primaryLabel: "Start pilot",
+          secondaryLabel: "Talk sales",
+          align: "center",
+        },
+        children: [],
+      },
+      [pricingSectionId]: {
+        id: pricingSectionId,
+        type: "section",
+        props: {
+          title: "Plans",
+          backgroundStyle: "surface",
+          paddingY: 40,
+          inset: true,
+        },
+        children: [pricingGridId],
+      },
+      [pricingGridId]: {
+        id: pricingGridId,
+        type: "grid",
+        props: {
+          title: "Plans grid",
+          columns: 2,
+          gap: 20,
+        },
+        children: [starterPlanId, growthPlanId],
+      },
+      [starterPlanId]: {
+        id: starterPlanId,
+        type: "pricingCard",
+        props: {
+          tier: "Starter",
+          price: "$19",
+          tagline: "For smaller teams that want a reliable launch checklist and intake structure.",
+          cta: "Start starter",
+        },
+        children: [],
+      },
+      [growthPlanId]: {
+        id: growthPlanId,
+        type: "pricingCard",
+        props: {
+          tier: "Growth",
+          price: "$49",
+          tagline: "For teams coordinating multiple workstreams and stakeholders across launches.",
+          cta: "Choose growth",
+        },
+        children: [],
+      },
+    },
+  });
+}
+
+function createOpsHubProject(): BuilderProject {
+  const heroId = createId();
+  const workspaceSectionId = createId();
+  const workspaceGridId = createId();
+  const sidebarId = createId();
+  const statOneId = createId();
+  const statTwoId = createId();
+  const statThreeId = createId();
+  const guidanceSectionId = createId();
+  const guidanceGridId = createId();
+  const textId = createId();
+  const chatId = createId();
+  const workspaceHeroId = createId();
+  const workspaceProofSectionId = createId();
+  const workspaceProofGridId = createId();
+  const opsFeatureId = createId();
+  const formId = createId();
+
+  const overviewId = createId();
+  const workspaceId = createId();
+
+  return createProjectFrame({
+    name: "Ops Hub",
+    description: "An internal-tool template with KPI blocks, guided workflows, and operational navigation.",
+    theme: {
+      accent: "#7c3aed",
+      accentContrast: "#f5f3ff",
+      background: "#f7f5fb",
+      surface: "#ffffff",
+      foreground: "#18181b",
+      muted: "#5f5b74",
+      radius: 20,
+      shadow: 2,
+      fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
+    },
+    pages: [
+      {
+        id: overviewId,
+        name: "Overview",
+        path: "/",
+        description: "Dashboard overview with KPI and workflow framing.",
+        rootIds: [heroId, workspaceSectionId, guidanceSectionId],
+      },
+      {
+        id: workspaceId,
+        name: "Workspace",
+        path: "/workspace",
+        description: "Workspace route for a more detailed internal-tool shell.",
+        rootIds: [workspaceHeroId, workspaceProofSectionId],
+      },
+    ],
+    nodes: {
+      [heroId]: {
+        id: heroId,
+        type: "hero",
+        props: {
+          eyebrow: "Operations workspace",
+          title: "Build calmer internal tools with clearer structure and stronger visual hierarchy.",
+          body: "Ops Hub gives teams a dashboard shell that feels intentional without overcomplicating the first release.",
+          primaryLabel: "Open workspace",
+          secondaryLabel: "Review metrics",
+          align: "left",
+        },
+        children: [],
+      },
+      [workspaceSectionId]: {
+        id: workspaceSectionId,
+        type: "section",
+        props: {
+          title: "Workspace summary",
+          backgroundStyle: "surface",
+          paddingY: 36,
+          inset: true,
+        },
+        children: [workspaceGridId],
+      },
+      [workspaceGridId]: {
+        id: workspaceGridId,
+        type: "grid",
+        props: {
+          title: "Workspace grid",
+          columns: 4,
+          gap: 18,
+        },
+        children: [sidebarId, statOneId, statTwoId, statThreeId],
+      },
+      [sidebarId]: {
+        id: sidebarId,
+        type: "sidebarShell",
+        props: {
+          title: "Ops navigation",
+          items: "Overview\nRequests\nApprovals\nIncidents\nReports",
+          highlight: "Approvals",
+        },
+        children: [],
+      },
+      [statOneId]: {
+        id: statOneId,
+        type: "statCard",
+        props: {
+          label: "Open requests",
+          value: "42",
+          trend: "+6 today",
+        },
+        children: [],
+      },
+      [statTwoId]: {
+        id: statTwoId,
+        type: "statCard",
+        props: {
+          label: "Approval SLA",
+          value: "94%",
+          trend: "Stable",
+        },
+        children: [],
+      },
+      [statThreeId]: {
+        id: statThreeId,
+        type: "statCard",
+        props: {
+          label: "Escalations",
+          value: "3",
+          trend: "-2 wow",
+        },
+        children: [],
+      },
+      [guidanceSectionId]: {
+        id: guidanceSectionId,
+        type: "section",
+        props: {
+          title: "Operator guidance",
+          backgroundStyle: "accent",
+          paddingY: 42,
+          inset: true,
+        },
+        children: [guidanceGridId],
+      },
+      [guidanceGridId]: {
+        id: guidanceGridId,
+        type: "grid",
+        props: {
+          title: "Guidance grid",
+          columns: 2,
+          gap: 20,
+        },
+        children: [textId, chatId],
+      },
+      [textId]: {
+        id: textId,
+        type: "text",
+        props: {
+          title: "What to review first",
+          body: "Start with approvals that are aging out, then review the incidents queue and staffing coverage for the next handoff window.",
+          size: "lg",
+        },
+        children: [],
+      },
+      [chatId]: {
+        id: chatId,
+        type: "chatInput",
+        props: {
+          label: "Ops copilot shell",
+          placeholder: "Summarize what changed in open approvals since yesterday.",
+          buttonLabel: "Run summary",
+        },
+        children: [],
+      },
+      [workspaceHeroId]: {
+        id: workspaceHeroId,
+        type: "hero",
+        props: {
+          eyebrow: "Workspace route",
+          title: "Give every route a clear role inside the product surface.",
+          body: "This page can evolve into requests, approvals, reports, or any other internal workflow shell without abandoning the shared design system.",
+          primaryLabel: "Review queue",
+          secondaryLabel: "Open report",
+          align: "center",
+        },
+        children: [],
+      },
+      [workspaceProofSectionId]: {
+        id: workspaceProofSectionId,
+        type: "section",
+        props: {
+          title: "Workspace modules",
+          backgroundStyle: "surface",
+          paddingY: 40,
+          inset: true,
+        },
+        children: [workspaceProofGridId],
+      },
+      [workspaceProofGridId]: {
+        id: workspaceProofGridId,
+        type: "grid",
+        props: {
+          title: "Modules grid",
+          columns: 2,
+          gap: 20,
+        },
+        children: [opsFeatureId, formId],
+      },
+      [opsFeatureId]: {
+        id: opsFeatureId,
+        type: "featureGrid",
+        props: {
+          title: "Internal tools still need polish",
+          body: "The same builder constraints that help marketing pages also help dashboard shells stay readable and maintainable.",
+          features: "Strong route framing\nTheme tokens stay shared\nReusable cards and shells",
+        },
+        children: [],
+      },
+      [formId]: {
+        id: formId,
+        type: "formCard",
+        props: {
+          title: "Request access",
+          body: "Use this shell for admin requests, workflow setup, or guided onboarding.",
+          buttonLabel: "Submit request",
+        },
+        children: [],
+      },
+    },
+  });
+}
+
+export function createProjectFromTemplate(templateId: BuilderTemplateId): BuilderProject {
+  switch (templateId) {
+    case "launch-studio":
+      return createLaunchStudioProject();
+    case "signal-flow":
+      return createSignalFlowProject();
+    case "ops-hub":
+      return createOpsHubProject();
+    default:
+      return createLaunchStudioProject();
+  }
+}
+
+export function createDefaultProject(): BuilderProject {
+  return createProjectFromTemplate("launch-studio");
 }

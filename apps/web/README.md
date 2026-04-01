@@ -34,6 +34,14 @@ The current desktop shell is organized as:
   - `Page`
   - `Theme`
 
+## Core Workflow Features
+
+- schema-driven multi-page builder state with undo/redo history
+- drag/drop composition with constrained layout primitives
+- project JSON import/export for backup and reuse
+- starter templates for marketing and internal-tool starting points
+- zip export to a runnable `Next.js` starter
+
 ## Assistant Status
 
 The assistant transport is wired with the official Vercel AI SDK patterns, but it is intentionally dormant by default.

@@ -9,13 +9,15 @@ Core layers:
 - `src/lib/builder/types.ts`
   Defines the project schema, page model, node model, theme model, and preview modes.
 - `src/lib/builder/default-project.ts`
-  Seeds the demo project and starter page structure.
+  Seeds the starter templates, demo project, and template factories.
 - `src/lib/builder/registry.tsx`
   Owns the component catalog, prop controls, placement constraints, theme style mapping, and preview rendering.
 - `src/lib/builder/store.ts`
-  Owns Zustand state, persistence, node/page mutations, duplication, deletion, and selection.
+  Owns Zustand state, persistence, history, node/page mutations, duplication, deletion, and selection.
 - `src/lib/builder/export.ts`
   Generates the zipped starter project from the current builder state.
+- `src/lib/builder/io.ts`
+  Handles schema-safe builder project JSON import/export.
 - `src/components/builder/*`
   Implements the editor shell: page panel, library, canvas, and inspector.
 
@@ -41,14 +43,16 @@ Why this matters:
 
 ## Editor Runtime
 
-The editor shell uses three persistent surfaces:
+The editor shell uses four persistent surfaces:
 
-- left rail
-  Pages and block library
+- top bar
+  Preview modes, history actions, export, and workspace summary
+- left sidebar
+  Pages, library, assistant, settings, templates, and project I/O
 - center canvas
   Theme-aware page preview with constrained drag/drop
-- right rail
-  Project, page, selection, and theme editing
+- right inspector
+  Selection, page, and theme editing
 
 The canvas is intentionally constrained.
 
@@ -86,7 +90,7 @@ This export is still schema-driven on the generated side. That is deliberate for
 
 ## Known Architectural Constraints
 
-- Undo/redo is not implemented yet.
 - Drag/drop is constrained, but not deeply guarded against every layout edge case yet.
 - Export is readable, but not yet decomposed into highly granular generated components.
+- JSON import/export currently targets schema-safe builder state, not arbitrary roundtrip from generated code.
 - Backend integrations, auth, and data bindings are intentionally deferred.

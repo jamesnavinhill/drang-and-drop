@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { createDefaultProject, createId } from "./default-project";
+import { createDefaultProject, createId, createProjectFromTemplate } from "./default-project";
 import { canAcceptChild, getComponentDefinition } from "./registry";
 import { validateProject } from "./schema";
 import type {
@@ -15,6 +15,7 @@ import type {
   PreviewMode,
   PrimitiveValue,
 } from "./types";
+import type { BuilderTemplateId } from "./default-project";
 
 interface BuilderState {
   project: BuilderProject;
@@ -45,6 +46,8 @@ interface BuilderState {
   duplicateNode: (nodeId: string) => void;
   removeNode: (nodeId: string) => void;
   updateNodeField: (nodeId: string, key: string, value: PrimitiveValue) => void;
+  importProject: (project: BuilderProject) => void;
+  applyTemplate: (templateId: BuilderTemplateId) => void;
   undo: () => void;
   redo: () => void;
   resetProject: () => void;
@@ -455,6 +458,33 @@ export const useBuilderStore = create<BuilderState>()(
           }
           node.props[key] = value;
           return withHistory(state, { project: touch(project) });
+        }),
+      importProject: (project) =>
+        set((state) => {
+          const nextProject = cloneProject(project);
+          const validated = validateProject(nextProject);
+
+          if (!validated.success) {
+            return state;
+          }
+
+          return withHistory(state, {
+            project: touch(validated.data),
+            selectedPageId: validated.data.pages[0]?.id ?? "",
+            selectedNodeId: null,
+            previewMode: "desktop" as PreviewMode,
+          });
+        }),
+      applyTemplate: (templateId) =>
+        set((state) => {
+          const nextProject = createProjectFromTemplate(templateId);
+
+          return withHistory(state, {
+            project: nextProject,
+            selectedPageId: nextProject.pages[0]?.id ?? "",
+            selectedNodeId: null,
+            previewMode: "desktop" as PreviewMode,
+          });
         }),
       undo: () =>
         set((state) => {

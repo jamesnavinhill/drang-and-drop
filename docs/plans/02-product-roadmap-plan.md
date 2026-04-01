@@ -15,6 +15,7 @@ Implemented in the current greenfield slice:
 - visual editor shell with pages, library, canvas, inspector, and theming
 - constrained drag/drop canvas with nested containers and node selection
 - multi-page route editing and page duplication/removal
+- project JSON import/export and starter template application
 - starter zip export with generated `Next.js` project files
 - verification coverage for build, lint, live browser rendering, page switching, node selection, preview mode changes, and export download
 
@@ -23,7 +24,7 @@ Open follow-up work after this slice:
 - tighten drag/drop verification coverage for explicit palette-to-canvas insertions and reordering flows
 - investigate the remaining local `next start` static asset serving issue observed during automated browser verification
 - expand the component catalog and add richer layout constraints
-- add import/export JSON, template management, and stronger export parity tests
+- strengthen export parity tests and generated-project runtime verification
 - begin M2/M3 hardening on codegen cleanliness, route generation polish, and onboarding flows
 
 ## Purpose
