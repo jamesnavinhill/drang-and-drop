@@ -103,8 +103,6 @@ Supported layout primitives:
 - stack
 - grid
 
-Current leaf blocks:
-
 Current shipped block families:
 
 - root composite blocks
@@ -121,14 +119,33 @@ Current shipped block families:
   FAQ list
   testimonial card
   pricing card
+  logo grid
+  callout card
+  CTA banner
+  step list
+  comparison table
+  info list
+  profile card
 - application blocks
   stat card
+  metric row
   activity feed
   form card
   chat input
   message thread
   data table
+  empty state
+  workspace header
   sidebar shell
+
+Current user-facing library grouping:
+
+- Page Structure
+- Marketing
+- Content
+- Forms and CTA
+- Data and Metrics
+- Workspace and Navigation
 
 ## Export Model
 
@@ -164,7 +181,7 @@ The generated starter file plan now has a matching automated verification loop t
 - Outline and inspector now share the same node-structure action surface for reorder/duplicate/remove, which reduces interaction drift between those editor surfaces.
 - Structural validation now covers shape plus layout semantics for import and persisted state, and mutation failures can surface through shared editor notices, but validation messaging is still not threaded through every surface.
 - Registry implementation coupling is lower now that canonical block contracts, region helpers, derived block-definition/placement modules, block-content helpers, and block preview rendering are split into separate modules. The old compatibility barrel and legacy `component-*` shims are now retired. Preview/export parity is documented in the contract layer, and both surfaces now traverse the same canonical region graph even though they still keep separate JSX trees.
-- The family and capability map is now a real derived builder module instead of only being implicit inside planning docs, which makes both catalog UI and verification easier to align with the current system.
+- The family and capability map is now a real derived builder module instead of only being implicit inside planning docs, which makes both catalog UI and verification easier to align with the current system. The library now also exposes a separate user-facing grouping layer so the product can stay clearer without destabilizing the internal contract taxonomy.
 - The block authoring workflow and preview/export parity matrix now exist as durable artifacts, which makes future block additions easier to review before broader catalog growth resumes.
 - Export is clearer now that generated render support is split away from the main starter-artifact file, and region-owned layout wrappers now expose explicit verification hooks, but it is not yet decomposed into highly granular generated components.
 - JSON import/export currently targets schema-safe builder state, not arbitrary roundtrip from generated code.

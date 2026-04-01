@@ -9,20 +9,20 @@ export const builderTemplateCatalog = [
   {
     id: "launch-studio",
     name: "Launch Studio",
-    description: "Balanced marketing starter with proof, pricing, and a product-oriented export story.",
+    description: "Polished marketing starter with trust, CTA, pricing, and launch-oriented proof sections.",
     focus: "Marketing",
   },
   {
     id: "signal-flow",
     name: "Signal Flow",
-    description: "SaaS landing template with sharper messaging, onboarding CTA, and clear conversion sections.",
+    description: "Product-marketing starter with stronger process storytelling, plan comparison, and conversion flow.",
     focus: "SaaS",
   },
   {
     id: "ops-hub",
     name: "Ops Hub",
-    description: "Dashboard-flavored template with KPI rails, workspace navigation, and internal-tool energy.",
-    focus: "Application",
+    description: "Workspace starter with route headers, metrics, navigation, and internal-tool credibility.",
+    focus: "Workspace",
   },
 ] as const;
 
@@ -67,12 +67,17 @@ function createLaunchStudioProject(): BuilderProject {
   const featureId = createId();
   const faqId = createId();
   const testimonialId = createId();
+  const profileCardId = createId();
   const formId = createId();
   const chatId = createId();
+  const logoGridId = createId();
+  const proofCalloutId = createId();
+  const ctaBannerId = createId();
   const pricingNavbarId = createId();
   const pricingHeroId = createId();
   const pricingGridId = createId();
   const pricingCardId = createId();
+  const pricingComparisonId = createId();
   const sidebarId = createId();
   const pricingSidebarTextId = createId();
   const pricingSidebarButtonId = createId();
@@ -108,7 +113,7 @@ function createLaunchStudioProject(): BuilderProject {
         name: "Pricing",
         path: "/pricing",
         description: "Simple pricing and dashboard-flavored proof page.",
-        rootIds: [pricingNavbarId, pricingHeroId, pricingGridId],
+        rootIds: [pricingNavbarId, pricingHeroId, pricingGridId, pricingComparisonId],
       },
     ],
     nodes: {
@@ -196,7 +201,7 @@ function createLaunchStudioProject(): BuilderProject {
           paddingY: 44,
           inset: true,
         },
-        children: [proofGridId],
+        children: [proofGridId, logoGridId, proofCalloutId, ctaBannerId],
       },
       [proofGridId]: {
         id: proofGridId,
@@ -206,7 +211,7 @@ function createLaunchStudioProject(): BuilderProject {
           columns: 4,
           gap: 18,
         },
-        children: [featureId, faqId, testimonialId, formId, chatId],
+        children: [featureId, faqId, testimonialId, profileCardId, formId, chatId],
       },
       [featureId]: {
         id: featureId,
@@ -239,6 +244,17 @@ function createLaunchStudioProject(): BuilderProject {
         },
         children: [],
       },
+      [profileCardId]: {
+        id: profileCardId,
+        type: "profileCard",
+        props: {
+          name: "Rae Bennett",
+          role: "Founder",
+          detail: "Fieldnote",
+          bio: "Used the builder to align product story, proof, and export handoff without turning the launch into a bespoke design sprint.",
+        },
+        children: [],
+      },
       [formId]: {
         id: formId,
         type: "formCard",
@@ -256,6 +272,40 @@ function createLaunchStudioProject(): BuilderProject {
           label: "Copilot prompt shell",
           placeholder: "Turn this layout into a strong dashboard onboarding flow.",
           buttonLabel: "Generate",
+        },
+        children: [],
+      },
+      [logoGridId]: {
+        id: logoGridId,
+        type: "logoGrid",
+        props: {
+          title: "Teams using the builder today",
+          body: "A lightweight trust rail adds proof without forcing media or asset-management complexity into the first pass.",
+          logos: "Fieldnote\nNorthline\nSummit\nOperator OS\nCanvas Lab\nSignal Flow",
+        },
+        children: [],
+      },
+      [proofCalloutId]: {
+        id: proofCalloutId,
+        type: "calloutCard",
+        props: {
+          eyebrow: "What this protects",
+          title: "Keep the first catalog pass sharp.",
+          body: "A smaller stronger foundational set makes it easier to build professional pages while preserving export clarity.",
+          tone: "accent",
+        },
+        children: [],
+      },
+      [ctaBannerId]: {
+        id: ctaBannerId,
+        type: "ctaBanner",
+        props: {
+          eyebrow: "Ready to ship?",
+          title: "Start from a polished builder project and keep the exported code readable.",
+          body: "The goal is a better starting point for teams, not a giant no-code maze full of one-off widgets.",
+          primaryLabel: "Start building",
+          secondaryLabel: "Review plans",
+          align: "left",
         },
         children: [],
       },
@@ -301,6 +351,18 @@ function createLaunchStudioProject(): BuilderProject {
           price: "$29",
           tagline: "Per editor seat, with export and starter generation built in.",
           cta: "Start free",
+        },
+        children: [],
+      },
+      [pricingComparisonId]: {
+        id: pricingComparisonId,
+        type: "comparisonTable",
+        props: {
+          title: "What changes by plan",
+          body: "Use a structured comparison when the pricing story needs a little more clarity than cards alone provide.",
+          columns: "Capability|Starter|Studio Pro|Scale",
+          rows:
+            "Pages and routes|Included|Included|Included\nTheme controls|Included|Included|Included\nWorkspace shell|Basic|Advanced|Advanced\nTeam support|Community|Priority|Dedicated",
         },
         children: [],
       },
@@ -363,6 +425,8 @@ function createSignalFlowProject(): BuilderProject {
   const featureTwoId = createId();
   const featureThreeId = createId();
   const testimonialId = createId();
+  const logoGridId = createId();
+  const stepListId = createId();
   const conversionSectionId = createId();
   const conversionGridId = createId();
   const pricingId = createId();
@@ -400,7 +464,7 @@ function createSignalFlowProject(): BuilderProject {
         name: "Home",
         path: "/",
         description: "Marketing homepage for a workflow product launch.",
-        rootIds: [homeNavbarId, heroId, socialProofSectionId, conversionSectionId],
+        rootIds: [homeNavbarId, heroId, socialProofSectionId, stepListId, conversionSectionId],
       },
       {
         id: pricingPageId,
@@ -444,7 +508,7 @@ function createSignalFlowProject(): BuilderProject {
           paddingY: 40,
           inset: true,
         },
-        children: [proofGridId],
+        children: [logoGridId, proofGridId],
       },
       [proofGridId]: {
         id: proofGridId,
@@ -493,6 +557,27 @@ function createSignalFlowProject(): BuilderProject {
           quote: "Signal Flow replaced launch status theater with an operating rhythm our whole team could actually follow.",
           author: "Jordan Park",
           role: "VP Revenue, Fairline",
+        },
+        children: [],
+      },
+      [logoGridId]: {
+        id: logoGridId,
+        type: "logoGrid",
+        props: {
+          title: "Trusted by cross-functional operators",
+          body: "Signal Flow is positioned for product, support, and revenue teams that need clearer launch coordination.",
+          logos: "Fairline\nNorthline\nDriftline\nFieldnote\nSummit\nOperator OS",
+        },
+        children: [],
+      },
+      [stepListId]: {
+        id: stepListId,
+        type: "stepList",
+        props: {
+          title: "How the workflow usually starts",
+          body: "A simple process block helps teams understand the product before they commit to a pilot.",
+          steps:
+            "Capture the request|Use one shared intake shape instead of scattered Slack context.\nAlign the owners|Make delivery, review, and launch accountability visible.\nMove through handoff|Keep status, blockers, and rollout updates clear for every stakeholder.",
         },
         children: [],
       },
@@ -618,8 +703,9 @@ function createSignalFlowProject(): BuilderProject {
       },
       [comparisonTableId]: {
         id: comparisonTableId,
-        type: "dataTable",
+        type: "comparisonTable",
         props: {
+          body: "This page uses a dedicated comparison block so the pricing story reads more like a product page than an internal report.",
           title: "Included by plan",
           columns: "Capability|Starter|Growth",
           rows:
@@ -645,6 +731,8 @@ function createSignalFlowProject(): BuilderProject {
 function createOpsHubProject(): BuilderProject {
   const heroId = createId();
   const workspaceSectionId = createId();
+  const workspaceHeaderId = createId();
+  const metricRowId = createId();
   const workspaceGridId = createId();
   const sidebarId = createId();
   const statOneId = createId();
@@ -653,6 +741,7 @@ function createOpsHubProject(): BuilderProject {
   const guidanceSectionId = createId();
   const guidanceGridId = createId();
   const textId = createId();
+  const infoListId = createId();
   const activityFeedId = createId();
   const threadId = createId();
   const chatId = createId();
@@ -662,6 +751,7 @@ function createOpsHubProject(): BuilderProject {
   const opsFeatureId = createId();
   const formId = createId();
   const workspaceTableId = createId();
+  const emptyStateId = createId();
   const workspaceSidebarTextId = createId();
   const workspaceSidebarButtonId = createId();
   const workspaceSidebarFeedId = createId();
@@ -722,7 +812,29 @@ function createOpsHubProject(): BuilderProject {
           paddingY: 36,
           inset: true,
         },
-        children: [workspaceGridId],
+        children: [workspaceHeaderId, metricRowId, workspaceGridId],
+      },
+      [workspaceHeaderId]: {
+        id: workspaceHeaderId,
+        type: "workspaceHeader",
+        props: {
+          eyebrow: "Workspace",
+          title: "Approvals overview",
+          body: "Use a dedicated route header to orient operators before the denser dashboard content begins.",
+          tags: "Ready for review\n6 due today\nOwner: Nina",
+          primaryLabel: "Open queue",
+          secondaryLabel: "Share update",
+        },
+        children: [],
+      },
+      [metricRowId]: {
+        id: metricRowId,
+        type: "metricRow",
+        props: {
+          title: "Today at a glance",
+          metrics: "Open requests|42|+6 today\nApproval SLA|94%|Stable\nEscalations|3|-2 wow",
+        },
+        children: [],
       },
       [workspaceGridId]: {
         id: workspaceGridId,
@@ -830,7 +942,7 @@ function createOpsHubProject(): BuilderProject {
           columns: 4,
           gap: 20,
         },
-        children: [textId, activityFeedId, threadId, chatId],
+        children: [textId, infoListId, activityFeedId, threadId, chatId],
       },
       [textId]: {
         id: textId,
@@ -839,6 +951,15 @@ function createOpsHubProject(): BuilderProject {
           title: "What to review first",
           body: "Start with approvals that are aging out, then review the incidents queue and staffing coverage for the next handoff window.",
           size: "lg",
+        },
+        children: [],
+      },
+      [infoListId]: {
+        id: infoListId,
+        type: "infoList",
+        props: {
+          title: "Shift details",
+          items: "Primary queue|Approvals\nEscalation owner|Avery\nHandoff window|3:00 PM ET\nCoverage mode|Proposal first",
         },
         children: [],
       },
@@ -905,7 +1026,7 @@ function createOpsHubProject(): BuilderProject {
           columns: 3,
           gap: 20,
         },
-        children: [opsFeatureId, workspaceTableId, formId],
+        children: [opsFeatureId, workspaceTableId, emptyStateId, formId],
       },
       [opsFeatureId]: {
         id: opsFeatureId,
@@ -924,6 +1045,17 @@ function createOpsHubProject(): BuilderProject {
           title: "Team queue snapshot",
           columns: "Queue|Open|Owner",
           rows: "Approvals|14|Nina\nIncidents|3|Avery\nRequests|25|Luca",
+        },
+        children: [],
+      },
+      [emptyStateId]: {
+        id: emptyStateId,
+        type: "emptyState",
+        props: {
+          title: "No incidents are active.",
+          body: "An explicit empty state helps the route feel intentional even when there is nothing urgent to show.",
+          primaryLabel: "Review setup",
+          secondaryLabel: "Open handbook",
         },
         children: [],
       },

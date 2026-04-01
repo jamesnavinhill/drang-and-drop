@@ -9,13 +9,23 @@ export const blockTypes = [
   "featureGrid",
   "faqList",
   "testimonialCard",
+  "pricingCard",
+  "logoGrid",
+  "calloutCard",
+  "ctaBanner",
+  "stepList",
+  "comparisonTable",
+  "infoList",
+  "profileCard",
   "statCard",
+  "metricRow",
   "activityFeed",
   "formCard",
-  "pricingCard",
   "chatInput",
   "messageThread",
   "dataTable",
+  "emptyState",
+  "workspaceHeader",
   "sidebarShell",
 ] as const;
 
@@ -95,6 +105,13 @@ export interface BuilderProject {
 
 export type BlockCategory = "Layout" | "Content" | "Marketing" | "Application";
 export type BlockFamily = "root-composite" | "layout" | "content" | "application";
+export type BlockLibraryGroup =
+  | "page-structure"
+  | "marketing"
+  | "content"
+  | "forms-and-cta"
+  | "data-and-metrics"
+  | "workspace-and-navigation";
 export type BlockCapability =
   | "future-region-pressure"
   | "layout-owner"

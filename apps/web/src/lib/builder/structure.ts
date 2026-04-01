@@ -87,6 +87,7 @@ export interface BuilderStructureIssue {
 
 const labelKeys = [
   "title",
+  "name",
   "label",
   "logo",
   "tier",

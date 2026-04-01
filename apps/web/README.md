@@ -48,9 +48,10 @@ The current desktop shell is organized as:
 - schema-driven multi-page builder state with undo/redo history
 - shared structure-command layer for insert, move, duplicate, and remove operations
 - structural project validation for import, persisted state hydration, and command-safe mutations
-- drag/drop composition with constrained layout primitives, explicit `page-root` and `layout-container` placement targets, and live invalid-drop feedback in the canvas
+- drag/drop composition with constrained layout primitives, explicit page-region and block-region placement targets, and live invalid-drop feedback in the canvas
 - tabbed pages workspace with route management and page outline/layers controls
 - contextual library filtering plus full-catalog placement hints based on the active insertion target
+- separate internal family taxonomy and user-facing library grouping so the catalog stays reviewable in code and easier to browse in the product
 - shared editor notices surfaced at the studio shell level for failed structure-sensitive actions
 - outline insertion context cues that match the library and canvas targeting model
 - shared node structure actions across outline and inspector so reorder/duplicate/remove stay aligned
@@ -58,7 +59,7 @@ The current desktop shell is organized as:
 - shared content parsing/fallback helpers now back builder preview and generated-starter render support so export parity relies on fewer duplicated block contracts
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
-- expanded first-party block catalog including nav, FAQ, activity feed, testimonial, table, and message-thread shells
+- expanded first-party block catalog spanning launch-page, proof, CTA, metric, empty-state, and workspace-header primitives
 - zip export to a runnable `Next.js` starter
 - deterministic builder drag verification for palette insertion, nested insertion, reorder, and invalid-drop coverage
 - direct builder command verification for shared insert/move/duplicate/remove and structural validation flows
@@ -94,12 +95,11 @@ If both provider credentials are present, also set:
 - Structure commands and validation: `src/lib/builder/structure.ts`
 - Canonical block contracts: `src/lib/builder/block-contracts.ts`
 - Derived block catalog metadata: `src/lib/builder/block-catalog.ts`
-- Shared content parsing: `src/lib/builder/component-content.ts`
+- Shared content parsing: `src/lib/builder/block-content.ts`
 - Block definitions: `src/lib/builder/block-definitions.ts`
 - Placement rules: `src/lib/builder/block-placement.ts`
 - Preview rendering: `src/lib/builder/block-preview.tsx`
 - Internal parity coverage project: `src/lib/builder/verification-project.ts`
 - Generated render support source: `src/lib/builder/starter-render-support.ts`
-- Registry compatibility barrel: `src/lib/builder/registry.tsx`
 - Export generation: `src/lib/builder/export.ts`
 - Command verification: `scripts/verify-builder-commands.ts`

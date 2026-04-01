@@ -4,7 +4,11 @@ import { useDraggable } from "@dnd-kit/core";
 import { Compass, Filter, Layers3 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { getDisplayableBlockCapabilityLabels, groupBlockContractsByFamily } from "@/lib/builder/block-catalog";
+import {
+  getBlockFamilyMeta,
+  getDisplayableBlockCapabilityLabels,
+  groupBlockContractsByLibraryGroup,
+} from "@/lib/builder/block-catalog";
 import { blockContracts } from "@/lib/builder/block-contracts";
 import { blockCanHaveChildren, getBlockRegion, isRootOnlyBlock } from "@/lib/builder/block-placement";
 import { getPageRegionDefinition } from "@/lib/builder/regions";
@@ -169,7 +173,7 @@ export function LibraryPanel() {
     );
   }, [insertion.target, libraryView, project]);
 
-  const familyGroups = useMemo(() => groupBlockContractsByFamily(visibleContracts), [visibleContracts]);
+  const familyGroups = useMemo(() => groupBlockContractsByLibraryGroup(visibleContracts), [visibleContracts]);
 
   return (
     <div className="space-y-4">
@@ -200,8 +204,8 @@ export function LibraryPanel() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Library</p>
           <h2 className="mt-1 text-lg font-semibold text-foreground">Blocks and layout primitives</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Drag blocks into the canvas. Containers accept children, leaf blocks keep content focused, and root-only
-            blocks stay pinned to the page level.
+            Drag blocks into the canvas. The library is grouped by user intent, while placement stays constrained by the
+            canonical contract model underneath.
           </p>
         </div>
 
@@ -235,7 +239,7 @@ export function LibraryPanel() {
         <div className="mt-5 grid gap-5">
           {familyGroups.length > 0 ? (
             familyGroups.map((group) => (
-              <div key={group.family}>
+              <div key={group.group}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{group.title}</h3>
@@ -260,7 +264,7 @@ export function LibraryPanel() {
                         description={item.definition.description}
                         icon={item.definition.icon}
                         category={item.definition.category}
-                        familyLabel={group.title}
+                        familyLabel={getBlockFamilyMeta(item.family).title}
                         capabilityLabels={getDisplayableBlockCapabilityLabels(item.capabilities)}
                         helperTone={libraryView === "all" && !placement.ok ? "warning" : "neutral"}
                         helperLabel={
@@ -292,9 +296,9 @@ export function LibraryPanel() {
             Placement rules
           </div>
           <div className="mt-3 grid gap-2 text-sm leading-6 text-muted">
-            <p>`Navbar` is root-only and should start the page shell.</p>
-            <p>`Section`, `Stack`, and `Grid` are the main nested layout primitives.</p>
-            <p>Marketing and application cards can live at the root or inside layout containers, depending on context.</p>
+            <p>`Navbar` stays root-only in the page header, while `Hero` stays root-only in the main page region.</p>
+            <p>`Section`, `Stack`, `Grid`, and `Sidebar Shell` define most of the structural composition surface.</p>
+            <p>Leaf blocks are grouped for browsing, but their real drop targets are still enforced by the placement contract.</p>
           </div>
         </div>
       </section>

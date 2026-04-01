@@ -9,7 +9,14 @@ const blockContentFallbacks = {
   activityTitle: ${JSON.stringify(blockContentFallbacks.activityTitle)},
   faqAnswer: ${JSON.stringify(blockContentFallbacks.faqAnswer)},
   faqQuestion: ${JSON.stringify(blockContentFallbacks.faqQuestion)},
+  infoItemLabel: ${JSON.stringify(blockContentFallbacks.infoItemLabel)},
+  infoItemValue: ${JSON.stringify(blockContentFallbacks.infoItemValue)},
   messageSender: ${JSON.stringify(blockContentFallbacks.messageSender)},
+  metricItemLabel: ${JSON.stringify(blockContentFallbacks.metricItemLabel)},
+  metricItemMeta: ${JSON.stringify(blockContentFallbacks.metricItemMeta)},
+  metricItemValue: ${JSON.stringify(blockContentFallbacks.metricItemValue)},
+  stepDetail: ${JSON.stringify(blockContentFallbacks.stepDetail)},
+  stepTitle: ${JSON.stringify(blockContentFallbacks.stepTitle)},
   transcriptMessage: ${JSON.stringify(blockContentFallbacks.transcriptMessage)},
 } as const;
 
@@ -112,6 +119,43 @@ export function parseActivityEntries(value: string) {
       meta: meta || blockContentFallbacks.activityMeta,
       status: status || blockContentFallbacks.activityStatus,
       title: title || blockContentFallbacks.activityTitle,
+    };
+  });
+}
+
+export function parseInfoListItems(value: string) {
+  return toLines(value).map((entry) => {
+    const [label, ...rest] = entry.split("|");
+    const itemValue = rest.join("|").trim();
+
+    return {
+      label: label.trim() || blockContentFallbacks.infoItemLabel,
+      value: itemValue || blockContentFallbacks.infoItemValue,
+    };
+  });
+}
+
+export function parseMetricItems(value: string) {
+  return toLines(value).map((entry) => {
+    const [label, itemValue, meta] = entry.split("|").map((item) => item.trim());
+
+    return {
+      label: label || blockContentFallbacks.metricItemLabel,
+      meta: meta || blockContentFallbacks.metricItemMeta,
+      value: itemValue || blockContentFallbacks.metricItemValue,
+    };
+  });
+}
+
+export function parseStepItems(value: string) {
+  return toLines(value).map((entry, index) => {
+    const [title, ...rest] = entry.split("|");
+    const detail = rest.join("|").trim();
+
+    return {
+      detail: detail || blockContentFallbacks.stepDetail,
+      index: index + 1,
+      title: title.trim() || \`\${blockContentFallbacks.stepTitle} \${index + 1}\`,
     };
   });
 }

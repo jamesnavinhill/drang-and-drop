@@ -64,6 +64,9 @@ import {
   featureLines,
   parseActivityEntries,
   parseFaqItems,
+  parseInfoListItems,
+  parseMetricItems,
+  parseStepItems,
   parseTable,
   parseTranscript,
   toBuilderThemeStyleVariables,
@@ -279,6 +282,34 @@ function renderNode(nodeId: string): ReactNode {
           </div>
         </div>
       );
+    case "metricRow": {
+      const metrics = parseMetricItems(\`\${node.props.metrics}\`);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <p style={{ margin: 0, fontWeight: 600 }}>{\`\${node.props.title}\`}</p>
+            <span style={{ borderRadius: 999, border: "1px solid var(--builder-border)", padding: "4px 12px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
+              Summary
+            </span>
+          </div>
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+            {metrics.map((metric, index) => (
+              <div
+                key={\`\${metric.label}-\${index}\`}
+                style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: "16px 18px" }}
+              >
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
+                  {metric.label}
+                </p>
+                <p style={{ margin: "14px 0 0", fontSize: 32, fontWeight: 700 }}>{metric.value}</p>
+                <p style={{ margin: "10px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{metric.meta}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     case "activityFeed": {
       const entries = parseActivityEntries(\`\${node.props.entries}\`);
 
@@ -343,6 +374,167 @@ function renderNode(nodeId: string): ReactNode {
           </div>
           <p style={{ margin: "16px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.tagline}\`}</p>
           <div style={{ marginTop: 20 }}>{buttonVariant(\`\${node.props.cta}\`, "primary", true)}</div>
+        </div>
+      );
+    case "logoGrid": {
+      const logos = toLines(\`\${node.props.logos}\`);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
+          <div style={{ maxWidth: 760 }}>
+            <h3 style={{ margin: 0, fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
+            <p style={{ margin: "12px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+          </div>
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", marginTop: 20 }}>
+            {logos.map((logo) => (
+              <div key={logo} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: "16px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
+                {logo}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "calloutCard": {
+      const tone = \`\${node.props.tone ?? "accent"}\`;
+      const backgrounds: Record<string, CSSProperties> = {
+        accent: {
+          background: "color-mix(in srgb, var(--builder-accent) 10%, white)",
+          border: "1px solid color-mix(in srgb, var(--builder-accent) 20%, white)",
+        },
+        neutral: {
+          background: "rgba(255,255,255,0.84)",
+          border: "1px solid var(--builder-border)",
+        },
+        warning: {
+          background: "#fff7ed",
+          border: "1px solid #fdba74",
+        },
+      };
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, padding: 24, ...(backgrounds[tone] ?? backgrounds.accent) }}>
+          <span style={{ display: "inline-flex", borderRadius: 999, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.8)", padding: "6px 12px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
+            {\`\${node.props.eyebrow}\`}
+          </span>
+          <h3 style={{ margin: "16px 0 0", fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
+          <p style={{ margin: "12px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+        </div>
+      );
+    }
+    case "ctaBanner": {
+      const centered = \`\${node.props.align ?? "left"}\` === "center";
+
+      return (
+        <section
+          key={node.id}
+          style={{
+            borderRadius: 24,
+            padding: "28px 24px",
+            border: "1px solid var(--builder-border)",
+            background: "linear-gradient(135deg, color-mix(in srgb, var(--builder-accent) 12%, white), rgba(255,255,255,0.92))",
+            textAlign: centered ? "center" : "left",
+          }}
+        >
+          <span style={{ display: "inline-flex", borderRadius: 999, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.8)", padding: "6px 12px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
+            {\`\${node.props.eyebrow}\`}
+          </span>
+          <div style={{ marginTop: 18, display: "grid", gap: 12, maxWidth: 760, marginInline: centered ? "auto" : undefined }}>
+            <h3 style={{ margin: 0, fontSize: 30, lineHeight: 1.15 }}>{\`\${node.props.title}\`}</h3>
+            <p style={{ margin: 0, color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+          </div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20, justifyContent: centered ? "center" : "flex-start" }}>
+            {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
+            {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
+          </div>
+        </section>
+      );
+    }
+    case "stepList": {
+      const steps = parseStepItems(\`\${node.props.steps}\`);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
+          <div style={{ maxWidth: 760 }}>
+            <h3 style={{ margin: 0, fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
+            <p style={{ margin: "12px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+          </div>
+          <div style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {steps.map((step) => (
+              <div key={\`\${step.index}-\${step.title}\`} style={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", gap: 14, alignItems: "start", borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: "16px 18px" }}>
+                <span style={{ width: 32, height: 32, borderRadius: 999, background: "var(--builder-accent)", color: "var(--builder-accent-contrast)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>
+                  {step.index}
+                </span>
+                <div>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{step.title}</p>
+                  <p style={{ margin: "8px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{step.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "comparisonTable": {
+      const { columns, rows } = parseTable(\`\${node.props.columns}\`, \`\${node.props.rows}\`);
+      const columnCount = Math.max(columns.length, 1);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.86)", padding: 24 }}>
+          <div style={{ maxWidth: 760 }}>
+            <h3 style={{ margin: 0, fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
+            <p style={{ margin: "12px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+          </div>
+          <div style={{ overflow: "hidden", borderRadius: 18, border: "1px solid var(--builder-border)", marginTop: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: \`repeat(\${columnCount}, minmax(0, 1fr))\`, background: "var(--builder-surface)" }}>
+              {columns.map((column, index) => (
+                <div key={column} style={{ borderBottom: "1px solid var(--builder-border)", padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: index === 0 ? "var(--builder-foreground)" : "var(--builder-muted)" }}>
+                  {column}
+                </div>
+              ))}
+              {rows.flatMap((row, rowIndex) =>
+                columns.map((column, columnIndex) => (
+                  <div key={\`\${rowIndex}-\${column}-\${columnIndex}\`} style={{ borderBottom: "1px solid var(--builder-border)", padding: "12px 16px", fontSize: 14, color: columnIndex === 0 ? "var(--builder-foreground)" : "var(--builder-muted)", fontWeight: columnIndex === 0 ? 600 : 400 }}>
+                    {row[columnIndex] ?? "--"}
+                  </div>
+                )),
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    case "infoList": {
+      const items = parseInfoListItems(\`\${node.props.items}\`);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
+          <h3 style={{ margin: 0, fontSize: 22 }}>{\`\${node.props.title}\`}</h3>
+          <div style={{ display: "grid", gap: 12, marginTop: 20 }}>
+            {items.map((item, index) => (
+              <div key={\`\${item.label}-\${index}\`} style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 16, borderRadius: 18, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: "16px 18px" }}>
+                <p style={{ margin: 0, fontWeight: 600 }}>{item.label}</p>
+                <p style={{ margin: 0, color: "var(--builder-muted)", lineHeight: 1.7, textAlign: "right" }}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "profileCard":
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
+          <div style={{ display: "flex", alignItems: "start", gap: 16 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 999, background: "var(--builder-accent)", color: "var(--builder-accent-contrast)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700 }}>
+              {\`\${node.props.name}\`.slice(0, 1)}
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 22 }}>{\`\${node.props.name}\`}</h3>
+              <p style={{ margin: "6px 0 0", color: "var(--builder-muted)" }}>{\`\${node.props.role}\`}</p>
+              <p style={{ margin: "4px 0 0", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>{\`\${node.props.detail}\`}</p>
+            </div>
+          </div>
+          <p style={{ margin: "16px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.bio}\`}</p>
         </div>
       );
     case "chatInput":
@@ -422,6 +614,48 @@ function renderNode(nodeId: string): ReactNode {
                 )),
               )}
             </div>
+          </div>
+        </div>
+      );
+    }
+    case "emptyState":
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px dashed var(--builder-border)", background: "rgba(255,255,255,0.74)", padding: 24 }}>
+          <span style={{ display: "inline-flex", borderRadius: 999, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.92)", padding: "6px 12px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
+            Empty state
+          </span>
+          <h3 style={{ margin: "16px 0 0", fontSize: 30 }}>{\`\${node.props.title}\`}</h3>
+          <p style={{ margin: "12px 0 0", maxWidth: 760, color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
+            {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
+            {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
+          </div>
+        </div>
+      );
+    case "workspaceHeader": {
+      const tags = toLines(\`\${node.props.tags}\`);
+
+      return (
+        <div key={node.id} style={{ borderRadius: 18, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.84)", padding: 24 }}>
+          <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ maxWidth: 760 }}>
+              <span style={{ display: "inline-flex", borderRadius: 999, border: "1px solid var(--builder-border)", background: "rgba(255,255,255,0.92)", padding: "6px 12px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--builder-muted)" }}>
+                {\`\${node.props.eyebrow}\`}
+              </span>
+              <h3 style={{ margin: "16px 0 0", fontSize: 30 }}>{\`\${node.props.title}\`}</h3>
+              <p style={{ margin: "12px 0 0", color: "var(--builder-muted)", lineHeight: 1.7 }}>{\`\${node.props.body}\`}</p>
+            </div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              {buttonVariant(\`\${node.props.primaryLabel}\`, "primary")}
+              {buttonVariant(\`\${node.props.secondaryLabel}\`, "secondary")}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 20 }}>
+            {tags.map((tag) => (
+              <span key={tag} style={{ borderRadius: 999, border: "1px solid var(--builder-border)", background: "var(--builder-surface)", padding: "6px 12px", fontSize: 12, color: "var(--builder-muted)" }}>
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
       );

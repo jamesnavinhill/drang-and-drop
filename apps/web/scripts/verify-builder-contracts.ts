@@ -1,6 +1,14 @@
 import { blockAuthoringChecklist } from "../src/lib/builder/block-authoring";
 import { blockContracts, getBlockContract } from "../src/lib/builder/block-contracts";
-import { blockFamilyOrder, collectProjectBlockTypes, getBlockParityMatrix, getParityCriticalBlockTypes } from "../src/lib/builder/block-catalog";
+import {
+  blockFamilyOrder,
+  blockLibraryGroupOrder,
+  collectProjectBlockTypes,
+  getBlockLibraryGroup,
+  getBlockLibraryGroupMeta,
+  getBlockParityMatrix,
+  getParityCriticalBlockTypes,
+} from "../src/lib/builder/block-catalog";
 import { pageRegionDefinitions } from "../src/lib/builder/regions";
 import { createBlockContractVerificationProject } from "../src/lib/builder/verification-project";
 import { blockTypes } from "../src/lib/builder/types";
@@ -23,9 +31,16 @@ function main() {
   }
 
   const familySet = new Set(blockFamilyOrder);
+  const libraryGroupSet = new Set(blockLibraryGroupOrder);
   const parityMatrix = getBlockParityMatrix();
   assert(parityMatrix.length === blockContracts.length, "Block parity matrix coverage fell out of sync with the shipped block contracts.");
   assert(pageRegionDefinitions.length > 0, "Page region definitions are missing.");
+
+  for (const group of blockLibraryGroupOrder) {
+    const meta = getBlockLibraryGroupMeta(group);
+    assert(meta.title.trim().length > 0, `Library group "${group}" is missing a title.`);
+    assert(meta.description.trim().length > 0, `Library group "${group}" is missing a description.`);
+  }
 
   for (const region of pageRegionDefinitions) {
     assert(region.label.trim().length > 0, `Page region "${region.id}" is missing a label.`);
@@ -35,6 +50,11 @@ function main() {
 
   for (const contract of blockContracts) {
     assert(familySet.has(contract.family), `Block "${contract.type}" points at an unknown family "${contract.family}".`);
+    const libraryGroup = getBlockLibraryGroup(contract.type);
+    assert(
+      libraryGroupSet.has(libraryGroup),
+      `Block "${contract.type}" points at an unknown library group "${libraryGroup}".`,
+    );
     assert(contract.definition.title.trim().length > 0, `Block "${contract.type}" is missing a title.`);
     assert(contract.definition.description.trim().length > 0, `Block "${contract.type}" is missing a description.`);
     assert(contract.definition.icon.trim().length > 0, `Block "${contract.type}" is missing an icon.`);

@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils";
 import {
   parseActivityEntries,
   parseFaqItems,
+  parseInfoListItems,
+  parseMetricItems,
+  parseStepItems,
   parseTable,
   parseTranscript,
   toLines,
@@ -325,6 +328,32 @@ export function renderNodePreview(
           </div>
         </div>
       );
+    case "metricRow": {
+      const metrics = parseMetricItems(`${node.props.metrics}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
+            <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">
+              Summary
+            </span>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {metrics.map((metric, index) => (
+              <div
+                key={`${metric.label}-${index}`}
+                className="rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-4 py-4"
+              >
+                <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--builder-muted)]">{metric.label}</p>
+                <p className="mt-3 text-3xl font-semibold text-[color:var(--builder-foreground)]">{metric.value}</p>
+                <p className="mt-2 text-sm leading-6 text-[color:var(--builder-muted)]">{metric.meta}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     case "activityFeed": {
       const entries = parseActivityEntries(`${node.props.entries}`);
 
@@ -379,6 +408,182 @@ export function renderNodePreview(
           <div className="mt-5">
             <ButtonPreview label={`${node.props.cta}`} variant="primary" fullWidth />
           </div>
+        </div>
+      );
+    case "logoGrid": {
+      const logos = toLines(`${node.props.logos}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-6">
+          <div className="max-w-2xl">
+            <h3 className="text-xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+            <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {logos.map((logo) => (
+              <div
+                key={logo}
+                className="rounded-2xl border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-4 py-4 text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--builder-muted)]"
+              >
+                {logo}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "calloutCard": {
+      const tone = `${node.props.tone ?? "accent"}`;
+      const toneClasses =
+        tone === "warning"
+          ? "border-amber-300/80 bg-amber-50"
+          : tone === "neutral"
+            ? "border-[color:var(--builder-border)] bg-white/84"
+            : "border-[color:var(--builder-accent)]/25 bg-[color:var(--builder-accent)]/8";
+
+      return (
+        <div className={cn("rounded-[calc(var(--builder-radius)-8px)] border p-6", toneClasses)}>
+          <span className="inline-flex rounded-full border border-[color:var(--builder-border)] bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">
+            {`${node.props.eyebrow}`}
+          </span>
+          <h3 className="mt-4 text-xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+          <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+        </div>
+      );
+    }
+    case "ctaBanner": {
+      const centered = `${node.props.align ?? "left"}` === "center";
+
+      return (
+        <div
+          className={cn(
+            "rounded-[calc(var(--builder-radius)+2px)] border border-[color:var(--builder-border)] p-6",
+            centered && "text-center",
+          )}
+          style={{
+            background:
+              "linear-gradient(135deg, color-mix(in srgb, var(--builder-accent) 12%, white), rgba(255,255,255,0.92))",
+          }}
+        >
+          <span className="inline-flex rounded-full border border-[color:var(--builder-border)] bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">
+            {`${node.props.eyebrow}`}
+          </span>
+          <div className={cn("mt-4 grid gap-3", centered && "justify-items-center")}>
+            <h3 className="max-w-3xl text-2xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+            <p className="max-w-2xl text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+          </div>
+          <div className={cn("mt-5 flex flex-wrap gap-3", centered && "justify-center")}>
+            <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
+            <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
+          </div>
+        </div>
+      );
+    }
+    case "stepList": {
+      const steps = parseStepItems(`${node.props.steps}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-6">
+          <div className="max-w-2xl">
+            <h3 className="text-xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+            <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+          </div>
+          <div className="mt-5 grid gap-3">
+            {steps.map((step) => (
+              <div
+                key={`${step.index}-${step.title}`}
+                className="grid gap-3 rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-5 py-4 md:grid-cols-[auto_minmax(0,1fr)]"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--builder-accent)] text-sm font-semibold text-[color:var(--builder-accent-contrast)]">
+                  {step.index}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{step.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-[color:var(--builder-muted)]">{step.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "comparisonTable": {
+      const { columns, rows } = parseTable(`${node.props.columns}`, `${node.props.rows}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/86 p-6">
+          <div className="max-w-2xl">
+            <h3 className="text-xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+            <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+          </div>
+          <div className="mt-5 overflow-hidden rounded-2xl border border-[color:var(--builder-border)]">
+            <div
+              className="grid bg-[color:var(--builder-surface)]"
+              style={{ gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))` }}
+            >
+              {columns.map((column, index) => (
+                <div
+                  key={column}
+                  className={cn(
+                    "border-b border-[color:var(--builder-border)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em]",
+                    index === 0 ? "bg-white text-[color:var(--builder-foreground)]" : "text-[color:var(--builder-muted)]",
+                  )}
+                >
+                  {column}
+                </div>
+              ))}
+              {rows.flatMap((row, rowIndex) =>
+                columns.map((column, columnIndex) => (
+                  <div
+                    key={`${rowIndex}-${column}-${columnIndex}`}
+                    className={cn(
+                      "border-b border-[color:var(--builder-border)] px-4 py-3 text-sm",
+                      columnIndex === 0 ? "font-medium text-[color:var(--builder-foreground)]" : "text-[color:var(--builder-muted)]",
+                    )}
+                  >
+                    {row[columnIndex] ?? "--"}
+                  </div>
+                )),
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    case "infoList": {
+      const items = parseInfoListItems(`${node.props.items}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-6">
+          <h3 className="text-xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+          <div className="mt-5 grid gap-3">
+            {items.map((item, index) => (
+              <div
+                key={`${item.label}-${index}`}
+                className="flex items-start justify-between gap-4 rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-4 py-4"
+              >
+                <p className="text-sm font-medium text-[color:var(--builder-foreground)]">{item.label}</p>
+                <p className="max-w-[60%] text-right text-sm leading-6 text-[color:var(--builder-muted)]">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "profileCard":
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-6">
+          <div className="flex items-start gap-4">
+            <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[color:var(--builder-accent)] text-lg font-semibold text-[color:var(--builder-accent-contrast)]">
+              {`${node.props.name}`.slice(0, 1)}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-[color:var(--builder-foreground)]">{`${node.props.name}`}</h3>
+              <p className="mt-1 text-sm text-[color:var(--builder-muted)]">{`${node.props.role}`}</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">{`${node.props.detail}`}</p>
+            </div>
+          </div>
+          <p className="mt-4 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.bio}`}</p>
         </div>
       );
     case "chatInput":
@@ -470,6 +675,51 @@ export function renderNodePreview(
                 )),
               )}
             </div>
+          </div>
+        </div>
+      );
+    }
+    case "emptyState":
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-dashed border-[color:var(--builder-border)] bg-white/72 p-6">
+          <div className="inline-flex rounded-full border border-[color:var(--builder-border)] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">
+            Empty state
+          </div>
+          <h3 className="mt-4 text-2xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
+            <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
+          </div>
+        </div>
+      );
+    case "workspaceHeader": {
+      const tags = toLines(`${node.props.tags}`);
+
+      return (
+        <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl">
+              <span className="inline-flex rounded-full border border-[color:var(--builder-border)] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">
+                {`${node.props.eyebrow}`}
+              </span>
+              <h3 className="mt-4 text-2xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+              <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
+              <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
+            </div>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-3 py-1 text-xs text-[color:var(--builder-muted)]"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
       );

@@ -25,6 +25,7 @@ const basePort = Number(process.env.STARTER_VERIFY_BASE_PORT ?? 3210);
 
 const preferredPropKeys = [
   "title",
+  "name",
   "eyebrow",
   "logo",
   "label",

@@ -1,7 +1,22 @@
 import { blockContracts } from "./block-contracts";
-import type { BlockCapability, BlockContract, BlockFamily, BlockType, BuilderProject } from "./types";
+import type {
+  BlockCapability,
+  BlockContract,
+  BlockFamily,
+  BlockLibraryGroup,
+  BlockType,
+  BuilderProject,
+} from "./types";
 
 export const blockFamilyOrder: BlockFamily[] = ["root-composite", "layout", "content", "application"];
+export const blockLibraryGroupOrder: BlockLibraryGroup[] = [
+  "page-structure",
+  "marketing",
+  "content",
+  "forms-and-cta",
+  "data-and-metrics",
+  "workspace-and-navigation",
+];
 
 const blockFamilyMeta: Record<
   BlockFamily,
@@ -36,6 +51,70 @@ const blockCapabilityLabels: Record<BlockCapability, string> = {
   "root-only": "Root only",
 };
 
+const blockLibraryGroupMeta: Record<
+  BlockLibraryGroup,
+  {
+    description: string;
+    title: string;
+  }
+> = {
+  "content": {
+    description: "Flexible copy, profile, and summary blocks that fit polished product and editorial surfaces.",
+    title: "Content",
+  },
+  "data-and-metrics": {
+    description: "Structured tables, metrics, and reporting blocks for dashboards, ops surfaces, and comparison views.",
+    title: "Data and Metrics",
+  },
+  "forms-and-cta": {
+    description: "Action-oriented blocks for conversion moments, input shells, and call-to-action emphasis.",
+    title: "Forms and CTA",
+  },
+  "marketing": {
+    description: "Launch-ready proof, process, pricing, and trust-building blocks for public-facing pages.",
+    title: "Marketing",
+  },
+  "page-structure": {
+    description: "High-level shells and layout primitives that define the page frame and nested composition.",
+    title: "Page Structure",
+  },
+  "workspace-and-navigation": {
+    description: "Application shells, navigation helpers, messaging, and empty-state support for workspace flows.",
+    title: "Workspace and Navigation",
+  },
+};
+
+const blockLibraryGroupByType: Record<BlockType, BlockLibraryGroup> = {
+  activityFeed: "data-and-metrics",
+  button: "forms-and-cta",
+  calloutCard: "content",
+  chatInput: "forms-and-cta",
+  comparisonTable: "marketing",
+  ctaBanner: "forms-and-cta",
+  dataTable: "data-and-metrics",
+  emptyState: "workspace-and-navigation",
+  faqList: "marketing",
+  featureGrid: "marketing",
+  formCard: "forms-and-cta",
+  grid: "page-structure",
+  hero: "page-structure",
+  infoList: "content",
+  logoGrid: "marketing",
+  messageThread: "workspace-and-navigation",
+  metricRow: "data-and-metrics",
+  navbar: "page-structure",
+  pricingCard: "marketing",
+  profileCard: "content",
+  section: "page-structure",
+  sidebarShell: "workspace-and-navigation",
+  stack: "page-structure",
+  statCard: "data-and-metrics",
+  stepList: "marketing",
+  testimonialCard: "marketing",
+  text: "content",
+  workspaceHeader: "workspace-and-navigation",
+};
+
 export function getBlockFamilyMeta(family: BlockFamily) {
   return blockFamilyMeta[family];
 }
@@ -58,6 +137,24 @@ export function groupBlockContractsByFamily(contracts: BlockContract[]) {
       ...getBlockFamilyMeta(family),
     }))
     .filter((group) => group.contracts.length > 0);
+}
+
+export function getBlockLibraryGroup(type: BlockType) {
+  return blockLibraryGroupByType[type];
+}
+
+export function getBlockLibraryGroupMeta(group: BlockLibraryGroup) {
+  return blockLibraryGroupMeta[group];
+}
+
+export function groupBlockContractsByLibraryGroup(contracts: BlockContract[]) {
+  return blockLibraryGroupOrder
+    .map((group) => ({
+      contracts: contracts.filter((contract) => getBlockLibraryGroup(contract.type) === group),
+      group,
+      ...getBlockLibraryGroupMeta(group),
+    }))
+    .filter((entry) => entry.contracts.length > 0);
 }
 
 export function getParityCriticalBlockTypes() {

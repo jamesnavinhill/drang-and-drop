@@ -11,6 +11,7 @@ export function createBlockContractVerificationProject(): BuilderProject {
   const textId = createId();
   const buttonId = createId();
   const statCardId = createId();
+  const metricRowId = createId();
   const gridId = createId();
   const featureGridId = createId();
   const faqId = createId();
@@ -18,12 +19,21 @@ export function createBlockContractVerificationProject(): BuilderProject {
   const activityFeedId = createId();
   const formCardId = createId();
   const pricingCardId = createId();
+  const logoGridId = createId();
+  const calloutCardId = createId();
+  const ctaBannerId = createId();
+  const stepListId = createId();
+  const comparisonTableId = createId();
+  const infoListId = createId();
+  const profileCardId = createId();
   const chatInputId = createId();
-  const messageThreadId = createId();
-  const dataTableId = createId();
+  const emptyStateId = createId();
+  const workspaceHeaderId = createId();
   const sidebarShellId = createId();
   const sidebarTextId = createId();
   const sidebarButtonId = createId();
+  const messageThreadId = createId();
+  const dataTableId = createId();
 
   const legacyProject: LegacyBuilderProject = {
     id: createId(),
@@ -71,6 +81,17 @@ export function createBlockContractVerificationProject(): BuilderProject {
         },
         type: "button",
       },
+      [calloutCardId]: {
+        children: [],
+        id: calloutCardId,
+        props: {
+          body: "Callouts help us validate tone-aware cards without forcing more specialized alert systems yet.",
+          eyebrow: "Coverage note",
+          title: "Keep the first pass broad and reusable.",
+          tone: "accent",
+        },
+        type: "calloutCard",
+      },
       [chatInputId]: {
         children: [],
         id: chatInputId,
@@ -81,6 +102,30 @@ export function createBlockContractVerificationProject(): BuilderProject {
         },
         type: "chatInput",
       },
+      [comparisonTableId]: {
+        children: [],
+        id: comparisonTableId,
+        props: {
+          body: "Coverage should include both application tables and marketing-style comparisons.",
+          columns: "Capability|Starter|Growth",
+          rows: "Catalog breadth|Focused|Expanded\nParity coverage|Required|Required\nTemplate count|Small|Small",
+          title: "Coverage comparison",
+        },
+        type: "comparisonTable",
+      },
+      [ctaBannerId]: {
+        children: [],
+        id: ctaBannerId,
+        props: {
+          align: "left",
+          body: "This internal page keeps every shipped block type exercised as the catalog evolves.",
+          eyebrow: "Parity harness",
+          primaryLabel: "Review contracts",
+          secondaryLabel: "Inspect export",
+          title: "Ship catalog growth with verification in the same slice.",
+        },
+        type: "ctaBanner",
+      },
       [dataTableId]: {
         children: [],
         id: dataTableId,
@@ -90,6 +135,17 @@ export function createBlockContractVerificationProject(): BuilderProject {
           title: "Parity matrix",
         },
         type: "dataTable",
+      },
+      [emptyStateId]: {
+        children: [],
+        id: emptyStateId,
+        props: {
+          body: "An empty-state block belongs in the foundational app catalog even before deeper workflow systems exist.",
+          primaryLabel: "Create first route",
+          secondaryLabel: "Review setup guide",
+          title: "No active workspace yet.",
+        },
+        type: "emptyState",
       },
       [faqId]: {
         children: [],
@@ -130,8 +186,13 @@ export function createBlockContractVerificationProject(): BuilderProject {
           activityFeedId,
           formCardId,
           pricingCardId,
+          comparisonTableId,
+          calloutCardId,
+          infoListId,
+          profileCardId,
           chatInputId,
-          sidebarShellId,
+          emptyStateId,
+          workspaceHeaderId,
         ],
         id: gridId,
         props: {
@@ -154,6 +215,25 @@ export function createBlockContractVerificationProject(): BuilderProject {
         },
         type: "hero",
       },
+      [infoListId]: {
+        children: [],
+        id: infoListId,
+        props: {
+          items: "Coverage owner|Builder system\nVerification loop|Contracts, commands, DnD, starters\nCatalog phase|07 foundational catalog",
+          title: "Coverage details",
+        },
+        type: "infoList",
+      },
+      [logoGridId]: {
+        children: [],
+        id: logoGridId,
+        props: {
+          body: "This keeps trust and proof semantics covered without introducing asset dependency into the test fixture.",
+          logos: "Northline\nFieldnote\nOperator OS\nSummit\nOrbit\nCanvas Lab",
+          title: "Coverage logos",
+        },
+        type: "logoGrid",
+      },
       [messageThreadId]: {
         children: [],
         id: messageThreadId,
@@ -163,6 +243,15 @@ export function createBlockContractVerificationProject(): BuilderProject {
             "lead|Did the exported starter exercise every block type?\nassistant|Yes. The coverage route now includes the full parity-critical catalog.\nlead|Great. Keep the docs aligned with the contracts too.",
         },
         type: "messageThread",
+      },
+      [metricRowId]: {
+        children: [],
+        id: metricRowId,
+        props: {
+          metrics: "Covered block types|28|All shipped\nTemplates verified|3|Current trio\nRender paths|2|Preview and starter",
+          title: "Coverage metrics",
+        },
+        type: "metricRow",
       },
       [navbarId]: {
         children: [],
@@ -186,8 +275,19 @@ export function createBlockContractVerificationProject(): BuilderProject {
         },
         type: "pricingCard",
       },
+      [profileCardId]: {
+        children: [],
+        id: profileCardId,
+        props: {
+          bio: "Keeps catalog discipline, parity review, and starter verification aligned while the builder grows.",
+          detail: "Builder system",
+          name: "Coverage Owner",
+          role: "Internal verification",
+        },
+        type: "profileCard",
+      },
       [sectionId]: {
-        children: [stackId, gridId],
+        children: [stackId, gridId, logoGridId, stepListId, ctaBannerId, sidebarShellId],
         id: sectionId,
         props: {
           backgroundStyle: "surface",
@@ -196,6 +296,16 @@ export function createBlockContractVerificationProject(): BuilderProject {
           title: "Coverage section",
         },
         type: "section",
+      },
+      [sidebarButtonId]: {
+        children: [],
+        id: sidebarButtonId,
+        props: {
+          fullWidth: true,
+          label: "Sidebar action",
+          variant: "primary",
+        },
+        type: "button",
       },
       [sidebarShellId]: {
         id: sidebarShellId,
@@ -213,8 +323,18 @@ export function createBlockContractVerificationProject(): BuilderProject {
         },
         type: "sidebarShell",
       },
+      [sidebarTextId]: {
+        children: [],
+        id: sidebarTextId,
+        props: {
+          body: "Use the sidebar rail to surface compact context, navigation helpers, or supporting status signals.",
+          size: "sm",
+          title: "Sidebar coverage",
+        },
+        type: "text",
+      },
       [stackId]: {
-        children: [textId, buttonId, statCardId],
+        children: [textId, buttonId, statCardId, metricRowId],
         id: stackId,
         props: {
           align: "stretch",
@@ -229,9 +349,20 @@ export function createBlockContractVerificationProject(): BuilderProject {
         props: {
           label: "Covered block types",
           trend: "All required",
-          value: "18",
+          value: "28",
         },
         type: "statCard",
+      },
+      [stepListId]: {
+        children: [],
+        id: stepListId,
+        props: {
+          body: "Process-style content should stay covered because it is one of the most reusable professional page shapes.",
+          steps:
+            "Define the block|Keep the contract clear and placement explicit.\nRender both surfaces|Make preview and starter behavior intentionally aligned.\nVerify the result|Update coverage before calling the block shipped.",
+          title: "Coverage process",
+        },
+        type: "stepList",
       },
       [testimonialId]: {
         children: [],
@@ -253,25 +384,18 @@ export function createBlockContractVerificationProject(): BuilderProject {
         },
         type: "text",
       },
-      [sidebarTextId]: {
+      [workspaceHeaderId]: {
         children: [],
-        id: sidebarTextId,
+        id: workspaceHeaderId,
         props: {
-          body: "Use the sidebar rail to surface compact context, navigation helpers, or supporting status signals.",
-          size: "sm",
-          title: "Sidebar coverage",
+          body: "The app catalog now includes a stronger route-header primitive for dashboards and workspace surfaces.",
+          eyebrow: "Workspace",
+          primaryLabel: "Open queue",
+          secondaryLabel: "Share update",
+          tags: "Ready\n2 blockers\nOwner: Avery",
+          title: "Coverage header",
         },
-        type: "text",
-      },
-      [sidebarButtonId]: {
-        children: [],
-        id: sidebarButtonId,
-        props: {
-          fullWidth: true,
-          label: "Sidebar action",
-          variant: "primary",
-        },
-        type: "button",
+        type: "workspaceHeader",
       },
     },
     updatedAt: new Date().toISOString(),

@@ -109,6 +109,7 @@ const pageFooterMainAndNestedLayoutRegions = [
   "layout-content",
   "layout-sidebar",
 ] as const;
+const pageMainAndLayoutContent = ["page-main", "layout-content"] as const;
 const layoutContentAndSidebar = ["layout-content", "layout-sidebar"] as const;
 const contentRegion = [
   defineRegion("content", "layout-content", "Content", {
@@ -538,6 +539,40 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
       structure: "required",
     },
   }),
+  metricRow: defineBlockContract("metricRow", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Metric Row",
+      description: "Horizontal metrics summary for dashboard headers, launch summaries, and compact reporting sections.",
+      icon: "R",
+      category: "Application",
+      defaults: {
+        title: "Weekly overview",
+        metrics: "Active projects|24|+3 week over week\nPublished routes|18|Stable\nReview blockers|2|Down from 5",
+      },
+      fields: [
+        { key: "title", label: "Title", type: "text" },
+        {
+          key: "metrics",
+          label: "Metrics",
+          type: "textarea",
+          placeholder: "Use label|value|meta format, one metric per line",
+        },
+      ],
+    },
+    family: "application",
+    placement: {
+      allowedRegions: [...pageFooterMainAndLayoutContent],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Metric row parity depends on the shared metric parser and ordering semantics so summary bars stay consistent across builder preview and starter export.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
   activityFeed: defineBlockContract("activityFeed", {
     capabilities: ["leaf", "parity-critical"],
     definition: {
@@ -610,7 +645,7 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     capabilities: ["leaf", "parity-critical"],
     definition: {
       title: "Pricing Card",
-      description: "Single plan pricing block for launches and landing pages.",
+      description: "Single plan pricing block for launches, plan pages, and conversion-focused comparisons.",
       icon: "P",
       category: "Marketing",
       defaults: {
@@ -633,6 +668,267 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     render: defineLeafRender(
       "Pricing card parity depends on shared tier, price, tagline, and CTA semantics while preview and starter preserve their own page-specific framing.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  logoGrid: defineBlockContract("logoGrid", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Logo Grid",
+      description: "Trust-building logo rail for customers, partners, integrations, or launch proof.",
+      icon: "L",
+      category: "Marketing",
+      defaults: {
+        title: "Trusted by careful product teams",
+        body: "Use a simple text-first grid when you want proof without pulling in an asset pipeline yet.",
+        logos: "Northline\nFieldnote\nSignal Flow\nCommon Room\nSummit\nOperator OS",
+      },
+      fields: [
+        { key: "title", label: "Title", type: "text" },
+        { key: "body", label: "Body", type: "textarea" },
+        { key: "logos", label: "Items", type: "textarea", placeholder: "One logo or brand name per line" },
+      ],
+    },
+    family: "content",
+    placement: {
+      allowedRegions: [...pageFooterMainAndLayoutContent],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Logo grid parity depends on the shared title, supporting copy, and text-based logo list while preview and starter may use different surrounding shell details.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  calloutCard: defineBlockContract("calloutCard", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Callout Card",
+      description: "Flexible emphasis card for highlights, warnings, launch notes, or important supporting context.",
+      icon: "!",
+      category: "Content",
+      defaults: {
+        eyebrow: "Callout",
+        title: "Keep the first release opinionated.",
+        body: "A smaller stronger block set usually produces better pages than a broad catalog full of one-off edge cases.",
+        tone: "accent",
+      },
+      fields: [
+        { key: "eyebrow", label: "Eyebrow", type: "text" },
+        { key: "title", label: "Title", type: "text" },
+        { key: "body", label: "Body", type: "textarea" },
+        {
+          key: "tone",
+          label: "Tone",
+          type: "select",
+          options: [
+            { label: "Accent", value: "accent" },
+            { label: "Neutral", value: "neutral" },
+            { label: "Warning", value: "warning" },
+          ],
+        },
+      ],
+    },
+    family: "content",
+    placement: {
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Callout card parity is anchored to the shared eyebrow, title, body, and tone semantics while each surface keeps its own card chrome.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  ctaBanner: defineBlockContract("ctaBanner", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "CTA Banner",
+      description: "Action-focused banner with headline, supporting copy, and one or two clear CTAs.",
+      icon: "C",
+      category: "Marketing",
+      defaults: {
+        eyebrow: "Ready to move?",
+        title: "Launch with a tighter, more confident starting point.",
+        body: "Use this block near the end of a page to turn momentum into a next step without needing a custom section every time.",
+        primaryLabel: "Start building",
+        secondaryLabel: "See templates",
+        align: "left",
+      },
+      fields: [
+        { key: "eyebrow", label: "Eyebrow", type: "text" },
+        { key: "title", label: "Title", type: "textarea" },
+        { key: "body", label: "Body", type: "textarea" },
+        { key: "primaryLabel", label: "Primary CTA", type: "text" },
+        { key: "secondaryLabel", label: "Secondary CTA", type: "text" },
+        {
+          key: "align",
+          label: "Align",
+          type: "select",
+          options: [
+            { label: "Left", value: "left" },
+            { label: "Center", value: "center" },
+          ],
+        },
+      ],
+    },
+    family: "content",
+    placement: {
+      allowedRegions: [...pageFooterMainAndLayoutContent],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "CTA banner parity keeps the same title, supporting copy, CTA labels, and alignment semantics across builder preview and starter export.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  stepList: defineBlockContract("stepList", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Step List",
+      description: "Simple process block for onboarding, rollout plans, and structured how-it-works sections.",
+      icon: "1",
+      category: "Marketing",
+      defaults: {
+        title: "How teams usually get to value",
+        body: "Keep process blocks concise so they clarify the flow instead of turning into a long documentation section.",
+        steps:
+          "Define the surface|Pick the pages, routes, and story you need first.\nShape the layout|Use the core section, stack, and grid system to organize the page.\nRefine the proof|Add trust, CTA, and summary blocks where they support the narrative.",
+      },
+      fields: [
+        { key: "title", label: "Title", type: "text" },
+        { key: "body", label: "Body", type: "textarea" },
+        {
+          key: "steps",
+          label: "Steps",
+          type: "textarea",
+          placeholder: "Use title|detail format, one step per line",
+        },
+      ],
+    },
+    family: "content",
+    placement: {
+      allowedRegions: [...pageFooterMainAndLayoutContent],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Step list parity depends on the shared step parser and ordering semantics, while preview and starter can vary slightly in surrounding presentation.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  comparisonTable: defineBlockContract("comparisonTable", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Comparison Table",
+      description: "Structured comparison block for feature matrices, plan tradeoffs, and launch-time decision support.",
+      icon: "=",
+      category: "Marketing",
+      defaults: {
+        title: "Choose the setup that fits the team",
+        body: "Use this for plan comparisons, launch options, or compact tradeoff summaries that benefit from a clearer table treatment.",
+        columns: "Capability|Starter|Growth|Scale",
+        rows:
+          "Shared layouts|Included|Included|Included\nTemplate starting points|1|3|6\nGuided workspace shell|Basic|Yes|Advanced\nPriority support|No|Email|Dedicated",
+      },
+      fields: [
+        { key: "title", label: "Title", type: "text" },
+        { key: "body", label: "Body", type: "textarea" },
+        { key: "columns", label: "Columns", type: "text", placeholder: "Use | between columns" },
+        {
+          key: "rows",
+          label: "Rows",
+          type: "textarea",
+          placeholder: "Use | between cells and one row per line",
+        },
+      ],
+    },
+    family: "content",
+    placement: {
+      allowedRegions: [...pageFooterMainAndLayoutContent],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Comparison table parity relies on the shared column and row parser so the same structured comparison survives across preview and starter renderers.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  infoList: defineBlockContract("infoList", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Info List",
+      description: "Label-and-value list for specs, launch facts, workspace details, or compact supporting summaries.",
+      icon: "I",
+      category: "Content",
+      defaults: {
+        title: "Release details",
+        items: "Team owner|Product Ops\nPrimary route|/workspace\nExport target|Next.js starter\nSupport model|Proposal first",
+      },
+      fields: [
+        { key: "title", label: "Title", type: "text" },
+        {
+          key: "items",
+          label: "Items",
+          type: "textarea",
+          placeholder: "Use label|value format, one item per line",
+        },
+      ],
+    },
+    family: "content",
+    placement: {
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Info list parity is driven by the shared label-value parser so compact supporting details remain structured and readable across both surfaces.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  profileCard: defineBlockContract("profileCard", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Profile Card",
+      description: "Compact person or owner card for testimonials, teams, workspace owners, or supporting context.",
+      icon: "U",
+      category: "Content",
+      defaults: {
+        name: "Avery Stone",
+        role: "Product lead",
+        detail: "Northline",
+        bio: "Keeps launch planning, design review, and engineering handoff aligned across the week.",
+      },
+      fields: [
+        { key: "name", label: "Name", type: "text" },
+        { key: "role", label: "Role", type: "text" },
+        { key: "detail", label: "Detail", type: "text" },
+        { key: "bio", label: "Bio", type: "textarea" },
+      ],
+    },
+    family: "content",
+    placement: {
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Profile card parity keeps identity, role, detail, and bio content aligned while preview and starter choose their own surface framing.",
     ),
     verification: {
       previewExportParity: "required",
@@ -735,6 +1031,76 @@ const blockContractsByType: Record<BlockType, BlockContract> = {
     },
     render: defineLeafRender(
       "Data table parity depends on the shared column and row parser so both surfaces render the same structured dataset with surface-specific chrome.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  emptyState: defineBlockContract("emptyState", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Empty State",
+      description: "Guidance block for blank workspace states, first-use moments, and action-oriented setup screens.",
+      icon: "E",
+      category: "Application",
+      defaults: {
+        title: "Nothing is live yet.",
+        body: "Use empty states to explain what belongs here, what the team should do next, and how to recover momentum quickly.",
+        primaryLabel: "Create first item",
+        secondaryLabel: "View setup guide",
+      },
+      fields: [
+        { key: "title", label: "Title", type: "text" },
+        { key: "body", label: "Body", type: "textarea" },
+        { key: "primaryLabel", label: "Primary CTA", type: "text" },
+        { key: "secondaryLabel", label: "Secondary CTA", type: "text" },
+      ],
+    },
+    family: "application",
+    placement: {
+      allowedRegions: [...pageFooterMainAndNestedLayoutRegions],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Empty state parity keeps the same instructional copy and CTA semantics across builder preview and starter export while each surface keeps appropriate surrounding chrome.",
+    ),
+    verification: {
+      previewExportParity: "required",
+      structure: "required",
+    },
+  }),
+  workspaceHeader: defineBlockContract("workspaceHeader", {
+    capabilities: ["leaf", "parity-critical"],
+    definition: {
+      title: "Workspace Header",
+      description: "Application-facing route header with metadata, supporting copy, and quick actions.",
+      icon: "W",
+      category: "Application",
+      defaults: {
+        eyebrow: "Workspace",
+        title: "Automation review",
+        body: "Use this at the top of a dashboard or route to orient the user before metrics, feeds, and tables begin.",
+        tags: "Ready for review\n2 blockers\nOwner: Avery",
+        primaryLabel: "Open queue",
+        secondaryLabel: "Share update",
+      },
+      fields: [
+        { key: "eyebrow", label: "Eyebrow", type: "text" },
+        { key: "title", label: "Title", type: "text" },
+        { key: "body", label: "Body", type: "textarea" },
+        { key: "tags", label: "Tags", type: "textarea", placeholder: "One tag per line" },
+        { key: "primaryLabel", label: "Primary action", type: "text" },
+        { key: "secondaryLabel", label: "Secondary action", type: "text" },
+      ],
+    },
+    family: "application",
+    placement: {
+      allowedRegions: [...pageMainAndLayoutContent],
+      regions: [],
+    },
+    render: defineLeafRender(
+      "Workspace header parity is driven by the shared eyebrow, title, copy, tags, and action labels so route orientation stays aligned across preview and starter surfaces.",
     ),
     verification: {
       previewExportParity: "required",

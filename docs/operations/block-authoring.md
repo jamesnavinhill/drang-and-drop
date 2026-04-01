@@ -59,12 +59,22 @@ Current matrix:
 | `faqList` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `testimonialCard` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `pricingCard` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `logoGrid` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `calloutCard` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `ctaBanner` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `stepList` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `comparisonTable` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `infoList` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `profileCard` | `content` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `statCard` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `metricRow` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `activityFeed` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `formCard` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `chatInput` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `messageThread` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `dataTable` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `emptyState` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
+| `workspaceHeader` | `application` | `shared-content` | `leaf` | `builder-canvas` | `generated-route` |
 | `sidebarShell` | `application` | `shared-layout` | `renders-children` | `builder-canvas` | `generated-route` |
 
 Current region-aware layout note:

@@ -4,7 +4,14 @@ export const blockContentFallbacks = {
   activityTitle: "Activity",
   faqAnswer: "Add an answer in the inspector.",
   faqQuestion: "Question",
+  infoItemLabel: "Label",
+  infoItemValue: "Value",
   messageSender: "user",
+  metricItemLabel: "Metric",
+  metricItemMeta: "Details",
+  metricItemValue: "0",
+  stepDetail: "Add supporting detail in the inspector.",
+  stepTitle: "Step",
   transcriptMessage: "Message",
 } as const;
 
@@ -64,6 +71,43 @@ export function parseActivityEntries(value: string) {
       meta: meta || blockContentFallbacks.activityMeta,
       status: status || blockContentFallbacks.activityStatus,
       title: title || blockContentFallbacks.activityTitle,
+    };
+  });
+}
+
+export function parseInfoListItems(value: string) {
+  return toLines(value).map((entry) => {
+    const [label, ...rest] = entry.split("|");
+    const itemValue = rest.join("|").trim();
+
+    return {
+      label: label.trim() || blockContentFallbacks.infoItemLabel,
+      value: itemValue || blockContentFallbacks.infoItemValue,
+    };
+  });
+}
+
+export function parseMetricItems(value: string) {
+  return toLines(value).map((entry) => {
+    const [label, itemValue, meta] = entry.split("|").map((item) => item.trim());
+
+    return {
+      label: label || blockContentFallbacks.metricItemLabel,
+      meta: meta || blockContentFallbacks.metricItemMeta,
+      value: itemValue || blockContentFallbacks.metricItemValue,
+    };
+  });
+}
+
+export function parseStepItems(value: string) {
+  return toLines(value).map((entry, index) => {
+    const [title, ...rest] = entry.split("|");
+    const detail = rest.join("|").trim();
+
+    return {
+      detail: detail || blockContentFallbacks.stepDetail,
+      index: index + 1,
+      title: title.trim() || `${blockContentFallbacks.stepTitle} ${index + 1}`,
     };
   });
 }
