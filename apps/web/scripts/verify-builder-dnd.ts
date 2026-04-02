@@ -216,51 +216,43 @@ async function expectEditorNotice(page: Page, expectedText: string) {
 async function dragBetween({
   page,
   sourceSelector,
+  sourceXFactor = 0.5,
+  sourceYFactor = 0.5,
+  steps = 14,
   targetSelector,
   targetXFactor = 0.5,
   targetYFactor = 0.5,
 }: {
   page: Page;
   sourceSelector: string;
+  sourceXFactor?: number;
+  sourceYFactor?: number;
+  steps?: number;
   targetSelector: string;
   targetXFactor?: number;
   targetYFactor?: number;
 }) {
-  await page.locator(sourceSelector).waitFor({ state: "visible" });
-  await page.locator(targetSelector).waitFor({ state: "visible" });
-  await page.evaluate(
-    async ({ sourceSelector: source, targetSelector: target, targetXFactor: targetX, targetYFactor: targetY }) => {
-      const verification = (
-        window as Window & {
-          __builderVerification?: {
-            dragBetween: (options: {
-              sourceSelector: string;
-              targetSelector: string;
-              targetXFactor?: number;
-              targetYFactor?: number;
-            }) => Promise<void>;
-          };
-        }
-      ).__builderVerification;
+  const source = page.locator(sourceSelector);
+  const target = page.locator(targetSelector);
+  await source.waitFor({ state: "visible" });
+  await target.waitFor({ state: "visible" });
+  await source.scrollIntoViewIfNeeded();
+  await target.scrollIntoViewIfNeeded();
 
-      if (!verification) {
-        throw new Error("Builder verification hook was not available for drag automation.");
-      }
+  const sourceBox = await source.boundingBox();
+  const targetBox = await target.boundingBox();
+  assert(sourceBox, `Could not resolve a bounding box for drag source "${sourceSelector}".`);
+  assert(targetBox, `Could not resolve a bounding box for drag target "${targetSelector}".`);
 
-      await verification.dragBetween({
-        sourceSelector: source,
-        targetSelector: target,
-        targetXFactor: targetX,
-        targetYFactor: targetY,
-      });
-    },
-    {
-      sourceSelector,
-      targetSelector,
-      targetXFactor,
-      targetYFactor,
-    },
-  );
+  const sourceX = sourceBox.x + sourceBox.width * sourceXFactor;
+  const sourceY = sourceBox.y + sourceBox.height * sourceYFactor;
+  const targetX = targetBox.x + targetBox.width * targetXFactor;
+  const targetY = targetBox.y + targetBox.height * targetYFactor;
+
+  await page.mouse.move(sourceX, sourceY);
+  await page.mouse.down();
+  await page.mouse.move(targetX, targetY, { steps });
+  await page.mouse.up();
   await page.waitForTimeout(250);
 }
 

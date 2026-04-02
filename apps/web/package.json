@@ -7,11 +7,11 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "verify:contracts": "pnpm exec tsx scripts/verify-builder-contracts.ts",
-    "verify:commands": "pnpm exec tsx scripts/verify-builder-commands.ts",
-    "verify:dnd": "pnpm exec tsx scripts/verify-builder-dnd.ts",
-    "verify:starters": "pnpm exec tsx scripts/verify-generated-starters.ts --browser",
-    "verify:starters:runtime": "pnpm exec tsx scripts/verify-generated-starters.ts",
+    "verify:contracts": "pnpm exec node --import tsx scripts/verify-builder-contracts.ts",
+    "verify:commands": "pnpm exec node --import tsx scripts/verify-builder-commands.ts",
+    "verify:dnd": "pnpm exec node --import tsx scripts/verify-builder-dnd.ts",
+    "verify:starters": "pnpm exec node --import tsx scripts/verify-generated-starters.ts --browser",
+    "verify:starters:runtime": "pnpm exec node --import tsx scripts/verify-generated-starters.ts",
     "verify:playwright:install": "pnpm exec playwright install chromium"
   },
   "dependencies": {

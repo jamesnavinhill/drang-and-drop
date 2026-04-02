@@ -1,7 +1,7 @@
 "use client";
 
-import { Paintbrush, ScrollText, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, Paintbrush, ScrollText, Sparkles } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
 import {
@@ -26,6 +26,31 @@ import { NodeStructureActions } from "./node-structure-actions";
 
 type InspectorTab = "selection" | "page" | "theme";
 
+function InspectorSection({
+  title,
+  meta,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  meta?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details open={defaultOpen} className="group rounded-xl border border-border bg-white/76">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">{title}</div>
+        <div className="flex items-center gap-2">
+          {meta ? <span className="rounded-md border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">{meta}</span> : null}
+          <ChevronDown className="h-4 w-4 text-muted transition-transform group-open:rotate-180" />
+        </div>
+      </summary>
+      <div className="border-t border-border/70 px-4 py-4">{children}</div>
+    </details>
+  );
+}
+
 function FieldControl({
   field,
   value,
@@ -42,7 +67,7 @@ function FieldControl({
         onChange={(event) => onChange(event.target.value)}
         placeholder={field.placeholder}
         rows={5}
-        className="min-h-28 w-full rounded-3xl border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none ring-0"
+        className="min-h-28 w-full rounded-xl border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none ring-0"
       />
     );
   }
@@ -52,7 +77,7 @@ function FieldControl({
       <select
         value={`${value ?? field.options[0]?.value ?? ""}`}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
+        className="w-full rounded-lg border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
       >
         {field.options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -69,7 +94,7 @@ function FieldControl({
         type="button"
         onClick={() => onChange(!value)}
         className={cn(
-          "inline-flex w-full items-center justify-between rounded-full border px-4 py-3 text-sm font-medium transition-colors",
+          "inline-flex w-full items-center justify-between rounded-lg border px-4 py-3 text-sm font-medium transition-colors",
           value ? "border-accent bg-accent/8 text-foreground" : "border-border bg-white/80 text-muted",
         )}
       >
@@ -95,7 +120,7 @@ function FieldControl({
     const numeric = Number(value ?? field.min ?? 0);
 
     return (
-      <div className="rounded-[22px] border border-border bg-white/80 px-4 py-3">
+      <div className="rounded-lg border border-border bg-white/80 px-4 py-3">
         <div className="mb-2 flex items-center justify-between text-xs text-muted">
           <span>{field.label}</span>
           <span>{numeric}</span>
@@ -115,7 +140,7 @@ function FieldControl({
 
   if (field.type === "color") {
     return (
-      <label className="flex items-center gap-3 rounded-full border border-border bg-white/80 px-4 py-3">
+      <label className="flex items-center gap-3 rounded-lg border border-border bg-white/80 px-4 py-3">
         <input
           type="color"
           value={`${value ?? "#ffffff"}`}
@@ -136,7 +161,7 @@ function FieldControl({
       value={`${value ?? ""}`}
       onChange={(event) => onChange(field.type === "number" ? Number(event.target.value) : event.target.value)}
       placeholder={"placeholder" in field ? field.placeholder : undefined}
-      className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
+      className="w-full rounded-lg border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
     />
   );
 }
@@ -160,7 +185,7 @@ function TabButton({
       onClick={onClick}
       data-builder-inspector-tab={value}
       className={cn(
-        "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+        "inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors",
         active ? "bg-accent text-accent-contrast" : "text-muted hover:bg-black/[0.04] hover:text-foreground",
       )}
     >
@@ -193,59 +218,55 @@ function SelectionTab({
   const hierarchyDepth = selectedNode ? getNodeHierarchyDepth(project, selectedNode.id) : 0;
 
   return (
-    <section className="rounded-[24px] border border-border bg-white/72 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Selection</p>
-          <h2 className="mt-1 text-lg font-semibold text-foreground">
-            {selectedDefinition ? selectedDefinition.title : "Nothing selected"}
-          </h2>
+    <div className="space-y-3">
+      <div className="rounded-xl border border-border bg-white/72 px-4 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Selection</p>
+            <h2 className="mt-1 text-lg font-semibold text-foreground">
+              {selectedDefinition ? selectedDefinition.title : "Nothing selected"}
+            </h2>
+          </div>
+          {active ? (
+            <span className="rounded-md border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
+              Contextual
+            </span>
+          ) : null}
         </div>
-        {active ? (
-          <span className="rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
-            Contextual
-          </span>
-        ) : null}
       </div>
 
       {selectedNode && selectedDefinition ? (
-        <div className="mt-4 grid gap-4">
-          <p className="text-sm leading-6 text-muted">{selectedDefinition.description}</p>
-
-          <div className="rounded-[22px] border border-border bg-white/78 p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-muted">
-                Depth {hierarchyDepth}
-              </span>
-              <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+        <>
+          <InspectorSection title="Overview" meta={`Depth ${hierarchyDepth}`}>
+            <p className="text-sm leading-6 text-muted">{selectedDefinition.description}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-md border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
                 Parent: {parentLabel}
               </span>
               {siblingPosition ? (
-                <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+                <span className="rounded-md border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
                   Sibling {siblingPosition.index + 1} of {siblingPosition.siblingCount}
                 </span>
               ) : null}
             </div>
-            <p className="mt-3 text-sm leading-6 text-muted">
-              Canvas selection and outline selection now share the same structure actions, so you can reorder this block
-              from either surface without changing the mutation path.
-            </p>
-          </div>
+            {siblingPosition ? (
+              <NodeStructureActions
+                className="mt-4"
+                index={siblingPosition.index}
+                nodeId={selectedNode.id}
+                parent={siblingPosition.parent}
+                siblingCount={siblingPosition.siblingCount}
+                size="md"
+                surface="inspector"
+              />
+            ) : null}
+          </InspectorSection>
 
           {selectedRegions.length > 0 ? (
-            <div className="rounded-[22px] border border-border bg-white/78 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Owned regions</p>
-                  <h3 className="mt-1 text-base font-semibold text-foreground">Named authoring slots</h3>
-                </div>
-                <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
-                  {selectedRegions.length} region{selectedRegions.length === 1 ? "" : "s"}
-                </span>
-              </div>
-              <div className="mt-4 grid gap-3">
+            <InspectorSection title="Regions" meta={`${selectedRegions.length} total`}>
+              <div className="grid gap-3">
                 {selectedRegions.map((region) => (
-                  <div key={`${selectedNode.id}-${region.id}`} className="rounded-[18px] border border-border bg-white/80 p-3">
+                  <div key={`${selectedNode.id}-${region.id}`} className="rounded-lg border border-border bg-white/80 p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
@@ -260,58 +281,48 @@ function SelectionTab({
                           </p>
                         ) : null}
                       </div>
-                      <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
-                        {getBlockRegionRole(selectedNode.type, region.id) === "primary" ? "Primary region" : "Supporting region"}
+                      <span className="rounded-md border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
+                        {getBlockRegionRole(selectedNode.type, region.id) === "primary" ? "Primary" : "Supporting"}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
+            </InspectorSection>
+          ) : null}
+
+          <InspectorSection title="Fields" meta={`${selectedDefinition.fields.length} controls`}>
+            <div className="grid gap-3">
+              {selectedDefinition.fields.map((field) => (
+                <div key={field.key}>
+                  {field.type !== "toggle" && (
+                    <label className="mb-2 block text-xs font-medium text-muted">{field.label}</label>
+                  )}
+                  <FieldControl
+                    field={field}
+                    value={selectedNode.props[field.key]}
+                    onChange={(next) => updateNodeField(selectedNode.id, field.key, next)}
+                  />
+                </div>
+              ))}
             </div>
-          ) : null}
-
-          {siblingPosition ? (
-            <NodeStructureActions
-              index={siblingPosition.index}
-              nodeId={selectedNode.id}
-              parent={siblingPosition.parent}
-              siblingCount={siblingPosition.siblingCount}
-              size="md"
-              surface="inspector"
-            />
-          ) : null}
-
-          <div className="grid gap-3">
-            {selectedDefinition.fields.map((field) => (
-              <div key={field.key}>
-                {field.type !== "toggle" && (
-                  <label className="mb-2 block text-xs font-medium text-muted">{field.label}</label>
-                )}
-                <FieldControl
-                  field={field}
-                  value={selectedNode.props[field.key]}
-                  onChange={(next) => updateNodeField(selectedNode.id, field.key, next)}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+          </InspectorSection>
+        </>
       ) : (
-        <div className="mt-4 rounded-[22px] border border-dashed border-border bg-white/70 p-4 text-sm leading-6 text-muted">
-          Select a block on the canvas to edit its fields here. If you want to keep working without a selection, use the
-          page tab for route details or the theme tab for visual tokens.
+        <div className="rounded-xl border border-dashed border-border bg-white/70 p-4 text-sm leading-6 text-muted">
+          Select a block on the canvas to edit its fields here, or jump to page details while nothing is selected.
           <div className="mt-3">
             <button
               type="button"
               onClick={onShowPage}
-              className="builder-pill rounded-full px-3 py-2 text-xs font-semibold text-foreground"
+              className="builder-pill rounded-lg px-3 py-2 text-xs font-semibold text-foreground"
             >
               Go to page details
             </button>
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -320,16 +331,14 @@ function PageTab() {
   const updatePageField = useBuilderStore((state) => state.updatePageField);
 
   return (
-    <section className="rounded-[24px] border border-border bg-white/72 p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Page</p>
-      <h2 className="mt-1 text-lg font-semibold text-foreground">{selectedPage.name}</h2>
-      <div className="mt-4 grid gap-3">
+    <InspectorSection title="Page details" meta={selectedPage.path}>
+      <div className="grid gap-3">
         <div>
           <label className="mb-2 block text-xs font-medium text-muted">Page name</label>
           <input
             value={selectedPage.name}
             onChange={(event) => updatePageField(selectedPage.id, "name", event.target.value)}
-            className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
+            className="w-full rounded-lg border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
           />
         </div>
         <div>
@@ -337,7 +346,7 @@ function PageTab() {
           <input
             value={selectedPage.path}
             onChange={(event) => updatePageField(selectedPage.id, "path", event.target.value)}
-            className="w-full rounded-full border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
+            className="w-full rounded-lg border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
           />
         </div>
         <div>
@@ -346,11 +355,11 @@ function PageTab() {
             value={selectedPage.description}
             onChange={(event) => updatePageField(selectedPage.id, "description", event.target.value)}
             rows={5}
-            className="min-h-28 w-full rounded-[24px] border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
+            className="min-h-28 w-full rounded-xl border border-border bg-white/80 px-4 py-3 text-sm text-foreground outline-none"
           />
         </div>
       </div>
-    </section>
+    </InspectorSection>
   );
 }
 
@@ -380,17 +389,8 @@ function ThemeTab() {
   ];
 
   return (
-    <section className="rounded-[24px] border border-border bg-white/72 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Theme</p>
-          <h2 className="mt-1 text-lg font-semibold text-foreground">Global visual tokens</h2>
-        </div>
-        <span className="rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
-          Page-wide
-        </span>
-      </div>
-      <div className="mt-4 grid gap-3">
+    <InspectorSection title="Theme tokens" meta="Global">
+      <div className="grid gap-3">
         {themeFields.map((field) => (
           <div key={field.key}>
             {field.type !== "toggle" && (
@@ -404,7 +404,7 @@ function ThemeTab() {
           </div>
         ))}
       </div>
-    </section>
+    </InspectorSection>
   );
 }
 
@@ -412,9 +412,15 @@ export function InspectorPanel() {
   const selectedNode = useBuilderStore(getSelectedNode);
   const [activeTab, setActiveTab] = useState<InspectorTab>(selectedNode ? "selection" : "page");
 
+  useEffect(() => {
+    if (selectedNode) {
+      setActiveTab("selection");
+    }
+  }, [selectedNode]);
+
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="rounded-[24px] border border-border bg-white/76 p-2">
+      <div className="rounded-xl border border-border bg-white/76 p-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <TabButton
             active={activeTab === "selection"}
@@ -440,7 +446,7 @@ export function InspectorPanel() {
         </div>
       </div>
 
-      <div className="builder-scrollbar mt-4 flex-1 space-y-4 overflow-y-auto pr-1">
+      <div className="builder-scrollbar mt-3 flex-1 space-y-3 overflow-y-auto pr-1">
         {activeTab === "selection" ? <SelectionTab active onShowPage={() => setActiveTab("page")} /> : null}
         {activeTab === "page" ? <PageTab /> : null}
         {activeTab === "theme" ? <ThemeTab /> : null}

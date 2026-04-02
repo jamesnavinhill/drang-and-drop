@@ -12,7 +12,7 @@ import {
   parseTranscript,
   toLines,
 } from "./block-content";
-import type { BuilderNode, BuilderProject, BuilderTheme } from "./types";
+import type { BuilderNode, BuilderProject, BuilderTheme, PreviewMode } from "./types";
 
 export function getThemeStyles(theme: BuilderTheme): CSSProperties {
   const shadowDepth = 18 + theme.shadow * 8;
@@ -41,7 +41,7 @@ function ButtonPreview({
   fullWidth?: boolean;
 }) {
   const classes = cn(
-    "inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+    "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-colors",
     fullWidth && "w-full",
   );
 
@@ -80,6 +80,18 @@ function ButtonPreview({
   );
 }
 
+function getResponsiveColumns(columns: number, previewMode: PreviewMode) {
+  if (previewMode === "mobile") {
+    return 1;
+  }
+
+  if (previewMode === "tablet") {
+    return Math.min(columns, 2);
+  }
+
+  return columns;
+}
+
 function StackLayout({
   node,
   children,
@@ -105,17 +117,21 @@ function StackLayout({
 function GridLayout({
   node,
   children,
+  previewMode,
 }: {
   node: BuilderNode;
   children: ReactNode;
+  previewMode: PreviewMode;
 }) {
+  const columns = getResponsiveColumns(Number(node.props.columns ?? 3), previewMode);
+
   return (
     <div
       className="w-full"
       style={{
         display: "grid",
         gap: `${node.props.gap ?? 18}px`,
-        gridTemplateColumns: `repeat(${node.props.columns ?? 3}, minmax(0, 1fr))`,
+        gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
       }}
     >
       {children}
@@ -140,6 +156,7 @@ export function renderNodePreview(
   node: BuilderNode,
   project: BuilderProject,
   renderedRegions: Record<string, ReactNode>,
+  previewMode: PreviewMode = "desktop",
 ) {
   void project;
   const contentChildren = renderedRegions.content ?? null;
@@ -194,15 +211,11 @@ export function renderNodePreview(
             ...surfaceStyles[backgroundStyle],
           }}
         >
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-[color:var(--builder-muted)]">Section</p>
-              <h3 className="text-lg font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
+          {`${node.props.title}`.trim() ? (
+            <div className="mb-5 border-b border-[color:var(--builder-border)]/80 pb-3">
+              <h3 className="text-xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
             </div>
-            <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-xs text-[color:var(--builder-muted)]">
-              Layout wrapper
-            </span>
-          </div>
+          ) : null}
           <div className="grid gap-4">{contentChildren}</div>
         </section>
       );
@@ -210,7 +223,7 @@ export function renderNodePreview(
     case "stack":
       return <StackLayout node={node}>{contentChildren}</StackLayout>;
     case "grid":
-      return <GridLayout node={node}>{contentChildren}</GridLayout>;
+      return <GridLayout node={node} previewMode={previewMode}>{contentChildren}</GridLayout>;
     case "hero": {
       const centered = node.props.align === "center";
 
@@ -533,9 +546,9 @@ export function renderNodePreview(
             <h3 className="text-xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
             <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
           </div>
-          <div className="mt-5 overflow-hidden rounded-2xl border border-[color:var(--builder-border)]">
+          <div className="mt-5 overflow-x-auto rounded-2xl border border-[color:var(--builder-border)]">
             <div
-              className="grid bg-[color:var(--builder-surface)]"
+              className="grid min-w-[36rem] bg-[color:var(--builder-surface)]"
               style={{ gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))` }}
             >
               {columns.map((column, index) => (
@@ -577,10 +590,10 @@ export function renderNodePreview(
             {items.map((item, index) => (
               <div
                 key={`${item.label}-${index}`}
-                className="flex items-start justify-between gap-4 rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-4 py-4"
+                className="grid gap-2 rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] px-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-start"
               >
                 <p className="text-sm font-medium text-[color:var(--builder-foreground)]">{item.label}</p>
-                <p className="max-w-[60%] text-right text-sm leading-6 text-[color:var(--builder-muted)]">{item.value}</p>
+                <p className="text-sm leading-6 text-[color:var(--builder-muted)] sm:text-right">{item.value}</p>
               </div>
             ))}
           </div>
@@ -606,12 +619,7 @@ export function renderNodePreview(
     case "chatInput":
       return (
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/82 p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm font-medium text-[color:var(--builder-foreground)]">{`${node.props.label}`}</p>
-            <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-xs text-[color:var(--builder-muted)]">
-              AI shell
-            </span>
-          </div>
+          <p className="mb-4 text-sm font-medium text-[color:var(--builder-foreground)]">{`${node.props.label}`}</p>
           <div className="flex flex-col gap-3 rounded-[calc(var(--builder-radius)-10px)] border border-[color:var(--builder-border)] bg-[color:var(--builder-surface)] p-4">
             <p className="text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.placeholder}`}</p>
             <div className="flex justify-end">
@@ -625,12 +633,7 @@ export function renderNodePreview(
 
       return (
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
-            <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
-              Thread
-            </span>
-          </div>
+          <p className="mb-4 text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
           <div className="grid gap-3">
             {transcript.map((entry, index) => (
               <div
@@ -662,15 +665,10 @@ export function renderNodePreview(
 
       return (
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/86 p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
-            <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
-              Table
-            </span>
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-[color:var(--builder-border)]">
+          <p className="mb-4 text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
+          <div className="overflow-x-auto rounded-2xl border border-[color:var(--builder-border)]">
             <div
-              className="grid bg-[color:var(--builder-surface)]"
+              className="grid min-w-[36rem] bg-[color:var(--builder-surface)]"
               style={{ gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))` }}
             >
               {columns.map((column) => (
@@ -724,13 +722,15 @@ export function renderNodePreview(
         <div className="rounded-[calc(var(--builder-radius)-8px)] border border-[color:var(--builder-border)] bg-white/84 p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
-              <span className="inline-flex rounded-full border border-[color:var(--builder-border)] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">
-                {`${node.props.eyebrow}`}
-              </span>
+              {`${node.props.eyebrow}`.trim() ? (
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--builder-muted)]">
+                  {`${node.props.eyebrow}`}
+                </p>
+              ) : null}
               <h3 className="mt-4 text-2xl font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</h3>
               <p className="mt-3 text-sm leading-6 text-[color:var(--builder-muted)]">{`${node.props.body}`}</p>
             </div>
-            {hasActionChildren ? <div className="min-w-[280px] max-w-full">{actionChildren}</div> : (
+            {hasActionChildren ? <div className="w-full max-w-full lg:max-w-sm">{actionChildren}</div> : (
               <div className="flex flex-wrap gap-3">
                 <ButtonPreview label={`${node.props.primaryLabel}`} variant="primary" />
                 <ButtonPreview label={`${node.props.secondaryLabel}`} variant="secondary" />
@@ -778,11 +778,8 @@ export function renderNodePreview(
                 sidebarPosition === "right" && "lg:order-2",
               )}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
-                Workspace rail
-              </p>
-              <p className="mt-2 text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
-              <div className="mt-4 grid gap-2">
+              <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">{`${node.props.title}`}</p>
+              <div className="mt-3 grid gap-2">
                 {items.map((item) => {
                   const active = item === `${node.props.highlight}`;
 
@@ -790,7 +787,7 @@ export function renderNodePreview(
                     <div
                       key={item}
                       className={cn(
-                        "rounded-2xl px-3 py-2 text-sm",
+                        "rounded-lg px-3 py-2 text-sm",
                         active
                           ? "bg-[color:var(--builder-accent)] text-[color:var(--builder-accent-contrast)]"
                           : "border border-transparent text-[color:var(--builder-muted)]",
@@ -809,18 +806,8 @@ export function renderNodePreview(
                 sidebarPosition === "right" && "lg:order-1",
               )}
             >
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--builder-muted)]">
-                    Main content
-                  </p>
-                  <p className="mt-1 text-sm text-[color:var(--builder-muted)]">
-                    Compose the primary application surface here.
-                  </p>
-                </div>
-                <span className="rounded-full border border-[color:var(--builder-border)] px-3 py-1 text-[11px] text-[color:var(--builder-muted)]">
-                  Multi-region shell
-                </span>
+              <div className="mb-4 border-b border-[color:var(--builder-border)]/80 pb-3">
+                <p className="text-sm font-semibold text-[color:var(--builder-foreground)]">Main content</p>
               </div>
               {renderedRegions.content ?? null}
             </div>

@@ -31,24 +31,30 @@ pnpm verify:playwright:install
 
 The current desktop shell is organized as:
 
-- `Top Bar`
 - `Left Sidebar`
+  - collapsible workspace rail
   - `Pages`
   - `Library`
   - `Assistant`
   - `Settings`
-- `Canvas`
+- `Canvas Workspace`
+  - compact workspace header for preview mode, history, selection clear, export, and reset
+  - reduced canvas chrome with page-region and block-region drop surfaces
 - `Right Inspector`
+  - collapsible inspector rail
   - `Selection`
   - `Page`
   - `Theme`
 
+Both side panels now support collapsible sections inside the panel content so the builder can stay compact while still exposing structure and editing controls.
+
 ## Core Workflow Features
 
 - schema-driven multi-page builder state with undo/redo history
+- compact three-pane editor shell with collapsible left and right rails
 - shared structure-command layer for insert, move, duplicate, and remove operations
 - structural project validation for import, persisted state hydration, and command-safe mutations
-- drag/drop composition with constrained layout primitives, explicit page-region and block-region placement targets, and live invalid-drop feedback in the canvas
+- drag/drop composition with constrained layout primitives, explicit page-region and block-region placement targets, live invalid-drop feedback, and node drags that follow the pointer instead of only swapping to a metadata ghost
 - tabbed pages workspace with route management and page outline/layers controls
 - contextual library filtering plus full-catalog placement hints based on the active insertion target
 - separate internal family taxonomy and user-facing library grouping so the catalog stays reviewable in code and easier to browse in the product
@@ -57,12 +63,13 @@ The current desktop shell is organized as:
 - shared node structure actions across outline and inspector so reorder/duplicate/remove stay aligned
 - split builder block definitions, placement rules, and preview rendering modules so the registry layer is no longer the implementation catch-all
 - shared content parsing/fallback helpers now back builder preview and generated-starter render support so export parity relies on fewer duplicated block contracts
+- sharper default theme tokens with smaller radii, lighter surfaces, and tighter spacing so the editor reads more like a production app shell than a demo board
 - project JSON import/export for backup and reuse
 - starter templates for marketing and internal-tool starting points
 - expanded first-party block catalog spanning launch-page, proof, CTA, metric, empty-state, and workspace-header primitives
 - slot-owning composite blocks for `pricingCard`, `ctaBanner`, `formCard`, `emptyState`, and `workspaceHeader` so the builder can grow more composable internals without turning every block into a generic container
 - zip export to a runnable `Next.js` starter
-- deterministic builder drag verification for palette insertion, nested insertion, reorder, and invalid-drop coverage
+- browser-backed builder drag verification for palette insertion, nested insertion, reorder, and invalid-drop coverage using real pointer movement between live DOM targets
 - direct builder command verification for shared insert/move/duplicate/remove and structural validation flows
 - automated generated-starter verification across all shipped templates
 - browser-rendered starter verification with screenshots, console/page error checks, and route assertions

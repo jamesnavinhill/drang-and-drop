@@ -103,8 +103,8 @@ function createLaunchStudioProject(): BuilderProject {
       surface: "#ffffff",
       foreground: "#101828",
       muted: "#516074",
-      radius: 24,
-      shadow: 4,
+      radius: 14,
+      shadow: 2,
       fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
     },
     pages: [
@@ -542,8 +542,8 @@ function createSignalFlowProject(): BuilderProject {
       surface: "#ffffff",
       foreground: "#0f172a",
       muted: "#5b6780",
-      radius: 22,
-      shadow: 3,
+      radius: 14,
+      shadow: 2,
       fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
     },
     pages: [
@@ -887,8 +887,8 @@ function createOpsHubProject(): BuilderProject {
       surface: "#ffffff",
       foreground: "#18181b",
       muted: "#5f5b74",
-      radius: 20,
-      shadow: 2,
+      radius: 14,
+      shadow: 1,
       fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
     },
     pages: [

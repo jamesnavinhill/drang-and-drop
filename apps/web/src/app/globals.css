@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f3efe4;
+  --background: #eef1f4;
   --foreground: #101828;
-  --muted: #5f6c84;
-  --surface: rgba(255, 255, 255, 0.74);
-  --surface-strong: rgba(255, 255, 255, 0.9);
+  --muted: #667085;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-strong: rgba(255, 255, 255, 0.96);
   --border: rgba(16, 24, 40, 0.12);
   --border-strong: rgba(16, 24, 40, 0.18);
   --accent: #0f766e;
   --accent-contrast: #effcf8;
   --danger: #c2410c;
-  --shadow: 0 22px 60px rgba(16, 24, 40, 0.12);
+  --shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
 }
 
 @theme inline {
@@ -35,10 +35,7 @@
 
 html {
   min-height: 100%;
-  background:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 34%),
-    radial-gradient(circle at top right, rgba(194, 65, 12, 0.11), transparent 28%),
-    linear-gradient(180deg, #fcfaf6 0%, #efe6d6 100%);
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f6 100%);
 }
 
 body {
@@ -66,10 +63,7 @@ select {
 }
 
 .app-shell {
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.75), transparent 45%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.06));
-  backdrop-filter: blur(18px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.08));
 }
 
 .panel-surface {
@@ -86,28 +80,26 @@ select {
   --builder-border: var(--border);
   --builder-accent: var(--accent);
   --builder-accent-contrast: var(--accent-contrast);
-  --builder-radius: 24px;
-  --builder-shadow: 0 18px 44px rgba(16, 24, 40, 0.12);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 246, 240, 0.96));
+  --builder-radius: 14px;
+  --builder-shadow: 0 10px 26px rgba(16, 24, 40, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 249, 251, 0.98));
   color: var(--builder-foreground);
-  border-radius: calc(var(--builder-radius) + 8px);
+  border-radius: calc(var(--builder-radius) + 4px);
   border: 1px solid color-mix(in srgb, var(--builder-border) 92%, white);
   box-shadow: var(--builder-shadow);
 }
 
 .builder-pill {
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.82);
   transition:
     border-color 180ms ease,
-    background 180ms ease,
-    transform 180ms ease;
+    background 180ms ease;
 }
 
 .builder-pill:hover {
   border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.92);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .builder-scrollbar {
@@ -127,12 +119,11 @@ select {
 
 .builder-grid {
   background-image:
-    linear-gradient(to right, rgba(16, 24, 40, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(16, 24, 40, 0.04) 1px, transparent 1px);
-  background-size: 28px 28px;
+    linear-gradient(to right, rgba(16, 24, 40, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 24, 40, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .drag-overlay-card {
-  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16);
-  transform: rotate(1deg);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
 }

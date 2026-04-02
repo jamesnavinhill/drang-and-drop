@@ -1,7 +1,7 @@
 "use client";
 
-import { Copy, FilePlus2, FolderTree, Route, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, Copy, FilePlus2, FolderTree, Route, Trash2 } from "lucide-react";
+import { useState, type ReactNode } from "react";
 
 import {
   getBlockRegionAcceptedChildrenLabel,
@@ -65,9 +65,39 @@ function RegionBadge({ label }: { label: string }) {
 
 function RegionRoleBadge({ role }: { role: RegionRole }) {
   return (
-    <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+    <span className="rounded-md border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
       {role === "primary" ? "Primary region" : "Supporting region"}
     </span>
+  );
+}
+
+function PanelDisclosure({
+  title,
+  description,
+  meta,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  description?: string;
+  meta?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details open={defaultOpen} className="group rounded-xl border border-border bg-white/74">
+      <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">{title}</p>
+          {description ? <p className="mt-1 text-sm text-muted">{description}</p> : null}
+        </div>
+        <div className="flex items-center gap-2">
+          {meta ? <span className="rounded-md border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">{meta}</span> : null}
+          <ChevronDown className="h-4 w-4 text-muted transition-transform group-open:rotate-180" />
+        </div>
+      </summary>
+      <div className="border-t border-border/70 px-4 py-4">{children}</div>
+    </details>
   );
 }
 
@@ -105,7 +135,7 @@ function OutlineNodeRow({
     <div className="space-y-2">
       <div
         className={cn(
-          "rounded-[20px] border px-3 py-3 transition-colors",
+          "rounded-lg border px-3 py-3 transition-colors",
           selectedNodeId === node.id
             ? "border-accent bg-accent/8 shadow-sm"
             : "border-border bg-white/75 hover:border-border-strong hover:bg-white",
@@ -165,7 +195,7 @@ function OutlineNodeRow({
                   type="button"
                   onClick={() => selectRegionTarget(regionTarget)}
                   className={cn(
-                    "mb-2 w-full rounded-[18px] border px-3 py-2 text-left",
+                    "mb-2 w-full rounded-lg border px-3 py-2 text-left",
                     regionSelected
                       ? "border-accent bg-accent/8"
                       : "border-border bg-white/70 hover:border-border-strong hover:bg-white",
@@ -225,88 +255,80 @@ function RoutesTab() {
   const activePage = project.pages.find((page) => page.id === selectedPageId) ?? project.pages[0];
 
   return (
-    <section className="rounded-[24px] border border-border bg-white/72 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Pages</p>
-          <h2 className="mt-1 text-lg font-semibold text-foreground">Routes and project flow</h2>
+    <div className="space-y-3">
+      <PanelDisclosure
+        title="Active page"
+        description={`${activePage.name} ${activePage.path}`}
+        meta={`${countPageNodes(project, activePage.id)} blocks`}
+      >
+        <p className="text-sm leading-6 text-muted">{activePage.description}</p>
+      </PanelDisclosure>
+
+      <PanelDisclosure title="Pages" description="Routes and page order" meta={`${project.pages.length} total`}>
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={() => addPage()}
+            data-builder-page-action="new"
+            className="builder-pill inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-foreground"
+          >
+            <FilePlus2 className="h-3.5 w-3.5" />
+            New page
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => addPage()}
-          data-builder-page-action="new"
-          className="builder-pill inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-foreground"
-        >
-          <FilePlus2 className="h-3.5 w-3.5" />
-          New page
-        </button>
-      </div>
 
-      <div className="mt-4 rounded-[22px] border border-border bg-white/76 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Active page</p>
-        <div className="mt-2 flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-base font-semibold text-foreground">{activePage.name}</h3>
-            <p className="mt-1 text-xs text-muted">{activePage.path}</p>
-          </div>
-          <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
-            {countPageNodes(project, activePage.id)} block{countPageNodes(project, activePage.id) === 1 ? "" : "s"}
-          </span>
-        </div>
-        <p className="mt-3 text-sm leading-6 text-muted">{activePage.description}</p>
-      </div>
+        <div className="grid gap-2">
+          {project.pages.map((page) => {
+            const active = page.id === selectedPageId;
+            const pageNodeCount = countPageNodes(project, page.id);
 
-      <div className="mt-4 grid gap-2">
-        {project.pages.map((page) => {
-          const active = page.id === selectedPageId;
-          const pageNodeCount = countPageNodes(project, page.id);
-
-          return (
-            <div
-              key={page.id}
-              data-builder-page={page.id}
-              className={cn(
-                "rounded-[22px] border px-4 py-3 transition-colors",
-                active
-                  ? "border-accent bg-accent/8 shadow-sm"
-                  : "border-border bg-white/70 hover:border-border-strong hover:bg-white",
-              )}
-            >
-              <button type="button" onClick={() => selectPage(page.id)} className="block w-full text-left">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{page.name}</p>
-                    <p className="mt-1 text-xs text-muted">{page.path}</p>
+            return (
+              <div
+                key={page.id}
+                data-builder-page={page.id}
+                className={cn(
+                  "rounded-lg border px-4 py-3 transition-colors",
+                  active
+                    ? "border-accent bg-accent/8 shadow-sm"
+                    : "border-border bg-white/70 hover:border-border-strong hover:bg-white",
+                )}
+              >
+                <button type="button" onClick={() => selectPage(page.id)} className="block w-full text-left">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{page.name}</p>
+                      <p className="mt-1 text-xs text-muted">{page.path}</p>
+                    </div>
+                    <span className="rounded-md border border-border bg-white/75 px-2 py-1 text-[11px] text-muted">
+                      {pageNodeCount} block{pageNodeCount === 1 ? "" : "s"}
+                    </span>
                   </div>
-                  <span className="rounded-full border border-border bg-white/75 px-2 py-1 text-[11px] text-muted">
-                    {pageNodeCount} block{pageNodeCount === 1 ? "" : "s"}
-                  </span>
+                  <p className="mt-2 text-xs leading-5 text-muted">{page.description}</p>
+                </button>
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => duplicatePage(page.id)}
+                    className="builder-pill inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-semibold text-foreground"
+                  >
+                    <Copy className="h-3 w-3" />
+                    Duplicate
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removePage(page.id)}
+                    className="builder-pill inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-semibold text-danger"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Delete
+                  </button>
                 </div>
-                <p className="mt-2 text-xs leading-5 text-muted">{page.description}</p>
-              </button>
-              <div className="mt-3 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => duplicatePage(page.id)}
-                  className="builder-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-foreground"
-                >
-                  <Copy className="h-3 w-3" />
-                  Duplicate
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removePage(page.id)}
-                  className="builder-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-danger"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Delete
-                </button>
               </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
+            );
+          })}
+        </div>
+      </PanelDisclosure>
+    </div>
   );
 }
 
@@ -330,54 +352,28 @@ function OutlineTab() {
   const totalRoots = Object.values(page.regions).reduce((total, regionIds) => total + regionIds.length, 0);
 
   return (
-    <section className="rounded-[24px] border border-border bg-white/72 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Outline</p>
-          <h2 className="mt-1 text-lg font-semibold text-foreground">Page structure and regions</h2>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            selectNode(null);
-            selectRegionTarget(null);
-          }}
-          className="builder-pill rounded-full px-3 py-2 text-xs font-semibold text-foreground"
-        >
-          Clear selection
-        </button>
-      </div>
-
-      <div className="mt-4 rounded-[22px] border border-border bg-white/76 p-4">
+    <div className="space-y-3">
+      <PanelDisclosure title="Page outline" description={`${page.name} ${page.path}`} meta={`${totalRoots} root blocks`}>
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-base font-semibold text-foreground">{page.name}</h3>
-            <p className="mt-1 text-xs text-muted">{page.path}</p>
-          </div>
-          <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
-            {totalRoots} root block{totalRoots === 1 ? "" : "s"}
-          </span>
+          <p className="max-w-[22rem] text-sm leading-6 text-muted">{insertionContextMessage}</p>
+          <button
+            type="button"
+            onClick={() => {
+              selectNode(null);
+              selectRegionTarget(null);
+            }}
+            className="builder-pill rounded-lg px-3 py-2 text-xs font-semibold text-foreground"
+          >
+            Clear selection
+          </button>
         </div>
-        <p className="mt-3 text-sm leading-6 text-muted">
-          Use the outline to select regions and blocks directly. The builder now treats page and block regions as
-          canonical authoring destinations.
-        </p>
-      </div>
 
-      <div className="mt-4 rounded-[22px] border border-border bg-white/76 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Current insertion target</p>
-            <h3 className="mt-1 text-base font-semibold text-foreground">{insertion.label}</h3>
-          </div>
-          <span className="rounded-full border border-border bg-white/85 px-2 py-1 text-[11px] text-muted">
-            {insertion.kind === "page-region" ? "Page region" : "Block region"}
-          </span>
+        <div className="mt-3 rounded-lg border border-border bg-white/80 px-3 py-3 text-sm text-muted">
+          Inserting into <span className="font-semibold text-foreground">{insertion.label}</span>
         </div>
-        <p className="mt-3 text-sm leading-6 text-muted">{insertionContextMessage}</p>
-      </div>
+      </PanelDisclosure>
 
-      <div className="mt-4 space-y-4">
+      <div className="space-y-3">
         {pageRegionIds.map((regionId) => {
           const regionTarget: ParentReference = {
             kind: "page-region",
@@ -391,38 +387,25 @@ function OutlineTab() {
             selectedRegionTarget.regionId === regionId;
 
           return (
-            <div key={`${page.id}-${regionId}`} className="rounded-[22px] border border-border bg-white/74 p-4">
+            <PanelDisclosure
+              key={`${page.id}-${regionId}`}
+              title={getPageRegionLabel(regionId)}
+              description={getPageRegionDefinition(regionId).description}
+              meta={`${regionRoots.length} item${regionRoots.length === 1 ? "" : "s"}`}
+            >
               <button
                 type="button"
                 onClick={() => selectRegionTarget(regionTarget)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-[18px] border px-3 py-3 text-left",
+                  "mb-3 flex w-full items-center justify-between rounded-lg border px-3 py-3 text-left",
                   regionSelected ? "border-accent bg-accent/8" : "border-border bg-white/80",
                 )}
               >
-                {(() => {
-                  const regionDefinition = getPageRegionDefinition(regionId);
-
-                  return (
-                    <>
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                          {getPageRegionLabel(regionId)}
-                        </p>
-                        <p className="mt-1 text-sm text-muted">{regionDefinition.description}</p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <RegionRoleBadge role={regionDefinition.role} />
-                        <span className="rounded-full border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
-                          {regionRoots.length} item{regionRoots.length === 1 ? "" : "s"}
-                        </span>
-                      </div>
-                    </>
-                  );
-                })()}
+                <span className="text-sm font-medium text-foreground">Select {getPageRegionLabel(regionId).toLowerCase()} region</span>
+                <RegionRoleBadge role={getPageRegionDefinition(regionId).role} />
               </button>
 
-              <div className="mt-3 space-y-2">
+              <div className="space-y-2">
                 {regionRoots.length > 0 ? (
                   regionRoots.map((rootId, index) => (
                     <OutlineNodeRow
@@ -436,16 +419,16 @@ function OutlineTab() {
                     />
                   ))
                 ) : (
-                  <div className="rounded-[18px] border border-dashed border-border bg-white/65 p-3 text-sm leading-6 text-muted">
+                  <div className="rounded-lg border border-dashed border-border bg-white/65 p-3 text-sm leading-6 text-muted">
                     {getPageRegionEmptyMessage(regionId)}
                   </div>
                 )}
               </div>
-            </div>
+            </PanelDisclosure>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -457,7 +440,7 @@ export function PagePanel() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[24px] border border-border bg-white/76 p-2">
+      <div className="rounded-xl border border-border bg-white/76 p-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <PanelTabButton
             active={activeTab === "routes"}
@@ -473,8 +456,8 @@ export function PagePanel() {
             onClick={() => setActiveTab("outline")}
             value="outline"
           />
-          <span className="ml-auto rounded-full border border-border bg-white/80 px-3 py-1 text-[11px] text-muted">
-            {totalPageNodes} block{totalPageNodes === 1 ? "" : "s"} on page
+          <span className="ml-auto rounded-md border border-border bg-white/80 px-2 py-1 text-[11px] text-muted">
+            {totalPageNodes} blocks
           </span>
         </div>
       </div>
