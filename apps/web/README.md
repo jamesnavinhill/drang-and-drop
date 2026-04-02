@@ -69,7 +69,7 @@ Both side panels now support collapsible sections inside the panel content so th
 - expanded first-party block catalog spanning launch-page, proof, CTA, metric, empty-state, and workspace-header primitives
 - slot-owning composite blocks for `pricingCard`, `ctaBanner`, `formCard`, `emptyState`, and `workspaceHeader` so the builder can grow more composable internals without turning every block into a generic container
 - zip export to a runnable `Next.js` starter
-- browser-backed builder drag verification for palette insertion, nested insertion, reorder, and invalid-drop coverage using real pointer movement between live DOM targets
+- browser-backed builder drag verification for live palette insertion and node reorder flows, paired with the deterministic builder verification hook for structural invalid-drop and deeper composition assertions
 - direct builder command verification for shared insert/move/duplicate/remove and structural validation flows
 - automated generated-starter verification across all shipped templates
 - browser-rendered starter verification with screenshots, console/page error checks, and route assertions

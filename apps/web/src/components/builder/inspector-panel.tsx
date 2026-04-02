@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, Paintbrush, ScrollText, Sparkles } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
 import {
@@ -411,12 +411,6 @@ function ThemeTab() {
 export function InspectorPanel() {
   const selectedNode = useBuilderStore(getSelectedNode);
   const [activeTab, setActiveTab] = useState<InspectorTab>(selectedNode ? "selection" : "page");
-
-  useEffect(() => {
-    if (selectedNode) {
-      setActiveTab("selection");
-    }
-  }, [selectedNode]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">

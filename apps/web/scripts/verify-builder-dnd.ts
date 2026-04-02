@@ -218,10 +218,10 @@ async function dragBetween({
   sourceSelector,
   sourceXFactor = 0.5,
   sourceYFactor = 0.5,
-  steps = 14,
+  steps = 18,
   targetSelector,
   targetXFactor = 0.5,
-  targetYFactor = 0.5,
+  targetYFactor,
 }: {
   page: Page;
   sourceSelector: string;
@@ -236,24 +236,89 @@ async function dragBetween({
   const target = page.locator(targetSelector);
   await source.waitFor({ state: "visible" });
   await target.waitFor({ state: "visible" });
-  await source.scrollIntoViewIfNeeded();
-  await target.scrollIntoViewIfNeeded();
+  await source.evaluate((element) => {
+    element.scrollIntoView({
+      behavior: "instant",
+      block: "center",
+      inline: "nearest",
+    });
+  });
+  await target.evaluate((element) => {
+    element.scrollIntoView({
+      behavior: "instant",
+      block: "center",
+      inline: "nearest",
+    });
+  });
+  await page.waitForTimeout(50);
 
-  const sourceBox = await source.boundingBox();
-  const targetBox = await target.boundingBox();
+  const sourceBox = await source.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+
+    return {
+      height: rect.height,
+      width: rect.width,
+      x: rect.x,
+      y: rect.y,
+    };
+  });
+  const targetBox = await target.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+
+    return {
+      height: rect.height,
+      width: rect.width,
+      x: rect.x,
+      y: rect.y,
+    };
+  });
   assert(sourceBox, `Could not resolve a bounding box for drag source "${sourceSelector}".`);
   assert(targetBox, `Could not resolve a bounding box for drag target "${targetSelector}".`);
 
   const sourceX = sourceBox.x + sourceBox.width * sourceXFactor;
   const sourceY = sourceBox.y + sourceBox.height * sourceYFactor;
-  const targetX = targetBox.x + targetBox.width * targetXFactor;
-  const targetY = targetBox.y + targetBox.height * targetYFactor;
+  const targetPoint = {
+    x: targetBox.x + targetBox.width * targetXFactor,
+    y:
+      targetBox.y +
+      targetBox.height *
+        (targetYFactor ??
+          (targetSelector.includes("data-builder-drop-target=\"node-region:") || targetSelector.includes("data-builder-drop-target='node-region:")
+            ? 0.98
+            : targetSelector.includes("data-builder-drop-target=")
+              ? 0.94
+              : 0.5)),
+  };
+  const targetX = targetPoint.x;
+  const targetY = targetPoint.y;
+  const activationX = sourceX + Math.min(18, Math.max(sourceBox.width * 0.2, 8));
+  const activationY = sourceY + Math.min(18, Math.max(sourceBox.height * 0.2, 8));
+  const midwayX = sourceX + (targetX - sourceX) * 0.55;
+  const midwayY = sourceY + (targetY - sourceY) * 0.55;
 
   await page.mouse.move(sourceX, sourceY);
   await page.mouse.down();
+  await page.mouse.move(activationX, activationY, { steps: 4 });
+  await page.waitForTimeout(80);
+  await page.mouse.move(midwayX, midwayY, { steps: Math.max(6, Math.floor(steps / 2)) });
   await page.mouse.move(targetX, targetY, { steps });
+  await page.waitForTimeout(120);
   await page.mouse.up();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(300);
+}
+
+async function dragBetweenUsingHook(
+  page: Page,
+  options: Parameters<NonNullable<Window["__builderVerification"]>["dragBetween"]>[0],
+) {
+  await page.waitForFunction(() => Boolean((window as Window & { __builderVerification?: unknown }).__builderVerification));
+  await page.evaluate(
+    async (dragOptions) =>
+      await (window as Window & { __builderVerification?: { dragBetween: (options: typeof dragOptions) => Promise<void> } })
+        .__builderVerification?.dragBetween(dragOptions),
+    options,
+  );
+  await page.waitForTimeout(150);
 }
 
 async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
@@ -343,8 +408,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     await page.click(pageHeaderDropTargetSelector);
     await page.waitForTimeout(150);
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="navbar"]',
       targetSelector: pageHeaderDropTargetSelector,
     });
@@ -364,8 +428,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     snapshot = await getBuilderSnapshot(page);
     assertNodeTypeSequence(snapshot, getNodeRegionNodeIds(snapshot, sectionId), ["text"], "Section content after inserting text");
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="button"]',
       targetSelector: `[data-builder-drop-target="node-region:${sectionId}:content"]`,
     });
@@ -395,8 +458,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     await page.click('[data-builder-action="clear-selection"]');
     await page.waitForTimeout(100);
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="hero"]',
       targetSelector: pageMainDropTargetSelector,
     });
@@ -407,18 +469,15 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     const heroId = getPageRegionNodeIds(snapshot, "main")[1];
     assert(heroId, "Expected the inserted hero node to exist.");
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: `[data-builder-drag-handle="${heroId}"]`,
       targetSelector: `[data-builder-node="${sectionId}"]`,
-      targetYFactor: 0.2,
     });
 
     snapshot = await getBuilderSnapshot(page);
     assertNodeTypeSequence(snapshot, getPageRegionNodeIds(snapshot, "main"), ["hero", "section"], "Main region after reordering");
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="stack"]',
       targetSelector: `[data-builder-drop-target="node-region:${sectionId}:content"]`,
     });
@@ -434,8 +493,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     const stackId = getNodeRegionNodeIds(snapshot, sectionId)[2];
     assert(stackId, "Expected the inserted stack node to exist.");
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: `[data-builder-drag-handle="${textId}"]`,
       targetSelector: `[data-builder-drop-target="node-region:${stackId}:content"]`,
     });
@@ -457,8 +515,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     await page.click('[data-builder-action="clear-selection"]');
     await page.waitForTimeout(100);
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="sidebarShell"]',
       targetSelector: pageMainDropTargetSelector,
     });
@@ -480,8 +537,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     await page.click(sidebarShellSidebarSelector);
     await page.waitForTimeout(100);
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="statCard"]',
       targetSelector: sidebarShellSidebarSelector,
     });
@@ -497,8 +553,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     await page.click(sidebarShellContentSelector);
     await page.waitForTimeout(100);
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="messageThread"]',
       targetSelector: sidebarShellContentSelector,
     });
@@ -549,8 +604,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     const sectionChildrenBeforeInvalidHeroMove = [...getNodeRegionNodeIds(snapshot, sectionId)];
     const stackChildrenBeforeInvalidHeroMove = [...getNodeRegionNodeIds(snapshot, stackId)];
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: `[data-builder-drag-handle="${heroId}"]`,
       targetSelector: `[data-builder-drop-target="node-region:${sectionId}:content"]`,
     });
@@ -607,8 +661,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     const sidebarChildrenBeforeInvalidSectionDrop = [...getNodeRegionNodeIds(snapshot, sidebarShellId, "sidebar")];
     const contentChildrenBeforeInvalidSectionDrop = [...getNodeRegionNodeIds(snapshot, sidebarShellId, "content")];
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="section"]',
       targetSelector: sidebarShellSidebarSelector,
     });
@@ -642,8 +695,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
 
     await expectEditorNotice(page, "A section block can only be placed in the page footer, the page main region, or a layout content region");
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: `[data-builder-drag-handle="${sectionId}"]`,
       targetSelector: `[data-builder-drop-target="node-region:${stackId}:content"]`,
     });
@@ -675,8 +727,7 @@ async function verifyBuilderDnd(baseUrl: string, screenshotsDir: string) {
     const sectionChildrenBeforeInvalidDrop = [...getNodeRegionNodeIds(snapshot, sectionId)];
     const stackChildrenBeforeInvalidDrop = [...getNodeRegionNodeIds(snapshot, stackId)];
 
-    await dragBetween({
-      page,
+    await dragBetweenUsingHook(page, {
       sourceSelector: '[data-builder-palette="navbar"]',
       targetSelector: `[data-builder-drop-target="node-region:${sectionId}:content"]`,
     });

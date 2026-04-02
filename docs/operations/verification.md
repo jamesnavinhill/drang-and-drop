@@ -98,29 +98,31 @@ Automated builder drag validation completed via `pnpm verify:dnd`:
 1. Rebuilt the builder app and served it under `next start`.
 2. Reset the demo state and created a clean verification page in-browser with empty `header`, `main`, and `footer` regions.
 3. Verified pointer-driven drag automation moves the live browser cursor between real source and target DOM bounds before asserting the resulting builder structure.
-4. Verified palette-to-canvas insertion for a `section` into the page `main` region.
-5. Verified palette-to-canvas insertion for a `navbar` into the page `header` region after selecting that destination explicitly.
-6. Verified nested insertion into section `content` for `text` and `button` blocks.
-7. Verified nested reordering by moving `button` ahead of `text`.
-8. Verified another page-main insertion for `hero`.
-9. Verified page-main reordering by moving `hero` ahead of `section`.
-10. Verified nested insertion for `stack`, then moved `text` into that nested block region.
-11. Verified page-main insertion for the first multi-region `sidebarShell`.
-12. Verified insertion into `sidebarShell.sidebar` for a compact supporting block.
-13. Verified insertion into `sidebarShell.content` for a primary workspace block.
-14. Verified an invalid nested `hero` move does not mutate the builder structure.
-15. Verified an invalid sidebar-region `section` drop does not mutate the builder structure.
-16. Verified an invalid descendant move does not mutate the builder structure.
-17. Verified an invalid nested `navbar` drop does not mutate the builder structure.
-18. Verified invalid hero, sidebar, descendant, and navbar interactions surface a visible editor notice.
-19. Verified the shared editor notice can be dismissed.
-20. Verified inspector-driven reorder can move a selected node down and restore it back up.
-21. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
-22. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
+4. Kept the browser-pointer path on the core interaction loops that matter most to UX feel: root insertion, nested insertion, and node reorder.
+5. Used the deterministic builder verification hook for later structural and invalid-placement assertions so those checks stay stable across browser hitbox differences while still exercising the same store and command layers.
+6. Verified palette-to-canvas insertion for a `section` into the page `main` region.
+7. Verified palette-to-canvas insertion for a `navbar` into the page `header` region after selecting that destination explicitly.
+8. Verified nested insertion into section `content` for `text` and `button` blocks.
+9. Verified nested reordering by moving `button` ahead of `text`.
+10. Verified another page-main insertion for `hero`.
+11. Verified page-main reordering by moving `hero` ahead of `section`.
+12. Verified nested insertion for `stack`, then moved `text` into that nested block region.
+13. Verified page-main insertion for the first multi-region `sidebarShell`.
+14. Verified insertion into `sidebarShell.sidebar` for a compact supporting block.
+15. Verified insertion into `sidebarShell.content` for a primary workspace block.
+16. Verified an invalid nested `hero` move does not mutate the builder structure.
+17. Verified an invalid sidebar-region `section` drop does not mutate the builder structure.
+18. Verified an invalid descendant move does not mutate the builder structure.
+19. Verified an invalid nested `navbar` drop does not mutate the builder structure.
+20. Verified invalid hero, sidebar, descendant, and navbar interactions surface a visible editor notice.
+21. Verified the shared editor notice can be dismissed.
+22. Verified inspector-driven reorder can move a selected node down and restore it back up.
+23. Confirmed no browser `pageerror`, no browser console error, and no failed network request during the builder session.
+24. Saved a final builder screenshot under `apps/web/output/builder-dnd-verification/screenshots`.
 
 ## Remaining Caveat
 
-The previous local `next start` concern no longer reproduces after the hydration change, and builder drag coverage is now in place through a browser-backed harness that uses real pointer movement.
+The previous local `next start` concern no longer reproduces after the hydration change, and builder drag coverage is now in place through a hybrid harness: real pointer movement stays on the live interaction loop, while deterministic builder-hook checks cover deeper structural invalid cases that are more sensitive to browser hitbox drift.
 
 The primary remaining verification gaps are now split between editor-foundation hardening and deeper generated-app fidelity coverage:
 

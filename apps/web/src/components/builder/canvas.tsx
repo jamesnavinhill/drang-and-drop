@@ -1,21 +1,11 @@
 "use client";
 
 import {
-  type DragEndEvent,
-  DragOverlay,
-  type DragOverEvent,
-  type DragStartEvent,
-  DndContext,
-  PointerSensor,
-  closestCorners,
   useDroppable,
-  useSensor,
-  useSensors,
 } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { AlertCircle, GripVertical, LayoutTemplate, MousePointer2 } from "lucide-react";
-import { useMemo, useState } from "react";
 
 import { getBlockDefinition } from "@/lib/builder/block-definitions";
 import {
@@ -27,35 +17,18 @@ import {
 } from "@/lib/builder/block-placement";
 import { getThemeStyles, renderNodePreview } from "@/lib/builder/block-preview";
 import {
-  applyBuilderDragOperation,
-  evaluateBuilderDragOperation,
-  type BuilderActiveDragData,
   type BuilderDragEvaluation,
   type BuilderOverDragData,
 } from "@/lib/builder/dnd";
 import {
-  describeRegionReference,
   getPageRegionDescription,
   getPageRegionEmptyMessage,
   getPageRegionLabel,
 } from "@/lib/builder/regions";
-import { getNodeDisplayLabel } from "@/lib/builder/structure";
 import { useBuilderStore } from "@/lib/builder/store";
 import type { BuilderNode, BuilderProject, ParentReference } from "@/lib/builder/types";
 import { pageRegionIds } from "@/lib/builder/types";
 import { cn } from "@/lib/utils";
-
-type DragDescriptor =
-  | {
-      kind: "palette";
-      title: string;
-      description: string;
-    }
-  | {
-      kind: "node";
-      title: string;
-      description: string;
-    };
 
 function sameParentReference(left: ParentReference | null | undefined, right: ParentReference | null | undefined) {
   if (!left || !right || left.kind !== right.kind || left.regionId !== right.regionId) {
@@ -73,58 +46,9 @@ function toDropTargetValue(parent: ParentReference) {
     : `node-region:${parent.nodeId}:${parent.regionId}`;
 }
 
-function describeDropMessage(
-  project: BuilderProject,
-  active: BuilderActiveDragData | null,
-  evaluation: BuilderDragEvaluation,
-  over: BuilderOverDragData | null,
-) {
-  if (!active) {
-    return null;
-  }
-
-  if (!over || !evaluation.target) {
-    return {
-      message: "Move over a page region or block region to find a valid placement target.",
-      tone: "info" as const,
-    };
-  }
-
-  if (!evaluation.validation) {
-    return null;
-  }
-
-  if (!evaluation.validation.ok) {
-    return {
-      message: evaluation.validation.message,
-      tone: "error" as const,
-    };
-  }
-
-  if (over.kind === "node") {
-    const targetNode = project.nodes[over.nodeId];
-    const targetLabel = targetNode
-      ? `${getBlockDefinition(targetNode.type).title}: ${getNodeDisplayLabel(targetNode)}`
-      : "this block";
-
-    return {
-      message:
-        active.kind === "palette"
-          ? `Release to add this block before ${targetLabel}.`
-          : `Release to move this block before ${targetLabel}.`,
-      tone: "info" as const,
-    };
-  }
-
-  const parentLabel = describeRegionReference(project, evaluation.target.parent);
-
-  return {
-    message:
-      active.kind === "palette"
-        ? `Release to add this block inside ${parentLabel}.`
-        : `Release to move this block into ${parentLabel}.`,
-    tone: "info" as const,
-  };
+export interface BuilderCanvasDragMessage {
+  message: string;
+  tone: "error" | "info";
 }
 
 function EmptyRegionState({
@@ -225,27 +149,36 @@ function CanvasRegion({
       <SortableContext items={childIds} strategy={verticalListSortingStrategy}>
         <div className="grid gap-4">
           {childIds.length > 0 ? (
-            childIds.map((childId, index) => {
-              const childNode = project.nodes[childId];
+            <>
+              {childIds.map((childId, index) => {
+                const childNode = project.nodes[childId];
 
-              if (!childNode) {
-                return null;
-              }
+                if (!childNode) {
+                  return null;
+                }
 
-              return (
-                <CanvasNode
-                  key={childId}
-                  node={childNode}
-                  index={index}
-                  parent={parent}
-                  previewMode={previewMode}
-                  project={project}
-                  selectedNodeId={selectedNodeId}
-                  dragEvaluation={dragEvaluation}
-                  overDragData={overDragData}
-                />
-              );
-            })
+                return (
+                  <CanvasNode
+                    key={childId}
+                    node={childNode}
+                    index={index}
+                    parent={parent}
+                    previewMode={previewMode}
+                    project={project}
+                    selectedNodeId={selectedNodeId}
+                    dragEvaluation={dragEvaluation}
+                    overDragData={overDragData}
+                  />
+                );
+              })}
+              <div
+                aria-hidden="true"
+                className={cn(
+                  "rounded-lg border border-dashed border-transparent",
+                  compact ? "min-h-8" : "min-h-20",
+                )}
+              />
+            </>
           ) : (
             <EmptyRegionState compact={compact} message={emptyMessage} />
           )}
@@ -352,36 +285,22 @@ function CanvasNode({
   );
 }
 
-export function BuilderCanvas() {
-  const [activeDrag, setActiveDrag] = useState<DragDescriptor | null>(null);
-  const [activeDragData, setActiveDragData] = useState<BuilderActiveDragData | null>(null);
-  const [overDragData, setOverDragData] = useState<BuilderOverDragData | null>(null);
+export function BuilderCanvas({
+  dragEvaluation,
+  dragMessage,
+  overDragData,
+}: {
+  dragEvaluation: BuilderDragEvaluation | null;
+  dragMessage: BuilderCanvasDragMessage | null;
+  overDragData: BuilderOverDragData | null;
+}) {
   const project = useBuilderStore((state) => state.project);
   const selectedPageId = useBuilderStore((state) => state.selectedPageId);
   const selectedNodeId = useBuilderStore((state) => state.selectedNodeId);
   const previewMode = useBuilderStore((state) => state.previewMode);
-  const addNode = useBuilderStore((state) => state.addNode);
-  const moveNode = useBuilderStore((state) => state.moveNode);
-  const clearEditorNotice = useBuilderStore((state) => state.clearEditorNotice);
   const selectNode = useBuilderStore((state) => state.selectNode);
   const selectRegionTarget = useBuilderStore((state) => state.selectRegionTarget);
   const page = project.pages.find((entry) => entry.id === selectedPageId) ?? project.pages[0];
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
-  const dragEvaluation = useMemo(
-    () =>
-      activeDragData
-        ? evaluateBuilderDragOperation({
-            active: activeDragData,
-            over: overDragData ?? undefined,
-            project,
-          })
-        : null,
-    [activeDragData, overDragData, project],
-  );
-  const dragMessage = useMemo(
-    () => describeDropMessage(project, activeDragData, dragEvaluation ?? { target: null, validation: null }, overDragData),
-    [activeDragData, dragEvaluation, overDragData, project],
-  );
   const totalRoots = pageRegionIds.reduce((total, regionId) => total + (page.regions[regionId]?.length ?? 0), 0);
   const widthClass =
     previewMode === "mobile"
@@ -390,154 +309,74 @@ export function BuilderCanvas() {
         ? "max-w-3xl"
         : "max-w-6xl";
 
-  function handleDragStart(event: DragStartEvent) {
-    const data = event.active.data.current;
-    clearEditorNotice();
-    if (!data) {
-      setActiveDrag(null);
-      setActiveDragData(null);
-      return;
-    }
-
-    if (data.kind === "palette") {
-      setActiveDragData({
-        blockType: data.blockType,
-        kind: "palette",
-      });
-      setActiveDrag({
-        kind: "palette",
-        title: `${data.title}`,
-        description: `${data.description}`,
-      });
-      return;
-    }
-
-    if (data.kind === "node") {
-      setActiveDragData({
-        kind: "node",
-        nodeId: data.nodeId,
-      });
-      setActiveDrag({
-        kind: "node",
-        title: `${data.title}`,
-        description: `${data.description}`,
-      });
-    }
-  }
-
-  function handleDragOver(event: DragOverEvent) {
-    setOverDragData((event.over?.data.current as BuilderOverDragData | undefined) ?? null);
-  }
-
-  function resetDragState() {
-    setActiveDrag(null);
-    setActiveDragData(null);
-    setOverDragData(null);
-  }
-
-  function handleDragCancel() {
-    resetDragState();
-  }
-
-  function handleDragEnd(event: DragEndEvent) {
-    applyBuilderDragOperation({
-      active: event.active.data.current as BuilderActiveDragData | undefined,
-      addNode: (type, parent, index) => addNode(type, parent, index),
-      moveNode: (nodeId, parent, index) => moveNode(nodeId, parent, index),
-      over: event.over?.data.current as BuilderOverDragData | undefined,
-      project,
-    });
-
-    resetDragState();
-  }
-
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragCancel={handleDragCancel}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="builder-grid builder-scrollbar flex h-full flex-1 overflow-auto p-3 md:p-4">
-        <div className={cn("mx-auto w-full transition-all duration-300", widthClass)}>
-          {dragMessage ? (
-            <div
-              className={cn(
-                "mb-3 flex items-start gap-3 rounded-lg border px-4 py-3 text-sm leading-6",
-                dragMessage.tone === "error"
-                  ? "border-orange-300 bg-orange-50 text-foreground"
-                  : "border-border bg-white/80 text-muted",
-              )}
-            >
-              <AlertCircle
-                className={cn("mt-0.5 h-4 w-4 shrink-0", dragMessage.tone === "error" ? "text-orange-500" : "text-muted")}
-              />
-              <p>{dragMessage.message}</p>
-            </div>
-          ) : null}
-
+    <div className="builder-grid builder-scrollbar flex h-full flex-1 overflow-auto p-3 md:p-4">
+      <div className={cn("mx-auto w-full transition-all duration-300", widthClass)}>
+        {dragMessage ? (
           <div
-            className="builder-theme min-h-[68vh] rounded-2xl p-4 md:p-5"
-            style={getThemeStyles(project.theme)}
-            onClick={() => {
-              selectNode(null);
-              selectRegionTarget(null);
-            }}
+            className={cn(
+              "mb-3 flex items-start gap-3 rounded-lg border px-4 py-3 text-sm leading-6",
+              dragMessage.tone === "error"
+                ? "border-orange-300 bg-orange-50 text-foreground"
+                : "border-border bg-white/80 text-muted",
+            )}
           >
-            <div className="grid gap-4">
-              {pageRegionIds.map((regionId) => {
-                const regionParent: ParentReference = {
-                  kind: "page-region",
-                  pageId: page.id,
-                  regionId,
-                };
-                const regionChildIds = page.regions[regionId] ?? [];
-                const isMain = regionId === "main";
+            <AlertCircle
+              className={cn("mt-0.5 h-4 w-4 shrink-0", dragMessage.tone === "error" ? "text-orange-500" : "text-muted")}
+            />
+            <p>{dragMessage.message}</p>
+          </div>
+        ) : null}
 
-                return (
-                  <CanvasRegion
-                    key={`${page.id}-${regionId}`}
-                    childIds={regionChildIds}
-                    compact={!isMain}
-                    description={getPageRegionDescription(regionId)}
-                    dragEvaluation={dragEvaluation}
-                    emptyMessage={
-                      isMain && totalRoots === 0
-                        ? "Start with a section, hero, or grid. Drag blocks here to shape the page flow."
-                        : getPageRegionEmptyMessage(regionId)
+        <div
+          className="builder-theme min-h-[68vh] rounded-2xl p-4 md:p-5"
+          style={getThemeStyles(project.theme)}
+          onClick={() => {
+            selectNode(null);
+            selectRegionTarget(null);
+          }}
+        >
+          <div className="grid gap-4">
+            {pageRegionIds.map((regionId) => {
+              const regionParent: ParentReference = {
+                kind: "page-region",
+                pageId: page.id,
+                regionId,
+              };
+              const regionChildIds = page.regions[regionId] ?? [];
+              const isMain = regionId === "main";
+
+              return (
+                <CanvasRegion
+                  key={`${page.id}-${regionId}`}
+                  childIds={regionChildIds}
+                  compact={!isMain}
+                  description={getPageRegionDescription(regionId)}
+                  dragEvaluation={dragEvaluation}
+                  emptyMessage={
+                    isMain && totalRoots === 0
+                      ? "Start with a section, hero, or grid. Drag blocks here to shape the page flow."
+                      : getPageRegionEmptyMessage(regionId)
                   }
-                    overDragData={overDragData}
-                    parent={regionParent}
-                    previewMode={previewMode}
-                    project={project}
-                    selectedNodeId={selectedNodeId}
-                    title={getPageRegionLabel(regionId)}
-                  />
-                );
-              })}
+                  overDragData={overDragData}
+                  parent={regionParent}
+                  previewMode={previewMode}
+                  project={project}
+                  selectedNodeId={selectedNodeId}
+                  title={getPageRegionLabel(regionId)}
+                />
+              );
+            })}
 
-              {totalRoots === 0 ? (
-                <div className="flex items-center gap-3 rounded-lg border border-dashed border-border bg-white/50 px-4 py-3 text-sm text-muted">
-                  <LayoutTemplate className="h-4 w-4" />
-                  The main region is the default drop target until you choose a different region.
-                </div>
-              ) : null}
-            </div>
+            {totalRoots === 0 ? (
+              <div className="flex items-center gap-3 rounded-lg border border-dashed border-border bg-white/50 px-4 py-3 text-sm text-muted">
+                <LayoutTemplate className="h-4 w-4" />
+                The main region is the default drop target until you choose a different region.
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
-
-      <DragOverlay>
-        {activeDrag?.kind === "palette" ? (
-          <div className="drag-overlay-card rounded-xl border border-border bg-white/96 px-4 py-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">{activeDrag.kind}</p>
-            <h3 className="mt-1 text-sm font-semibold text-foreground">{activeDrag.title}</h3>
-            <p className="mt-1 max-w-56 text-xs leading-5 text-muted">{activeDrag.description}</p>
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+    </div>
   );
 }
